@@ -95,33 +95,74 @@ const Detail = ({ cart, setCart }) => {
 
       {showPopup && (
         <div className="popup-overlay">
-        <div className="popup-content popup-centered">
-          <h3>Choose Extras:</h3>
-          <div className="extras-container">
-            {product.extras && product.extras.length > 0 ? (
-              product.extras.map((extra) => (
-                <div key={extra.name} className="extra-option checkbox-wrapper-34">
-                  <input
-                    className="tgl tgl-ios"
-                    type="checkbox"
-                    id={extra.name}
-                    onChange={() => handleExtraChange(extra)}
-                    checked={selectedExtras.some((e) => e.name === extra.name)}
-                  />
-                  <label className="tgl-btn" htmlFor={extra.name}></label>
-                  <span className="extra-label">{extra.name} (+${extra.price.toFixed(2)})</span>
-                </div>
-              ))
-            ) : (
-              <p>No extras available for this item.</p>
-            )}
-          </div>
-          <div className="popup-buttons">
-            <button className="confirm-btn" onClick={confirmAddToCart}>Confirm</button>
-            <button className="cancel-btn" onClick={() => setShowPopup(false)}>Cancel</button>
+          <div className="popup-content popup-centered">
+            <h3>Customize Your Order</h3>
+            <h4>{product.name}</h4>
+            <p>Base Price: ${product.price.toFixed(2)}</p>
+            
+            <h4>Add-ons</h4>
+            <div className="extras-container">
+              {product.addOns?.length > 0 ? (
+                product.addOns.map((addOn) => (
+                  <div key={addOn.name} className="extra-option">
+                    <input
+                      type="checkbox"
+                      id={addOn.name}
+                      onChange={() => handleExtraChange(addOn)}
+                      checked={selectedExtras.some((e) => e.name === addOn.name)}
+                    />
+                    <label htmlFor={addOn.name}>{addOn.name} (+${addOn.price.toFixed(2)})</label>
+                  </div>
+                ))
+              ) : (
+                <p>No add-ons available.</p>
+              )}
+            </div>
+            
+            <h4>Extras</h4>
+            <div className="extras-container">
+              {product.extras?.length > 0 ? (
+                product.extras.map((extra) => (
+                  <div key={extra.name} className="extra-option">
+                    <input
+                      type="checkbox"
+                      id={extra.name}
+                      onChange={() => handleExtraChange(extra)}
+                      checked={selectedExtras.some((e) => e.name === extra.name)}
+                    />
+                    <label htmlFor={extra.name}>{extra.name} (+${extra.price.toFixed(2)})</label>
+                  </div>
+                ))
+              ) : (
+                <p>No extras available.</p>
+              )}
+            </div>
+            
+            <h4>Modifications</h4>
+            <div className="extras-container">
+              {product.modifications?.length > 0 ? (
+                product.modifications.map((mod) => (
+                  <div key={mod.name} className="extra-option">
+                    <input
+                      type="checkbox"
+                      id={mod.name}
+                      onChange={() => handleExtraChange(mod)}
+                      checked={selectedExtras.some((e) => e.name === mod.name)}
+                    />
+                    <label htmlFor={mod.name}>{mod.name}</label>
+                  </div>
+                ))
+              ) : (
+                <p>No modifications available.</p>
+              )}
+            </div>
+
+            <div className="popup-buttons">
+              <button className="confirm-btn" onClick={confirmAddToCart}>Confirm</button>
+              <button className="cancel-btn" onClick={() => setShowPopup(false)}>Cancel</button>
+            </div>
           </div>
         </div>
-      </div>
       )}
     </div>
   );

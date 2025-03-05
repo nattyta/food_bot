@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch } from "react-icons/fa";
+import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegFrownOpen, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./homePage.css";
 
@@ -8,61 +8,88 @@ const HomePage = ({ cart, setCart }) => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
   const [selectedExtras, setSelectedExtras] = useState([]);
+  const [showSpecialInstruction, setShowSpecialInstruction] = useState(false);
+  const [specialInstruction, setSpecialInstruction] = useState("");  
   const navigate = useNavigate();
+  const [selectedModifications, setSelectedModifications] = useState([]);
+
 
   useEffect(() => {
     const fetchedCategories = ["All", "Popular", "Pizza", "Burger", "Pasta", "Drinks", "Desserts"];
     setCategories(fetchedCategories);
 
     const sampleProducts = [
-      { id: 1, name: "Cheese Pizza", description: "With Extra Cheese", price: 9.99, image: "pizza.jpg", category: "Pizza", extras: [{ name: "Extra Cheese", price: 1.5 }, { name: "Mushrooms", price: 2.0 }] },
-      { id: 2, name: "Veggie Burger", description: "With Fresh Vegetables", price: 7.99, image: "burger.jpg", category: "Burger", extras: [{ name: "Avocado", price: 1.2 }, { name: "Cheese Slice", price: 0.8 }] },
+      { id: 1, name: "Cheese Pizza", description: "With Extra Cheese", price: 9.99, image: "pizza.jpg", category: "Pizza", addOns: [{ name: "Extra Cheese", price: 1.5 }, { name: "Mushrooms", price: 2.0 }], extras: [{ name: "Fries", price: 2.5 }, { name: "Drink", price: 1.5 }], modifications: [{ name: "No Onions" }, { name: "Less Salt" }] },
+      { id: 2, name: "Veggie Burger", description: "With Fresh Vegetables", price: 7.99, image: "burger.jpg", category: "Burger", addOns: [{ name: "Avocado", price: 1.2 }, { name: "Cheese Slice", price: 0.8 }], extras: [{ name: "Fries", price: 2.5 }, { name: "Drink", price: 1.5 }], modifications: [{ name: "No Tomato" }, { name: "No Mayo" }] }
     ];
     setProducts(sampleProducts);
   }, []);
 
-  const filteredProducts = activeCategory === "All" ? products : products.filter((product) => product.category === activeCategory);
-
   const openPopup = (product) => {
     setSelectedProduct(product);
     setSelectedExtras([]);
+    setSpecialInstruction("");
   };
 
   const closePopup = () => {
     setSelectedProduct(null);
     setSelectedExtras([]);
+    setSpecialInstruction("");
+  
   };
+
+
+  const handleAddOnChange = (addOn) => {
+    setSelectedAddOns((prev) =>
+      prev.some((a) => a.name === addOn.name)
+        ? prev.filter((a) => a.name !== addOn.name)
+        : [...prev, { ...addOn, quantity: 1 }]
+    );
+  };
+  
 
   const handleExtraChange = (extra) => {
-    setSelectedExtras((prevExtras) => {
-      if (prevExtras.includes(extra)) {
-        return prevExtras.filter((e) => e !== extra);
-      } else {
-        return [...prevExtras, extra];
-      }
-    });
+    setSelectedExtras((prev) =>
+      prev.some((e) => e.name === extra.name)
+        ? prev.filter((e) => e.name !== extra.name)
+        : [...prev, { ...extra, quantity: 1 }]
+    );
   };
-
-  const addToCart = (e) => {
-    e.stopPropagation();
+  
+  
+  const handleModificationChange = (mod) => {
+    setSelectedModifications((prev) =>
+      prev.includes(mod.name)
+        ? prev.filter((m) => m !== mod.name)
+        : [...prev, mod.name]
+    );
+  };
+  
+  const addToCart = () => {
     if (!selectedProduct) return;
-
-    const totalExtraPrice = selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
-    const totalPrice = selectedProduct.price + totalExtraPrice;
-
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === selectedProduct.id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === selectedProduct.id ? { ...item, quantity: item.quantity + 1, totalPrice: item.totalPrice + totalExtraPrice, selectedExtras: [...item.selectedExtras, ...selectedExtras] } : item
-        );
-      }
-      return [...prevCart, { ...selectedProduct, quantity: 1, totalPrice, selectedExtras }];
-    });
-
+  
+    console.log("Selected Extras Before Adding to Cart:", selectedExtras); // Debugging Log
+  
+    const newItem = {
+      id: `${selectedProduct.id}-${Date.now()}`,
+      name: selectedProduct.name,
+      price: selectedProduct.price,
+      quantity: 1,
+      addOns: selectedAddOns,
+      extras: selectedExtras,  // This should not be empty
+      modifications: selectedModifications,
+      specialInstruction: specialInstruction?.trim() || null,
+    };
+  
+    console.log("New Item Being Added to Cart:", newItem); // Debugging Log
+  
+    setCart((prevCart) => [...prevCart, newItem]); 
     closePopup();
   };
+  
+  
 
   return (
     <div className="homepage">
@@ -70,73 +97,106 @@ const HomePage = ({ cart, setCart }) => {
         <h1>Find the best food for you</h1>
         <div className="profile-pic"></div>
       </header>
-
       <div className="search-bar">
         <input type="text" placeholder="Find Your Food..." />
         <FaSearch className="search-icon" />
       </div>
-
       <div className="category-container">
-        <div className="category-scroll">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`category-button ${activeCategory === category ? "active" : ""}`}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+        {categories.map((category) => (
+          <button key={category} className={`category-button ${activeCategory === category ? "active" : ""}`} onClick={() => setActiveCategory(category)}>{category}</button>
+        ))}
       </div>
-
       <div className="product-grid">
-        {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            className="product-card"
-            onClick={() => navigate(`/detail`, { state: { product } })}
-          >
+        {products.filter(p => activeCategory === "All" || p.category === activeCategory).map((product) => (
+          <div key={product.id} className="product-card" onClick={() => openPopup(product)}>
             <img src={product.image} alt={product.name} className="product-image" />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <div className="product-footer">
               <span>${product.price.toFixed(2)}</span>
-              <button className="add-to-cart" onClick={(e) => { e.stopPropagation(); openPopup(product); }}>
-                +
-              </button>
+              <button className="add-to-cart" onClick={(e) => { e.stopPropagation(); openPopup(product); }}>+</button>
             </div>
           </div>
         ))}
       </div>
-
       {selectedProduct && (
-        <div className="popup-overlay">
-          <div className="popup-content popup-centered">
-            <h2>{selectedProduct.name}</h2>
-            <p>{selectedProduct.description}</p>
-            <h3>Extras:</h3>
-            {selectedProduct.extras.map((extra) => (
-              <div key={extra.name} className="extra-option checkbox-wrapper-34">
-              <input
-                className="tgl tgl-ios"
-                type="checkbox"
-                id={extra.name}
-                onChange={() => handleExtraChange(extra)}
-                checked={selectedExtras.some((e) => e.name === extra.name)}
-              />
-              <label className="tgl-btn" htmlFor={extra.name}>
-              </label>
-              <span className="extra-label">{extra.name} (+${extra.price.toFixed(2)})</span>
-            </div>
-            ))}
-            <div className="popup-buttons" >
-            <button className="confirm-btn" onClick={addToCart}>Add to Cart</button>
-            <button className="cancel-btn" onClick={closePopup}>Cancel</button>
-            </div>
-          </div>
+  <div className="popup-overlay">
+    <div className="popup-content popup-centered">
+      <h2>{selectedProduct.name}</h2>
+
+      {/* Add-ons Section */}
+<h4>Add-ons</h4>
+{selectedProduct.addOns?.map((addOn) => (
+  <div key={addOn.name} className="extra-option">
+    <input
+      type="checkbox"
+      id={addOn.name}
+      onChange={() => handleAddOnChange(addOn)}
+    />
+    <label htmlFor={addOn.name}>
+      {addOn.name} (+${addOn.price.toFixed(2)})
+    </label>
+  </div>
+))}
+
+
+      {/* Extras Section */}
+<h4>Extras</h4>
+{selectedProduct.extras?.map((extra) => (
+  <div key={extra.name} className="extra-option">
+    <input
+      type="checkbox"
+      id={extra.name}
+      checked={selectedExtras.some(e => e.name === extra.name)}
+      onChange={() => handleExtraChange(extra)}
+    />
+    <label htmlFor={extra.name}>
+      {extra.name} (+${extra.price.toFixed(2)})
+    </label>
+  </div>
+))}
+
+
+
+      {/* Modifications Section */}
+      <h4>Modifications</h4>
+      {selectedProduct.modifications?.map((mod) => (
+        <div key={mod.name} className="extra-option">
+          <input
+            type="checkbox"
+            id={mod.name}
+            onChange={() => handleModificationChange(mod)}
+          />
+          <label htmlFor={mod.name}>{mod.name}</label>
         </div>
+      ))}
+
+      {/* Special Instructions Section */}
+      <h4>Special Instructions</h4>
+      <button
+        className="toggle-special-instruction"
+        onClick={() => setShowSpecialInstruction(!showSpecialInstruction)}
+      >
+        {showSpecialInstruction ? "Hide Special Instructions" : "Add Special Instructions"}
+        <FaRegArrowAltCircleRight size={24} className="nav-icon" />
+      </button>
+      {showSpecialInstruction && (
+        <textarea
+          placeholder="Add special instructions..."
+          value={specialInstruction}
+          onChange={(e) => setSpecialInstruction(e.target.value)}
+          className="special-instruction"
+        ></textarea>
       )}
+
+      {/* Popup Buttons */}
+      <div className="popup-buttons">
+        <button className="confirm-btn" onClick={addToCart}>Confirm</button>
+        <button className="cancel-btn" onClick={closePopup}>Cancel</button>
+      </div>
+    </div>
+  </div>
+)}
 
       <footer className="footer-nav">
         <FaHome className="nav-icon" />
