@@ -4,13 +4,14 @@ import './cart.css';
 
 const CartPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
-  
+  const [editingItem, setEditingItem] = useState(null);
 
-  // Calculate total price including extras
   const totalPrice = useMemo(
     () => cart.reduce((acc, item) => {
-      const extrasTotal = item.extras ? item.extras.reduce((sum, extra) => sum + extra.price * extra.quantity, 0) : 0;
-      return acc + (item.price + extrasTotal) * item.quantity;
+      const extrasTotal = item.extras 
+        ? item.extras.reduce((sum, extra) => sum + (parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1), 0) 
+        : 0;
+      return acc + ((parseFloat(item.price) || 0) + extrasTotal) * (parseFloat(item.quantity) || 1);
     }, 0),
     [cart]
   );
@@ -18,7 +19,7 @@ const CartPage = ({ cart, setCart }) => {
   const handleIncrease = (id) => {
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+        item.id === id ? { ...item, quantity: (parseFloat(item.quantity) || 0) + 1 } : item
       )
     );
   };
@@ -27,7 +28,7 @@ const CartPage = ({ cart, setCart }) => {
     setCart((prevCart) =>
       prevCart
         .map((item) =>
-          item.id === id ? { ...item, quantity: Math.max(item.quantity - 1, 1) } : item
+          item.id === id ? { ...item, quantity: Math.max((parseFloat(item.quantity) || 1) - 1, 1) } : item
         )
         .filter((item) => item.quantity > 0)
     );
@@ -35,6 +36,24 @@ const CartPage = ({ cart, setCart }) => {
 
   const handleRemove = (id) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+  };
+
+  const handleEditExtras = (item) => {
+    setEditingItem(item);
+  };
+
+  const handleExtraQuantityChange = (extraName, change) => {
+    setEditingItem((prevItem) => {
+      const updatedExtras = prevItem.extras.map((extra) =>
+        extra.name === extraName ? { ...extra, quantity: Math.max((parseFloat(extra.quantity) || 0) + change, 0) } : extra
+      );
+      return { ...prevItem, extras: updatedExtras.filter(extra => extra.quantity > 0) };
+    });
+  };
+
+  const handleSaveExtras = () => {
+    setCart((prevCart) => prevCart.map((item) => (item.id === editingItem.id ? editingItem : item)));
+    setEditingItem(null);
   };
 
   const handleOrder = () => {
@@ -57,61 +76,60 @@ const CartPage = ({ cart, setCart }) => {
               <img src={item.image} alt={item.name} />
               <div className="item-details">
                 <h3>{item.name} (x{item.quantity})</h3>
-                <p>Original Price: ${item.price.toFixed(2)}</p>
+                <p>Original Price: ${parseFloat(item.price).toFixed(2)}</p>
 
-                {/* Add-ons Section */}
                 {item.addOns && item.addOns.length > 0 && (
                   <div className="addons-list">
                     <p>Add-ons:</p>
                     <ul>
                       {item.addOns.map((addon, index) => (
-                        <li key={index}>{addon.name} (+${addon.price.toFixed(2)})</li>
+                        <li key={index}>{addon.name} (+${(parseFloat(addon.price) || 0).toFixed(2)})</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {/* Extras Section */}
                 {item.extras && item.extras.length > 0 && (
                   <div className="extras-list">
                     <p>Extras:</p>
                     <ul>
-                      {item.extras.map((extra, index) => (
-                        <li key={index}>{extra.name} (x{extra.quantity}) (+${(extra.price * extra.quantity).toFixed(2)})</li>
+                      {item.extras.map((extra, index) => {
+                        const price = parseFloat(extra.price) || 0;
+                        const quantity = parseFloat(extra.quantity) || 1;
+                        return (
+                          <li key={index}>
+                            {extra.name} (x{quantity}) (+${(price * quantity).toFixed(2)})
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {item.modifications && item.modifications.length > 0 && (
+                  <div className="modifications-list">
+                    <p>Modifications:</p>
+                    <ul>
+                      {item.modifications.map((mod, index) => (
+                        <li key={index}>{mod.name}</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {/* Modifications Section */}
-                {item.modifications && item.modifications.length > 0 && (
-                  <div className="modifications-list">
-                    <p>Modifications:</p>
-                    <ul>
-                      {item.modifications
-                        .filter((mod) => mod.options && mod.options.length > 0)
-                        .map((mod, index) => (
-                          <li key={index}>{mod.title}: {mod.options.join(", ")}</li>
-                        ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Special Instructions Section */}
                 {item.specialInstruction && (
-                  <div className="special-instruction">
+                  <div className="Cspecial-instruction">
                     <p><strong>Special Instruction:</strong> {item.specialInstruction}</p>
                   </div>
                 )}
 
-                {/* Quantity Controls */}
                 <div className="quantity-controls">
                   <button onClick={() => handleDecrease(item.id)}>-</button>
                   <span>{item.quantity}</span>
                   <button onClick={() => handleIncrease(item.id)}>+</button>
                 </div>
 
-                <p>Total for this item: ${((item.price + (item.extras ? item.extras.reduce((sum, extra) => sum + extra.price * extra.quantity, 0) : 0)) * item.quantity).toFixed(2)}</p>
+                <p>Total for this item: ${(((parseFloat(item.price) || 0) + (item.extras ? item.extras.reduce((sum, extra) => sum + ((parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1)), 0) : 0)) * (parseFloat(item.quantity) || 1)).toFixed(2)}</p>
 
                 <button onClick={() => handleRemove(item.id)} className="remove-button">Remove</button>
               </div>

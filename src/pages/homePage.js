@@ -51,43 +51,61 @@ const HomePage = ({ cart, setCart }) => {
   
 
   const handleExtraChange = (extra) => {
-    setSelectedExtras((prev) =>
-      prev.some((e) => e.name === extra.name)
-        ? prev.filter((e) => e.name !== extra.name)
-        : [...prev, { ...extra, quantity: 1 }]
-    );
+    setSelectedExtras((prev) => {
+      const isSelected = prev.some((e) => e.name === extra.name);
+      if (isSelected) {
+        return prev.filter((e) => e.name !== extra.name);
+      } else {
+        console.log("Extra being added:", extra);  // 🔍 Check if price exists
+        return [...prev, { ...extra, price: Number(extra.price) || 0 }]; 
+      }
+    });
   };
+  
+  
+  
+  
   
   
   const handleModificationChange = (mod) => {
-    setSelectedModifications((prev) =>
-      prev.includes(mod.name)
-        ? prev.filter((m) => m !== mod.name)
-        : [...prev, mod.name]
-    );
+    setSelectedModifications((prev) => {
+      const isSelected = prev.some((m) => m.name === mod.name);
+      if (isSelected) {
+        return prev.filter((m) => m.name !== mod.name);
+      } else {
+        return [...prev, mod]; // ✅ Store full object
+      }
+    });
   };
+  
   
   const addToCart = () => {
     if (!selectedProduct) return;
   
-    console.log("Selected Extras Before Adding to Cart:", selectedExtras); // Debugging Log
+    console.log("Selected Extras Before Adding:", selectedExtras);  // 🔍 Debugging log
   
     const newItem = {
       id: `${selectedProduct.id}-${Date.now()}`,
       name: selectedProduct.name,
-      price: selectedProduct.price,
+      price: Number(selectedProduct.price) || 0,  
       quantity: 1,
-      addOns: selectedAddOns,
-      extras: selectedExtras,  // This should not be empty
-      modifications: selectedModifications,
+      addOns: selectedAddOns.map(a => ({ ...a, price: Number(a.price) || 0 })),  
+      extras: selectedExtras.map(e => ({ 
+        ...e, 
+        price: Number(e.price) || 0 // 🔥 Converting price to number
+      })),  
+      modifications: selectedModifications || [],
       specialInstruction: specialInstruction?.trim() || null,
     };
   
-    console.log("New Item Being Added to Cart:", newItem); // Debugging Log
+    console.log("New Item Being Added to Cart:", newItem); // 🔍 Debugging log
   
     setCart((prevCart) => [...prevCart, newItem]); 
     closePopup();
   };
+  
+  
+  
   
   
 
@@ -140,7 +158,7 @@ const HomePage = ({ cart, setCart }) => {
 ))}
 
 
-      {/* Extras Section */}
+     {/* Extras Section */}
 <h4>Extras</h4>
 {selectedProduct.extras?.map((extra) => (
   <div key={extra.name} className="extra-option">
@@ -158,18 +176,21 @@ const HomePage = ({ cart, setCart }) => {
 
 
 
+
       {/* Modifications Section */}
-      <h4>Modifications</h4>
-      {selectedProduct.modifications?.map((mod) => (
-        <div key={mod.name} className="extra-option">
-          <input
-            type="checkbox"
-            id={mod.name}
-            onChange={() => handleModificationChange(mod)}
-          />
-          <label htmlFor={mod.name}>{mod.name}</label>
-        </div>
-      ))}
+<h4>Modifications</h4>
+{selectedProduct.modifications?.map((mod) => (
+  <div key={mod.name} className="extra-option">
+    <input
+      type="checkbox"
+      id={mod.name}
+      checked={selectedModifications.some(m => m.name === mod.name)}
+      onChange={() => handleModificationChange(mod)}
+    />
+    <label htmlFor={mod.name}>{mod.name}</label>
+  </div>
+))}
+
 
       {/* Special Instructions Section */}
       <h4>Special Instructions</h4>
