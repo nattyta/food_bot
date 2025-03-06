@@ -5,6 +5,7 @@ import './cart.css';
 const CartPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
   const [editingItem, setEditingItem] = useState(null);
+  const [showCustomizations, setShowCustomizations] = useState(true);
 
   const totalPrice = useMemo(
     () => cart.reduce((acc, item) => {
@@ -38,24 +39,6 @@ const CartPage = ({ cart, setCart }) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-  const handleEditExtras = (item) => {
-    setEditingItem(item);
-  };
-
-  const handleExtraQuantityChange = (extraName, change) => {
-    setEditingItem((prevItem) => {
-      const updatedExtras = prevItem.extras.map((extra) =>
-        extra.name === extraName ? { ...extra, quantity: Math.max((parseFloat(extra.quantity) || 0) + change, 0) } : extra
-      );
-      return { ...prevItem, extras: updatedExtras.filter(extra => extra.quantity > 0) };
-    });
-  };
-
-  const handleSaveExtras = () => {
-    setCart((prevCart) => prevCart.map((item) => (item.id === editingItem.id ? editingItem : item)));
-    setEditingItem(null);
-  };
-
   const handleOrder = () => {
     if (cart.length === 0) {
       alert("Your cart is empty!");
@@ -77,36 +60,41 @@ const CartPage = ({ cart, setCart }) => {
               <div className="item-details">
                 <h3>{item.name} (x{item.quantity})</h3>
                 <p>Original Price: ${parseFloat(item.price).toFixed(2)}</p>
+                <button className="toggle-btn" onClick={() => setShowCustomizations(!showCustomizations)}>
+                  {showCustomizations ? "Minimize Customizations" : "Show Customizations"}
+                </button>
+                {showCustomizations && (
+                  <>
+                    {item.addOns && item.addOns.length > 0 && (
+                      <div className="addons-list">
+                        <p>Add-ons:</p>
+                        <ul>
+                          {item.addOns.map((addon, index) => (
+                            <li key={index}>{item.quantity}x {addon.name} (+${((parseFloat(addon.price) || 0) * item.quantity).toFixed(2)})</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-                {item.addOns && item.addOns.length > 0 && (
-                  <div className="addons-list">
-                    <p>Add-ons:</p>
-                    <ul>
-                      {item.addOns.map((addon, index) => (
-                        <li key={index}>{addon.name} (+${(parseFloat(addon.price) || 0).toFixed(2)})</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                    {item.extras && item.extras.length > 0 && (
+                      <div className="extras-list">
+                        <p>Extras:</p>
+                        <ul>
+                          {item.extras.map((extra, index) => {
+                            const price = parseFloat(extra.price) || 0;
+                            const quantity = (parseFloat(extra.quantity) || 1) * item.quantity;
+                            return (
+                              <li key={index}>
+                                {item.quantity}x {extra.name} (x{quantity}) (+${(price * quantity).toFixed(2)})
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
 
-                {item.extras && item.extras.length > 0 && (
-                  <div className="extras-list">
-                    <p>Extras:</p>
-                    <ul>
-                      {item.extras.map((extra, index) => {
-                        const price = parseFloat(extra.price) || 0;
-                        const quantity = parseFloat(extra.quantity) || 1;
-                        return (
-                          <li key={index}>
-                            {extra.name} (x{quantity}) (+${(price * quantity).toFixed(2)})
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
 
-                {item.modifications && item.modifications.length > 0 && (
+{item.modifications && item.modifications.length > 0 && (
                   <div className="modifications-list">
                     <p>Modifications:</p>
                     <ul>
@@ -117,12 +105,20 @@ const CartPage = ({ cart, setCart }) => {
                   </div>
                 )}
 
-                {item.specialInstruction && (
-                  <div className="Cspecial-instruction">
+{item.specialInstruction && (
+                  <div className="cspecial-instruction">
                     <p><strong>Special Instruction:</strong> {item.specialInstruction}</p>
                   </div>
                 )}
 
+
+                  </>
+                  
+                )}
+
+
+
+                
                 <div className="quantity-controls">
                   <button onClick={() => handleDecrease(item.id)}>-</button>
                   <span>{item.quantity}</span>
