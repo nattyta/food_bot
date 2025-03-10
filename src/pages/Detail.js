@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaHeart, FaCheckCircle } from 'react-icons/fa';
-import './detail.css';
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaHeart, FaCheckCircle } from "react-icons/fa";
+import "./detail.css";
 
 const Detail = ({ cart, setCart }) => {
   const location = useLocation();
@@ -10,42 +10,65 @@ const Detail = ({ cart, setCart }) => {
   const [showMessage, setShowMessage] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedExtras, setSelectedExtras] = useState([]);
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
+  const [selectedModifications, setSelectedModifications] = useState([]);
+  const [specialInstruction, setSpecialInstruction] = useState("");
 
   if (!product) {
     return <div>Product not found!</div>;
   }
 
+  // Handle extra selection
   const handleExtraChange = (extra) => {
-    setSelectedExtras((prevExtras) => {
-      const exists = prevExtras.find((e) => e.name === extra.name);
-      if (exists) {
-        return prevExtras.filter((e) => e.name !== extra.name);
-      } else {
-        return [...prevExtras, extra];
-      }
-    });
+    setSelectedExtras((prevExtras) =>
+      prevExtras.some((e) => e.name === extra.name)
+        ? prevExtras.filter((e) => e.name !== extra.name)
+        : [...prevExtras, { ...extra, price: Number(extra.price) || 0 }]
+    );
   };
 
-  const handleAddToCart = () => {
-    setShowPopup(true);
+  // Handle add-on selection
+  const handleAddOnChange = (addOn) => {
+    setSelectedAddOns((prev) =>
+      prev.some((a) => a.name === addOn.name)
+        ? prev.filter((a) => a.name !== addOn.name)
+        : [...prev, { ...addOn, price: Number(addOn.price) || 0 }]
+    );
   };
 
+  // Handle modification selection
+  const handleModificationChange = (mod) => {
+    setSelectedModifications((prev) =>
+      prev.some((m) => m.name === mod.name)
+        ? prev.filter((m) => m.name !== mod.name)
+        : [...prev, mod]
+    );
+  };
+
+  // Confirm and add to cart
   const confirmAddToCart = () => {
-    const extraCost = selectedExtras.reduce((sum, extra) => sum + extra.price, 0);
-    const totalPrice = product.price + extraCost;
+    if (!product) return;
 
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1, selectedExtras }
-            : item
-        );
-      }
-      return [...prevCart, { ...product, quantity: 1, selectedExtras, price: totalPrice }];
-    });
+    console.log("Selected Extras Before Adding:", selectedExtras);
 
+    const extraCost = selectedExtras.reduce((sum, extra) => sum + Number(extra.price || 0), 0);
+    const addOnCost = selectedAddOns.reduce((sum, addOn) => sum + Number(addOn.price || 0), 0);
+    const totalPrice = Number(product.price) + extraCost + addOnCost;
+
+    const newItem = {
+      id: `${product.id}-${Date.now()}`, // Ensure unique ID
+      name: product.name,
+      price: totalPrice,
+      quantity: 1,
+      addOns: selectedAddOns.map(a => ({ ...a, price: Number(a.price) || 0 })),
+      extras: selectedExtras.map(e => ({ ...e, price: Number(e.price) || 0 })),
+      modifications: selectedModifications,
+      specialInstruction: specialInstruction?.trim() || null,
+    };
+
+    console.log("New Item Being Added to Cart:", newItem);
+
+    setCart((prevCart) => [...prevCart, newItem]);
     setShowPopup(false);
     setShowMessage(true);
     setTimeout(() => setShowMessage(false), 2000);
@@ -83,7 +106,7 @@ const Detail = ({ cart, setCart }) => {
 
         <div className="detail-footer">
           <span className="price">${product.price.toFixed(2)}</span>
-          <button className="add-to-cart" onClick={handleAddToCart}>Add to Cart</button>
+          <button className="add-to-cart" onClick={() => setShowPopup(true)}>Add to Cart</button>
         </div>
 
         {showMessage && (
@@ -99,7 +122,8 @@ const Detail = ({ cart, setCart }) => {
             <h3>Customize Your Order</h3>
             <h4>{product.name}</h4>
             <p>Base Price: ${product.price.toFixed(2)}</p>
-            
+
+            {/* Add-ons Section */}
             <h4>Add-ons</h4>
             <div className="extras-container">
               {product.addOns?.length > 0 ? (
@@ -108,8 +132,8 @@ const Detail = ({ cart, setCart }) => {
                     <input
                       type="checkbox"
                       id={addOn.name}
-                      onChange={() => handleExtraChange(addOn)}
-                      checked={selectedExtras.some((e) => e.name === addOn.name)}
+                      checked={selectedAddOns.some(a => a.name === addOn.name)}
+                      onChange={() => handleAddOnChange(addOn)}
                     />
                     <label htmlFor={addOn.name}>{addOn.name} (+${addOn.price.toFixed(2)})</label>
                   </div>
@@ -118,7 +142,8 @@ const Detail = ({ cart, setCart }) => {
                 <p>No add-ons available.</p>
               )}
             </div>
-            
+
+            {/* Extras Section */}
             <h4>Extras</h4>
             <div className="extras-container">
               {product.extras?.length > 0 ? (
@@ -127,8 +152,8 @@ const Detail = ({ cart, setCart }) => {
                     <input
                       type="checkbox"
                       id={extra.name}
+                      checked={selectedExtras.some(e => e.name === extra.name)}
                       onChange={() => handleExtraChange(extra)}
-                      checked={selectedExtras.some((e) => e.name === extra.name)}
                     />
                     <label htmlFor={extra.name}>{extra.name} (+${extra.price.toFixed(2)})</label>
                   </div>
@@ -137,7 +162,8 @@ const Detail = ({ cart, setCart }) => {
                 <p>No extras available.</p>
               )}
             </div>
-            
+
+            {/* Modifications Section */}
             <h4>Modifications</h4>
             <div className="extras-container">
               {product.modifications?.length > 0 ? (
@@ -146,8 +172,8 @@ const Detail = ({ cart, setCart }) => {
                     <input
                       type="checkbox"
                       id={mod.name}
-                      onChange={() => handleExtraChange(mod)}
-                      checked={selectedExtras.some((e) => e.name === mod.name)}
+                      checked={selectedModifications.some(m => m.name === mod.name)}
+                      onChange={() => handleModificationChange(mod)}
                     />
                     <label htmlFor={mod.name}>{mod.name}</label>
                   </div>
@@ -156,6 +182,15 @@ const Detail = ({ cart, setCart }) => {
                 <p>No modifications available.</p>
               )}
             </div>
+
+            {/* Special Instructions Section */}
+            <h4>Special Instructions</h4>
+            <textarea
+              className="special-instruction-input"
+              placeholder="Any special requests?"
+              value={specialInstruction}
+              onChange={(e) => setSpecialInstruction(e.target.value)}
+            />
 
             <div className="popup-buttons">
               <button className="confirm-btn" onClick={confirmAddToCart}>Confirm</button>
