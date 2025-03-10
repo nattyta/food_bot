@@ -60,11 +60,14 @@ const Payment = () => {
   return (
     <div className="payment-container">
       <button className="back-button" onClick={() => navigate(-1)}>
-  <FaRegArrowAltCircleLeft /> Payment
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6"> payment </path>
+  </svg>
 </button>
 
+
       
-      <h2 className="title">Virtual Card</h2>
+      <h2 className="title">Payment</h2>
       <div className="virtual-card">
         <div className="card-chip"></div>
         <p className="card-number">**** **** **** {Math.floor(1000 + Math.random() * 9000)}</p>

@@ -7,6 +7,9 @@
   flex-direction: column;
   align-items: center;
   font-family: 'Poppins', sans-serif;
+  max-width: 420px; /* Limits width for mobile-friendly layout */
+  margin: 0 auto; /* Centers it */
+  align-items: center; /* Ensures everything stays centered */
 }
 
 .title {
@@ -19,6 +22,7 @@
 .virtual-card {
   background: linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 100%);
   width: 340px;
+  max-width: 380px; /* Prevents card from being too big on mobile */
   padding: 20px;
   border-radius: 16px;
   position: relative;
@@ -139,34 +143,60 @@
 .back-button {
   display: flex;
   align-items: center;
-  background: #1a1a1a; /* Dark background */
+  justify-content: center;
+  position: absolute;
+  left: 16px; /* Adjust for perfect alignment */
+  top: 16px; /* Align with top spacing */
+  background: #1a1a1a; /* Dark button background */
   border: none;
-  border-radius: 12px; /* Rounded corners */
-  padding: 8px 12px;
+  border-radius: 12px; /* Smooth rounded corners */
+  padding: 10px;
+  width: 40px; /* Square size */
+  height: 40px;
   color: white;
   font-size: 18px;
-  font-weight: bold;
   cursor: pointer;
   transition: background 0.2s ease-in-out;
-  
 }
 
 .back-button:hover {
-  background: #333; /* Slightly lighter hover effect */
+  background: #333; /* Slight hover effect */
 }
 
 .back-button svg {
-  width: 24px;
-  height: 24px;
-  color: #bbb3b3;
-  
-  
-  
-
+  width: 20px;
+  height: 20px;
+  color: white;
 }
 
 
+/* Media Query for Small Screens */
+@media (max-width: 480px) {
+  .payment-container {
+    padding: 10px;
+    width: 100%; /* Makes sure it doesn't get cut off */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
+  .virtual-card {
+    padding: 15px; /* Reduce card padding */
+    max-width: 95%; /* Make it fit smaller screens */
+  }
 
+  .card-number {
+    font-size: 16px;
+  }
 
+  .card-name, .card-amount {
+    font-size: 14px;
+  }
 
+  .back-button {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+    left: 8px; /* Keeps it in place */
+  }
+}
