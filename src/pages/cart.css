@@ -182,3 +182,31 @@
   background-color: #e76f51;
   color : white;
 }
+.back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 16px; /* Adjust for perfect alignment */
+  top: 16px; /* Align with top spacing */
+  background: #1a1a1a; /* Dark button background */
+  border: none;
+  border-radius: 12px; /* Smooth rounded corners */
+  padding: 10px;
+  width: 40px; /* Square size */
+  height: 40px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.back-button:hover {
+  background: #333; /* Slight hover effect */
+}
+
+.back-button svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}

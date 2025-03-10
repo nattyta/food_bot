@@ -1,21 +1,29 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './cart.css';
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./cart.css";
 
 const CartPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
-  const [editingItem, setEditingItem] = useState(null);
-  const [showCustomizations, setShowCustomizations] = useState(true);
+  const [expandedItems, setExpandedItems] = useState({}); // Track expand/minimize per item
 
   const totalPrice = useMemo(
-    () => cart.reduce((acc, item) => {
-      const extrasTotal = item.extras 
-        ? item.extras.reduce((sum, extra) => sum + (parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1), 0) 
-        : 0;
-      return acc + ((parseFloat(item.price) || 0) + extrasTotal) * (parseFloat(item.quantity) || 1);
-    }, 0),
+    () =>
+      cart.reduce((acc, item) => {
+        const extrasTotal = item.extras
+          ? item.extras.reduce(
+              (sum, extra) =>
+                sum + (parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1),
+              0
+            )
+          : 0;
+        return acc + ((parseFloat(item.price) || 0) + extrasTotal) * (parseFloat(item.quantity) || 1);
+      }, 0),
     [cart]
   );
+
+  const toggleItem = (id) => {
+    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const handleIncrease = (id) => {
     setCart((prevCart) =>
@@ -49,7 +57,15 @@ const CartPage = ({ cart, setCart }) => {
 
   return (
     <div className="cart-page">
+      
+      <button className="back-button" onClick={() => navigate(-1)}>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6"> payment </path>
+  </svg>
+</button>
+
       <h1>Cart</h1>
+
       {cart.length === 0 ? (
         <p>Your cart is empty.</p>
       ) : (
@@ -58,19 +74,25 @@ const CartPage = ({ cart, setCart }) => {
             <div key={item.id} className="cart-item">
               <img src={item.image} alt={item.name} />
               <div className="item-details">
-                <h3>{item.name} (x{item.quantity})</h3>
+                <h3>
+                  {item.name} (x{item.quantity})
+                </h3>
                 <p>Original Price: ${parseFloat(item.price).toFixed(2)}</p>
-                <button className="toggle-btn" onClick={() => setShowCustomizations(!showCustomizations)}>
-                  {showCustomizations ? "Minimize Customizations" : "Show Customizations"}
+
+                <button className="toggle-btn" onClick={() => toggleItem(item.id)}>
+                  {expandedItems[item.id] ? "Minimize Customizations" : "Show Customizations"}
                 </button>
-                {showCustomizations && (
+
+                {expandedItems[item.id] && (
                   <>
                     {item.addOns && item.addOns.length > 0 && (
                       <div className="addons-list">
                         <p>Add-ons:</p>
                         <ul>
                           {item.addOns.map((addon, index) => (
-                            <li key={index}>{item.quantity}x {addon.name} (+${((parseFloat(addon.price) || 0) * item.quantity).toFixed(2)})</li>
+                            <li key={index}>
+                              {item.quantity}x {addon.name} (+${((parseFloat(addon.price) || 0) * item.quantity).toFixed(2)})
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -93,48 +115,60 @@ const CartPage = ({ cart, setCart }) => {
                       </div>
                     )}
 
+                    {item.modifications && item.modifications.length > 0 && (
+                      <div className="modifications-list">
+                        <p>Modifications:</p>
+                        <ul>
+                          {item.modifications.map((mod, index) => (
+                            <li key={index}>{mod.name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
-{item.modifications && item.modifications.length > 0 && (
-                  <div className="modifications-list">
-                    <p>Modifications:</p>
-                    <ul>
-                      {item.modifications.map((mod, index) => (
-                        <li key={index}>{mod.name}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-{item.specialInstruction && (
-                  <div className="cspecial-instruction">
-                    <p><strong>Special Instruction:</strong> {item.specialInstruction}</p>
-                  </div>
-                )}
-
-
+                    {item.specialInstruction && (
+                      <div className="special-instruction">
+                        <p>
+                          <strong>Special Instruction:</strong> {item.specialInstruction}
+                        </p>
+                      </div>
+                    )}
                   </>
-                  
                 )}
 
-
-
-                
                 <div className="quantity-controls">
                   <button onClick={() => handleDecrease(item.id)}>-</button>
                   <span>{item.quantity}</span>
                   <button onClick={() => handleIncrease(item.id)}>+</button>
                 </div>
 
-                <p>Total for this item: ${(((parseFloat(item.price) || 0) + (item.extras ? item.extras.reduce((sum, extra) => sum + ((parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1)), 0) : 0)) * (parseFloat(item.quantity) || 1)).toFixed(2)}</p>
+                <p>
+                  Total for this item: $
+                  {(
+                    ((parseFloat(item.price) || 0) +
+                      (item.extras
+                        ? item.extras.reduce(
+                            (sum, extra) =>
+                              sum + (parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1),
+                            0
+                          )
+                        : 0)) *
+                    (parseFloat(item.quantity) || 1)
+                  ).toFixed(2)}
+                </p>
 
-                <button onClick={() => handleRemove(item.id)} className="remove-button">Remove</button>
+                <button onClick={() => handleRemove(item.id)} className="remove-button">
+                  Remove
+                </button>
               </div>
             </div>
           ))}
 
           <div className="cart-total">
             <h2>Total Price: ${totalPrice.toFixed(2)}</h2>
-            <button className="order-button" onClick={handleOrder}>Order</button>
+            <button className="order-button" onClick={handleOrder}>
+              Order
+            </button>
           </div>
         </div>
       )}

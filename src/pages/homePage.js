@@ -126,7 +126,7 @@ const HomePage = ({ cart, setCart }) => {
       </div>
       <div className="product-grid">
         {products.filter(p => activeCategory === "All" || p.category === activeCategory).map((product) => (
-          <div key={product.id} className="product-card" onClick={() => openPopup(product)}>
+          <div key={product.id} className="product-card" onClick={() => navigate("/Detail", { state: { product } })}>
             <img src={product.image} alt={product.name} className="product-image" />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
