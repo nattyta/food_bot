@@ -4,7 +4,15 @@ import "./cart.css";
 
 const CartPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
-  const [expandedItems, setExpandedItems] = useState({}); // Track expand/minimize per item
+  const [expandedItems, setExpandedItems] = useState({});
+  const [showOrderPopup, setShowOrderPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(false); // State for the pop-up
+  const [orderType, setOrderType] = useState("pickup"); // Default to pickup
+  const [deliveryDetails, setDeliveryDetails] = useState({
+    address: "",
+    phone: "",
+    location: null,
+  });
 
   const totalPrice = useMemo(
     () =>
@@ -21,9 +29,22 @@ const CartPage = ({ cart, setCart }) => {
     [cart]
   );
 
-  const toggleItem = (id) => {
-    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+  const handleOrder = () => {
+    if (cart.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+    setShowOrderPopup(true); // Show popup when Order button is clicked
   };
+
+  const handleOrderClick = () => {
+    if (cart.length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+    setShowOrderPopup(true); // Fix: This now correctly controls the popup visibility
+  };
+  
 
   const handleIncrease = (id) => {
     setCart((prevCart) =>
@@ -42,27 +63,38 @@ const CartPage = ({ cart, setCart }) => {
         .filter((item) => item.quantity > 0)
     );
   };
-
+    
   const handleRemove = (id) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-  const handleOrder = () => {
-    if (cart.length === 0) {
-      alert("Your cart is empty!");
+
+  const toggleItem = (id) => {
+    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+
+  
+  
+
+
+  const handleConfirmOrder = () => {
+    if (orderType === "delivery" && (!deliveryDetails.address || !deliveryDetails.phone)) {
+      alert("Please fill in the delivery details.");
       return;
     }
-    navigate("/payment", { state: { totalPrice } });
+
+    setShowOrderPopup(false); // Close popup
+    navigate("/payment", { state: { totalPrice, orderType, deliveryDetails } });
   };
 
   return (
     <div className="cart-page">
-      
       <button className="back-button" onClick={() => navigate(-1)}>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 18l-6-6 6-6"> payment </path>
-  </svg>
-</button>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 18l-6-6 6-6"> payment </path>
+        </svg>
+      </button>
 
       <h1>Cart</h1>
 
@@ -127,7 +159,7 @@ const CartPage = ({ cart, setCart }) => {
                     )}
 
                     {item.specialInstruction && (
-                      <div className="special-instruction">
+                      <div className="Cspecial-instruction">
                         <p>
                           <strong>Special Instruction:</strong> {item.specialInstruction}
                         </p>
@@ -166,9 +198,51 @@ const CartPage = ({ cart, setCart }) => {
 
           <div className="cart-total">
             <h2>Total Price: ${totalPrice.toFixed(2)}</h2>
-            <button className="order-button" onClick={handleOrder}>
+            <button className="order-button" onClick={handleOrderClick}>
               Order
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Order Type Selection Popup */}
+      {showOrderPopup && (
+        <div className="order-popup">
+          <div className="popup-content">
+            <h2>Select Order Type</h2>
+            <label>
+              <input type="radio" value="pickup" checked={orderType === "pickup"} onChange={() => setOrderType("pickup")} />
+              Pickup
+            </label>
+            <label>
+              <input type="radio" value="delivery" checked={orderType === "delivery"} onChange={() => setOrderType("delivery")} />
+              Delivery
+            </label>
+
+            {orderType === "delivery" && (
+              <div className="delivery-form">
+                <label>
+                  Address:
+                  <input className="formbox" type="text" value={deliveryDetails.address} onChange={(e) => setDeliveryDetails({ ...deliveryDetails, address: e.target.value })} />
+                </label>
+                <label>
+                  Phone Number:
+                  <input className="formbox" type="text" value={deliveryDetails.phone} onChange={(e) => setDeliveryDetails({ ...deliveryDetails, phone: e.target.value })} />
+                </label>
+                <button className="map-button" onClick={() => alert("Send map location feature coming soon!")}>
+                  Send Location
+                </button>
+              </div>
+            )}
+
+            <div className="popup-buttons">
+              <button className="cancel-button" onClick={() => setShowOrderPopup(false)}>
+                Cancel
+              </button>
+              <button className="confirm-button" onClick={handleConfirmOrder}>
+                Confirm Order
+              </button>
+            </div>
           </div>
         </div>
       )}
