@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from database import get_db  # ✅ Importing only the function
-from schemas import OrderCreate
+from app.database import get_db  # ✅ Importing only the function
+from app.schemas import OrderCreate
 
 router = APIRouter()
 

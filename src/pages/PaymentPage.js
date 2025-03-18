@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import './paymentPage.css';
-import { FaRegArrowAltCircleLeft } from "react-icons/fa";
+import "./paymentPage.css";
 import telebirrLogo from "/home/natty/food-bot/food_bot/src/assets/images/telebirrLogo.png";
 import cbeLogo from "/home/natty/food-bot/food_bot/src/assets/images/cbeLogo.png";
 import abisiniaLogo from "/home/natty/food-bot/food_bot/src/assets/images/abisiniaLogo.png";
@@ -11,21 +10,19 @@ const Payment = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get total price from location state or localStorage
   const [totalPrice, setTotalPrice] = useState(() => {
     return location.state?.totalPrice || parseFloat(localStorage.getItem("cartTotal")) || 0;
   });
 
-  const [selectedMethod, setSelectedMethod] = useState(null);
   const [loading, setLoading] = useState(false);
   const [userName, setUserName] = useState("Telegram User");
-
+  
+  
   useEffect(() => {
     if (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) {
       setUserName(window.Telegram.WebApp.initDataUnsafe.user.first_name);
     }
 
-    // If the totalPrice is 0, try fetching from localStorage
     if (totalPrice === 0) {
       const storedTotal = parseFloat(localStorage.getItem("cartTotal")) || 0;
       setTotalPrice(storedTotal);
@@ -34,18 +31,26 @@ const Payment = () => {
 
   const handlePayment = async (method) => {
     setLoading(true);
-    setSelectedMethod(method);
-
+    
+    
     try {
-      const response = await fetch("https://your-backend.com/api/initiate-payment", {
+      const response = await fetch("http://127.0.0.1:8000/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ method, amount: totalPrice }),
+        body: JSON.stringify({
+          amount: totalPrice,
+          currency: "ETB",
+          payment_method: method,
+          phone: "0912345678",
+          order_id: "order123",
+        }),
       });
+      
 
       const data = await response.json();
-      if (data.success) {
-        window.location.href = data.payment_url;
+      if (data.tx_ref) {
+        // Handle the response - maybe show a confirmation or a QR code if successful
+        alert("Payment request sent! Please follow the instructions.");
       } else {
         alert("Payment initiation failed. Please try again.");
       }
@@ -59,20 +64,14 @@ const Payment = () => {
 
   return (
     <div className="payment-container">
-      <button className="back-button" onClick={() => navigate(-1)}>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 18l-6-6 6-6"> payment </path>
-  </svg>
-</button>
-
-
+      <button className="back-button" onClick={() => navigate(-1)}>Back</button>
       
       <h2 className="title">Payment</h2>
       <div className="virtual-card">
         <div className="card-chip"></div>
         <p className="card-number">**** **** **** {Math.floor(1000 + Math.random() * 9000)}</p>
         <p className="card-name">{userName}</p>
-        <p className="card-amount">Total: ${totalPrice.toFixed(2)}</p>
+        <p className="card-amount">Total: {totalPrice.toFixed(2)} ETB</p>
       </div>
       
       <div className="payment-methods">

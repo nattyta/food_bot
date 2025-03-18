@@ -44,7 +44,6 @@ const CartPage = ({ cart, setCart }) => {
     }
     setShowOrderPopup(true); // Fix: This now correctly controls the popup visibility
   };
-  
 
   const handleIncrease = (id) => {
     setCart((prevCart) =>
@@ -68,15 +67,16 @@ const CartPage = ({ cart, setCart }) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   };
 
-
   const toggleItem = (id) => {
     setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-
-  
-  
-
+  // Function to generate a unique order ID
+  const generateOrderId = () => {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 8); // Random string for uniqueness
+    return `${timestamp}-${randomString}`;
+  };
 
   const handleConfirmOrder = () => {
     if (orderType === "delivery" && (!deliveryDetails.address || !deliveryDetails.phone)) {
@@ -84,8 +84,11 @@ const CartPage = ({ cart, setCart }) => {
       return;
     }
 
+    // Generate a unique order ID
+    const orderId = generateOrderId();
+
     setShowOrderPopup(false); // Close popup
-    navigate("/payment", { state: { totalPrice, orderType, deliveryDetails } });
+    navigate("/payment", { state: { totalPrice, orderType, deliveryDetails, orderId } });
   };
 
   return (
