@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from app.database import get_db  # ✅ Importing only the function
-from app.schemas import OrderCreate
+from fastapi import APIRouter
+from .crud import create_user
 
 router = APIRouter()
 
-@router.get("/")
-def read_root(db: Session = Depends(get_db)):
-    return {"message": "Hello, FastAPI!"}
+@router.post("/save_user")
+def save_user(user_data: dict):
+    user = create_user(user_data)
+    return {"message": "User saved successfully", "user": user}

@@ -38,9 +38,9 @@ const Payment = () => {
     
   
     try {
-      setLoading(true); // Show loading state before request
+      setLoading(true); // Show loading state
   
-      const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000"; // Use env variable if available
+      const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
       const endpoint = `${apiUrl}/create-payment`;
   
       console.log("Sending request to:", endpoint); // Debugging
@@ -53,19 +53,22 @@ const Payment = () => {
               currency: "ETB",
               payment_method: method,
               phone: "0912345678",
-              order_id: `order-${Date.now()}`, // Unique order ID
+              order_id: `order-${Date.now()}`,
           }),
       });
   
-      console.log("Raw response:", response); // Debugging
+      const rawResponse = await response.text();
+      console.log("Raw response:", rawResponse);
   
-      if (response.status === 405) {
-          console.error("405 Error: Method Not Allowed. Check backend.");
-          alert("Error: Method Not Allowed. Ensure backend is running.");
+      let data;
+      try {
+          data = JSON.parse(rawResponse);
+      } catch (error) {
+          console.error("JSON Parsing Error:", error);
+          alert("Invalid response from the server.");
           return;
       }
   
-      const data = await response.json();
       console.log("Server Response:", data);
   
       if (!response.ok) {
@@ -74,20 +77,18 @@ const Payment = () => {
           return;
       }
   
-      if (data.tx_ref || data.status === "success") { 
-          alert("Payment successful! Redirecting...");
-          navigate("/"); 
+      if (data.status === "success" && data.data && data.data.checkout_url) {
+          window.location.href = data.data.checkout_url; // Redirect to Chapa
       } else {
           alert("Payment failed. Please try again.");
       }
   } catch (error) {
       console.error("Error initiating payment:", error);
-      alert("An error occurred while processing the payment. Check console for details.");
+      alert("An error occurred while processing the payment.");
   } finally {
-      if (typeof setLoading === "function") setLoading(false);
+      setLoading(false);
   }
   
-};
   
   return (
     <div className="payment-container">
