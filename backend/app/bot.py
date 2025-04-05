@@ -1,31 +1,22 @@
-import requests
-import logging
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
+import telebot
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
+import os
+from dotenv import load_dotenv
 
-API_TOKEN = 'YOUR_BOT_API_TOKEN'
-BACKEND_URL = "http://localhost:8000/save_user"
 
-logging.basicConfig(level=logging.INFO)
+load_dotenv()
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
 
-def send_user_data_to_backend(user_data):
-    response = requests.post(BACKEND_URL, json=user_data)
-    return response.json()
 
-@dp.message_handler(commands=['start'])
-async def start(message: types.Message):
-    user_info = {
-        "chat_id": message.from_user.id,
-        "name": message.from_user.full_name,
-        "phone": None,  # Needs to be fetched separately
-        "address": None
-    }
+TOKEN = os.getenv("Telegram_API")  # Replace with your actual bot token
+WEB_APP_URL = "https://e5e0-196-188-252-230.ngrok-free.app"  # Replace with your hosted web app URL
+
+bot = telebot.TeleBot(TOKEN)
+@bot.message_handler(commands=["start"])
+def start(message):
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    web_app_button = KeyboardButton("🍔 Open WebApp", web_app=WebAppInfo(url=WEB_APP_URL))
+    markup.add(web_app_button)
+    bot.send_message(message.chat.id, "Click below to open the food delivery app!", reply_markup=markup)
     
-    response = send_user_data_to_backend(user_info)
-    await message.reply(f"Hello {message.from_user.full_name}, your info has been saved.")
-
-if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+bot.polling()

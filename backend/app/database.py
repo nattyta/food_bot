@@ -1,28 +1,46 @@
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy import create_engine
+import psycopg2
 import os
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from dotenv import load_dotenv
 
-# Load environment variables from the .env file
 load_dotenv()
 
-# Retrieve the DATABASE_URL from the environment variables
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Check if DATABASE_URL is loaded correctly
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set in .env file")
+app = FastAPI()
 
-# Create the database engine
-engine = create_engine(DATABASE_URL)
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
 
-# Create a session local factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+class UserData(BaseModel):
+    chat_id: int
+    name: str
+    username: str | None = None
 
-# Dependency to get the database session
-def get_db():
-    db = SessionLocal()
+@app.post("/register")
+def register_user(user: UserData):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
     try:
-        yield db
+        # Insert new user if chat_id is unique, otherwise do nothing
+        cur.execute(
+            """
+            INSERT INTO users (chat_id, name, username) 
+            VALUES (%s, %s, %s) 
+            ON CONFLICT (chat_id) DO NOTHING
+            """,
+            (user.chat_id, user.name, user.username),
+        )
+
+        conn.commit()
+        return {"message": "User registered (or already exists)"}
+    
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
     finally:
-        db.close()
+        cur.close()
+        conn.close()
