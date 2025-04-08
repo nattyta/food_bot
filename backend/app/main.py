@@ -4,12 +4,30 @@ import requests
 import os
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
+from app import routes
+from app.database import register_user, UserData  # ← This is missing!
+
 # Load environment variables
 load_dotenv()
+
 CHAPA_SECRET_KEY = os.getenv("Chapa_API")
 CHAPA_BASE_URL = "https://api.chapa.co/v1/transaction"
 
 app = FastAPI()
+
+app.include_router(routes.router)
+
+
+class UserData(BaseModel):
+    chat_id: int
+    name: str
+    username: str
+
+@app.post("/register")
+def register(user: UserData):
+    print("🔥 /register endpoint hit with:", user)
+    return register_user(user)
+
 
 
 # ✅ Define a request model for correct data validation

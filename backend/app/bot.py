@@ -9,7 +9,7 @@ load_dotenv()
 
 
 TOKEN = os.getenv("Telegram_API")  # Replace with your actual bot token
-WEB_APP_URL = "https://e5e0-196-188-252-230.ngrok-free.app"  # Replace with your hosted web app URL
+WEB_APP_URL = "https://2869-196-188-253-199.ngrok-free.app"  # Replace with your hosted web app URL
 
 bot = telebot.TeleBot(TOKEN)
 @bot.message_handler(commands=["start"])
