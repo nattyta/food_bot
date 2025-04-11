@@ -6,26 +6,26 @@ def create_user(user_data: UserCreate):
     cur = conn.cursor()
 
     cur.execute("""
-        INSERT INTO users (chat_id, name, phone, address, created_at)
-        VALUES (%s, %s, %s, %s, NOW())
+        INSERT INTO users (chat_id, session_token, phone, address)
+        VALUES (%s, %s, %s, %s)
         ON CONFLICT (chat_id) DO UPDATE 
-        SET name = EXCLUDED.name, phone = EXCLUDED.phone, address = EXCLUDED.address
-        RETURNING id, chat_id, name, phone, address, created_at;
+        SET phone = EXCLUDED.phone, 
+            address = EXCLUDED.address,
+            last_active = NOW()
+        RETURNING chat_id, phone, address, created_at;
     """, (
         user_data.chat_id,
-        user_data.name,
+        user_data.session_token,  # New field
         user_data.phone,
         user_data.address
     ))
 
     row = cur.fetchone()
     user = {
-        "id": row[0],
-        "chat_id": row[1],
-        "name": row[2],
-        "phone": row[3],
-        "address": row[4],
-        "created_at": row[5].isoformat() if row[5] else None
+        "chat_id": row[0],
+        "phone": row[1],
+        "address": row[2],
+        "created_at": row[3].isoformat() if row[3] else None
     }
 
     conn.commit()

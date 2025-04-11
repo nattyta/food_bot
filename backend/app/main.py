@@ -5,7 +5,8 @@ import os
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from app import routes
-from app.database import register_user, UserData  # ← This is missing!
+from app.database import UserData, register_user
+import logging
 
 # Load environment variables
 load_dotenv()
@@ -17,17 +18,82 @@ app = FastAPI()
 
 app.include_router(routes.router)
 
+from fastapi.middleware.cors import CORSMiddleware
 
-class UserData(BaseModel):
-    chat_id: int
-    name: str
-    username: str
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Add this middleware before your routes
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Request: {request.method} {request.url}")
+    try:
+        if 'x-telegram-init-data' in request.headers:
+            logger.info("Telegram WebApp request detected")
+    except Exception as e:
+        logger.error(f"Header check error: {e}")
+    
+    response = await call_next(request)
+    return response
+
+
+@app.post("/debug-register")
+async def debug_register():
+    """Test endpoint that bypasses Telegram checks"""
+    test_user = {
+        "chat_id": 999999,
+        "name": "Debug User",
+        "username": "debug_user"
+    }
+    logger.info(f"Debug registration attempt: {test_user}")
+    
+    try:
+        result = register_user(UserData(**test_user))
+        logger.info(f"Debug registration result: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"Debug registration failed: {str(e)}")
+        raise HTTPException(500, detail=str(e))
+
 
 @app.post("/register")
-def register(user: UserData):
-    print("🔥 /register endpoint hit with:", user)
-    return register_user(user)
-
+async def register_endpoint(user: UserData,request: Request):
+    print("Telegram initData header:", request.headers.get('X-Telegram-Init-Data'))
+    """
+    Handles user registration from Telegram WebApp
+    Returns:
+        - 200: Success/Already exists
+        - 500: Database error
+    """
+    try:
+        result = register_user(user)
+        return {
+            "status": result["status"],
+            "detail": result["message"],
+            "telegram_id": user.chat_id
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
 
 
 # ✅ Define a request model for correct data validation
