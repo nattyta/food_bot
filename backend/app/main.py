@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from pydantic import BaseModel
 import requests
+from .database import DatabaseManager
 import os
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 from app import routes
 from app.database import UserData, register_user
 import logging
+import hmac
+import hashlib
 
 # Load environment variables
 load_dotenv()
@@ -52,48 +55,73 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-@app.post("/debug-register")
-async def debug_register():
-    """Test endpoint that bypasses Telegram checks"""
-    test_user = {
-        "chat_id": 999999,
-        "name": "Debug User",
-        "username": "debug_user"
-    }
-    logger.info(f"Debug registration attempt: {test_user}")
+def validate_init_data(init_data: str, bot_token: str) -> bool:
+    """Validate Telegram WebApp initData"""
+    try:
+        # Parse key-value pairs
+        data = dict(pair.split('=') for pair in init_data.split('&'))
+        hash_str = data.pop('hash')
+        
+        # Sort and format data
+        data_str = '\n'.join(f"{k}={v}" for k,v in sorted(data.items()))
+        
+        # Compute secret key
+        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+        computed_hash = hmac.new(secret_key, data_str.encode(), hashlib.sha256).hexdigest()
+        
+        return computed_hash == hash_str
+    except Exception:
+        return False
+
+@app.post("/api/start-session")
+async def start_session(request: Request):
+    data = await request.json()
     
-    try:
-        result = register_user(UserData(**test_user))
-        logger.info(f"Debug registration result: {result}")
-        return result
-    except Exception as e:
-        logger.error(f"Debug registration failed: {str(e)}")
-        raise HTTPException(500, detail=str(e))
-
-
-@app.post("/register")
-async def register_endpoint(user: UserData,request: Request):
-    print("Telegram initData header:", request.headers.get('X-Telegram-Init-Data'))
-    """
-    Handles user registration from Telegram WebApp
-    Returns:
-        - 200: Success/Already exists
-        - 500: Database error
-    """
-    try:
-        result = register_user(user)
-        return {
-            "status": result["status"],
-            "detail": result["message"],
-            "telegram_id": user.chat_id
-        }
-    except HTTPException as he:
-        raise he
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error: {str(e)}"
+    # 1. Validate initData
+    if not validate_init_data(data['init_data'], os.getenv("Telegram_API")):
+        raise HTTPException(403, "Invalid Telegram auth")
+    
+    # 2. Verify token matches database
+    async with DatabaseManager() as db:
+        user = await db.execute(
+            "SELECT session_token FROM users WHERE chat_id = %s",
+            (data['chat_id'],)
         )
+        
+        if not user or user['session_token'] != data['token']:
+            raise HTTPException(401, "Invalid session token")
+    
+    return {"status": "authenticated"}
+
+
+# app/middleware.py
+async def validate_telegram_request(request: Request):
+    try:
+        data = await request.json()
+        init_data = data.get('init_data', '')
+        
+        # Parse user data from initData
+        from urllib.parse import parse_qs
+        parsed_data = parse_qs(init_data)
+        user_data = parsed_data.get('user', ['{}'])[0]
+        
+        logger.info(
+            f"🔍 Auth Attempt | "
+            f"IP: {request.client.host} | "
+            f"ChatID: {data.get('chat_id')} | "
+            f"UserAgent: {request.headers.get('user-agent')}"
+        )
+        
+        if not validate_init_data(init_data, os.getenv("Telegram_API")):
+            logger.warning(f"🚨 Invalid auth from {data.get('chat_id')}")
+            raise HTTPException(403, "Invalid Telegram auth")
+            
+        logger.info(f"✅ Auth Success | User: {user_data}")
+        return data
+        
+    except Exception as e:
+        logger.error(f"🔥 Auth Error: {str(e)}")
+        raise HTTPException(401, "Authentication failed")
 
 
 # ✅ Define a request model for correct data validation

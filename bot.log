@@ -20,3 +20,5 @@ LINE 2:     INSERT INTO users (chat_id, name, session_token)
 2025-04-11 21:33:01,918 - __main__ - INFO - Database connection successful
 2025-04-11 21:35:22,270 - __main__ - INFO - Saved user 916638938 to database
 2025-04-11 21:35:22,276 - __main__ - INFO - User 916638938 initialized
+2025-04-11 23:20:57,173 - __main__ - INFO - Starting FoodBot...
+2025-04-11 23:20:57,237 - __main__ - INFO - Database connection successful

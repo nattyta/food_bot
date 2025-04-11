@@ -19,3 +19,28 @@ export default function DebugBanner({ logs = [] }) {
     </div>
   );
 }
+export default function DebugBanner({ logs, auth }) {
+  return (
+    <div className="debug-banner">
+      <h3>🔧 Debug Console</h3>
+      <div>
+        <strong>Active Session:</strong>
+        {auth ? (
+          <>
+            <p>👤 User: {auth.user.name}</p>
+            <p>🆔 Chat ID: {auth.auth.chat_id}</p>
+            <p>🔑 Token: {auth.auth.session_token?.slice(0, 8)}...</p>
+          </>
+        ) : (
+          <p>❌ No active session</p>
+        )}
+      </div>
+      <div>
+        <strong>Logs:</strong>
+        {logs.map((log, i) => (
+          <p key={i}>{log}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
