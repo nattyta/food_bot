@@ -22,3 +22,6 @@ LINE 2:     INSERT INTO users (chat_id, name, session_token)
 2025-04-11 21:35:22,276 - __main__ - INFO - User 916638938 initialized
 2025-04-11 23:20:57,173 - __main__ - INFO - Starting FoodBot...
 2025-04-11 23:20:57,237 - __main__ - INFO - Database connection successful
+2025-04-12 14:02:47,199 - __main__ - INFO - Starting FoodBot...
+2025-04-12 14:02:47,264 - __main__ - INFO - Database connection successful
+2025-04-12 14:09:26,153 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)

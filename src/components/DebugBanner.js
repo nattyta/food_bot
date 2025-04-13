@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import React from 'react';
 
-export default function DebugBanner({ logs = [] }) {
+export default function DebugBanner({ logs = [], auth = null }) {
   return (
     <div style={{
       position: 'fixed',
@@ -13,32 +13,29 @@ export default function DebugBanner({ logs = [] }) {
       zIndex: 1000,
       width: '100%'
     }}>
-      {logs.map((log, i) => (
-        <div key={i} style={{ fontSize: '12px', margin: '2px 0' }}>{log}</div>
-      ))}
-    </div>
-  );
-}
-export default function DebugBanner({ logs, auth }) {
-  return (
-    <div className="debug-banner">
-      <h3>🔧 Debug Console</h3>
+      {/* Session Info (if auth prop exists) */}
+      {auth && (
+        <div style={{ marginBottom: '10px', borderBottom: '1px solid #444', paddingBottom: '10px' }}>
+          <h3 style={{ margin: '0 0 5px 0' }}>🔧 Active Session</h3>
+          <p style={{ margin: '2px 0', fontSize: '14px' }}>👤 User: {auth.user?.name || 'Unknown'}</p>
+          <p style={{ margin: '2px 0', fontSize: '14px' }}>🆔 Chat ID: {auth.auth?.chat_id || 'None'}</p>
+        </div>
+      )}
+
+      {/* Logs */}
       <div>
-        <strong>Active Session:</strong>
-        {auth ? (
-          <>
-            <p>👤 User: {auth.user.name}</p>
-            <p>🆔 Chat ID: {auth.auth.chat_id}</p>
-            <p>🔑 Token: {auth.auth.session_token?.slice(0, 8)}...</p>
-          </>
-        ) : (
-          <p>❌ No active session</p>
-        )}
-      </div>
-      <div>
-        <strong>Logs:</strong>
+        <h3 style={{ margin: '5px 0' }}>📝 Debug Logs</h3>
         {logs.map((log, i) => (
-          <p key={i}>{log}</p>
+          <div 
+            key={i} 
+            style={{ 
+              fontSize: '12px', 
+              margin: '2px 0',
+              fontFamily: 'monospace'
+            }}
+          >
+            {log}
+          </div>
         ))}
       </div>
     </div>

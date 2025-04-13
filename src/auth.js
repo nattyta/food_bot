@@ -32,3 +32,18 @@ export const initTelegramSession = () => {
       tg
     };
   };
+
+  // src/auth.js
+export const startBackendSession = async (authData) => {
+  try {
+    const response = await fetch(`${API_URL}/api/start-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(authData)
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Session error:", error);
+    return { status: "error", error };
+  }
+};
