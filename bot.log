@@ -25,3 +25,51 @@ LINE 2:     INSERT INTO users (chat_id, name, session_token)
 2025-04-12 14:02:47,199 - __main__ - INFO - Starting FoodBot...
 2025-04-12 14:02:47,264 - __main__ - INFO - Database connection successful
 2025-04-12 14:09:26,153 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-18 17:07:48,247 - __main__ - INFO - Starting FoodBot...
+2025-05-18 17:07:48,349 - __main__ - INFO - Database connection successful
+2025-05-18 17:12:19,334 - __main__ - INFO - Starting FoodBot...
+2025-05-18 17:12:19,372 - __main__ - INFO - Database connection successful
+2025-05-18 17:12:29,530 - __main__ - INFO - Saved user 916638938 to database
+2025-05-18 17:12:29,530 - __main__ - INFO - User 916638938 initialized
+2025-05-18 18:00:22,501 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-20 14:26:09,010 - __main__ - INFO - Starting FoodBot...
+2025-05-20 14:26:09,077 - __main__ - INFO - Database connection successful
+2025-05-20 14:26:24,858 - __main__ - ERROR - Failed to save user 916638938: column "session_token" of relation "users" does not exist
+LINE 2:     INSERT INTO users (chat_id, name, session_token)
+                                              ^
+
+2025-05-20 14:26:24,858 - __main__ - ERROR - Start failed for 916638938: column "session_token" of relation "users" does not exist
+LINE 2:     INSERT INTO users (chat_id, name, session_token)
+                                              ^
+
+2025-05-20 14:26:35,942 - __main__ - ERROR - Failed to save user 916638938: column "session_token" of relation "users" does not exist
+LINE 2:     INSERT INTO users (chat_id, name, session_token)
+                                              ^
+
+2025-05-20 14:26:35,943 - __main__ - ERROR - Start failed for 916638938: column "session_token" of relation "users" does not exist
+LINE 2:     INSERT INTO users (chat_id, name, session_token)
+                                              ^
+
+2025-05-20 14:29:17,124 - __main__ - INFO - Starting FoodBot...
+2025-05-20 14:29:17,174 - __main__ - INFO - Database connection successful
+2025-05-20 14:29:26,859 - __main__ - INFO - Saved user 916638938 to database
+2025-05-20 14:29:26,861 - __main__ - INFO - User 916638938 initialized
+2025-05-20 14:49:46,507 - __main__ - INFO - Starting FoodBot...
+2025-05-20 14:49:46,558 - __main__ - INFO - Database connection successful
+2025-05-20 14:49:55,150 - __main__ - INFO - Saved user 916638938 to database
+2025-05-20 14:49:55,151 - __main__ - INFO - User 916638938 initialized
+2025-05-20 18:07:06,020 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-21 12:16:00,912 - __main__ - INFO - Starting FoodBot...
+2025-05-21 12:16:00,982 - __main__ - INFO - Database connection successful
+2025-05-21 12:16:01,015 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getMe (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x714b28945210>: Failed to resolve 'api.telegram.org' ([Errno -3] Temporary failure in name resolution)"))
+2025-05-21 12:16:01,639 - __main__ - INFO - Starting FoodBot...
+2025-05-21 12:16:01,686 - __main__ - INFO - Database connection successful
+2025-05-21 12:16:01,698 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getMe (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x759addf35210>: Failed to resolve 'api.telegram.org' ([Errno -3] Temporary failure in name resolution)"))
+2025-05-21 12:16:10,225 - __main__ - INFO - Starting FoodBot...
+2025-05-21 12:16:10,254 - __main__ - INFO - Database connection successful
+2025-05-21 12:16:22,274 - __main__ - CRITICAL - Bot crashed: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+2025-05-21 12:41:20,034 - __main__ - INFO - Starting FoodBot...
+2025-05-21 12:41:20,069 - __main__ - INFO - Database connection successful
+2025-05-21 12:49:58,718 - __main__ - INFO - Saved user 916638938 to database
+2025-05-21 12:49:58,724 - __main__ - INFO - User 916638938 initialized
+2025-05-21 13:23:19,131 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)

@@ -24,23 +24,17 @@ class UserData(BaseModel):
     address: Optional[str] = None
 
 class DatabaseManager:
-    def __init__(self):
-        self.conn = None
-        
     def __enter__(self):
-        try:
-            self.conn = psycopg2.connect(
-                os.getenv("DATABASE_URL"),
-                connect_timeout=5
-            )
-            logger.info("Database connection established")
-            return self
-        except Exception as e:
-            logger.error(f"Database connection failed: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Database connection error"
-            )
+        self.conn = psycopg2.connect(os.getenv("DATABASE_URL"))
+        return self
+    
+    
+    def execute(self, query, params=None):
+        with self.conn.cursor() as cur:
+            cur.execute(query, params or ())
+            if query.strip().upper().startswith("SELECT"):
+                return cur.fetchall()
+            self.conn.commit()
         
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.conn:

@@ -1,14 +1,42 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional, Dict
+
+class OrderItem(BaseModel):
+    id: str
+    name: str
+    price: float
+    quantity: int
+    extras: List[Dict] = []
+    specialInstruction: str = ""
+
+class OrderCreate(BaseModel):
+    chat_id: int  # Changed to match your frontend
+    phone: str
+    address: Optional[str] = None
+    order_type: str
+    items: List[OrderItem]  # Properly typed items list
+    total_price: float
+    # Removed location since you're storing in address
 
 class UserCreate(BaseModel):
     chat_id: int
-    session_token: str  # New field
+    session_token: str
     phone: Optional[str] = None
     address: Optional[str] = None
 
-class OrderCreate(BaseModel):
-    item: str
-    quantity: int
-    price: float
-    user_chat_id: int  # Changed from user_id to chat_id
+
+
+
+# Add this new class
+class UserContactUpdate(BaseModel):
+    chat_id: int
+    phone: str
+    address: Optional[str] = None
+
+
+class PaymentRequest(BaseModel):
+    order_id: str
+    amount: float
+    phone: str
+    payment_method: str
+    currency: str

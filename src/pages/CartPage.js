@@ -8,7 +8,7 @@ const CartPage = ({ cart, setCart }) => {
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [orderType, setOrderType] = useState("pickup");
   const [orderDetails, setOrderDetails] = useState({
-    phone: window.Telegram?.WebApp?.initDataUnsafe?.user?.phone_number || "",
+    phone: "", 
     delivery: {
       address: "",
       location: null
@@ -70,54 +70,96 @@ const CartPage = ({ cart, setCart }) => {
     return `${timestamp}-${randomString}`;
   };
 
+  const isTelegramWebApp = () => {
+    return typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp;
+  };
+
   const handleShareLocation = () => {
-    if (window.Telegram?.WebApp) {
+    if (isTelegramWebApp()) {
       const tg = window.Telegram.WebApp;
       tg.requestLocation((location) => {
         if (location) {
-          setOrderDetails({
-            ...orderDetails,
+          setOrderDetails(prev => ({
+            ...prev,
             delivery: {
-              ...orderDetails.delivery,
+              ...prev.delivery,
               location: {
                 lat: location.latitude,
                 lng: location.longitude
               }
             }
-          });
+          }));
           tg.showAlert("Location saved!");
         }
       }, (error) => tg.showAlert(`Error: ${error}`));
     } else {
-      alert("Please enable location sharing in Telegram settings");
+      // Fallback for browser testing
+      setOrderDetails(prev => ({
+        ...prev,
+        delivery: {
+          ...prev.delivery,
+          location: {
+            lat: 9.005401,  // Default Addis Ababa coordinates
+            lng: 38.763611
+          }
+        }
+      }));
+      alert("Location set to default (Addis Ababa) for testing");
     }
   };
 
-  const handleConfirmOrder = () => {
-    // Validate phone for all orders
-    if (!/^\+251[79]\d{8}$/.test(orderDetails.phone)) {
-      alert("Please enter a valid Ethiopian phone number (+2519... or +2517...)");
-      return;
+  const handleConfirmOrder = async () => {
+    // Combine address and location
+    let fullAddress = orderDetails.delivery.address;
+    if (orderDetails.delivery.location) {
+      const { lat, lng } = orderDetails.delivery.location;
+      fullAddress = `${orderDetails.delivery.address} (Location: ${lat},${lng})`;
     }
-
-    // Validate address for delivery only
-    if (orderType === "delivery" && !orderDetails.delivery.address) {
-      alert("Please enter delivery address");
-      return;
+  
+    try {
+      const response = await fetch('/create_order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-telegram-init-data': window.Telegram?.WebApp?.initData || ''
+        },
+        body: JSON.stringify({
+          chat_id: window.Telegram.WebApp.initDataUnsafe.user.id,
+          phone: orderDetails.phone,
+          address: fullAddress,  // Now contains coordinates
+          order_type: orderType,
+          items: cart,
+          total_price: totalPrice
+          // No separate location field needed
+        })
+      });
+      // ... rest of your code
+    } catch (error) {
+      // ... error handling
     }
+  };
 
-    const orderId = generateOrderId();
-    setShowOrderPopup(false);
-    
-    navigate("/payment", { 
-      state: { 
-        totalPrice, 
-        orderType,
-        phone: orderDetails.phone,
-        deliveryDetails: orderType === "delivery" ? orderDetails.delivery : null,
-        orderId
-      } 
-    });
+
+  const handleSaveContact = async () => {
+    try {
+      const response = await fetch('/update-contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-telegram-init-data': window.Telegram?.WebApp?.initData || ''
+        },
+        body: JSON.stringify({
+          chat_id: window.Telegram.WebApp.initDataUnsafe.user.id,
+          phone: orderDetails.phone,  // Changed from 'phone' to 'orderDetails.phone'
+          address: orderDetails.delivery.address  // Changed from 'Address' to 'orderDetails.delivery.address'
+        })
+      });
+  
+      if (!response.ok) throw new Error('Failed to save');
+      alert('Contact info saved successfully!');
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
   };
 
   return (
@@ -219,17 +261,28 @@ const CartPage = ({ cart, setCart }) => {
               <label>
                 Contact Phone:
                 <input
-                  type="tel"
-                  placeholder="+251912345678"
-                  className="formbox"
-                  value={orderDetails.phone}
-                  onChange={(e) => setOrderDetails({
-                    ...orderDetails, 
-                    phone: e.target.value
-                  })}
-                  required
-                  pattern="\+251[79]\d{8}"
-                />
+  type="tel"
+  placeholder="+251912345678"
+  className="formbox"
+  value={orderDetails.phone}
+  onChange={(e) => {
+    // Remove any non-digit characters first
+    let phone = e.target.value.replace(/\D/g, '');
+    // Format as Ethiopian number if starting with 251
+    if (phone.startsWith('251')) {
+      phone = `+${phone}`;
+    } else if (phone.startsWith('0')) {
+      // Convert local format to international
+      phone = `+251${phone.substring(1)}`;
+    }
+    setOrderDetails({
+      ...orderDetails, 
+      phone: phone
+    });
+  }}
+  required
+  pattern="(\+251|0)[79]\d{8}"
+/>
               </label>
               <p className="hint-text">For order updates and payment verification</p>
             </div>

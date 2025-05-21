@@ -10,6 +10,9 @@ from app.database import UserData, register_user
 import logging
 import hmac
 import hashlib
+from typing import Optional
+import json
+from typing import List, Optional 
 
 # Load environment variables
 load_dotenv()
@@ -74,25 +77,31 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
         return False
 
 @app.post("/api/start-session")
-async def start_session(request: Request):
-    data = await request.json()
+def start_session(request: Request):  # Changed from async
+    data = request.json()  # No await
+    logger.info(f"Start session request: {data}")
     
     # 1. Validate initData
     if not validate_init_data(data['init_data'], os.getenv("Telegram_API")):
+        logger.error("Invalid Telegram auth")
         raise HTTPException(403, "Invalid Telegram auth")
     
     # 2. Verify token matches database
-    async with DatabaseManager() as db:
-        user = await db.execute(
-            "SELECT session_token FROM users WHERE chat_id = %s",
+    with DatabaseManager() as db:  # Changed from async with
+        user = db.execute(  # No await
+            "SELECT id, session_token FROM users WHERE chat_id = %s",
             (data['chat_id'],)
         )
         
-        if not user or user['session_token'] != data['token']:
+        if not user:
+            logger.error(f"No user found for chat_id {data['chat_id']}")
+            raise HTTPException(404, "User not found")
+            
+        if user['session_token'] != data['token']:
+            logger.error(f"Token mismatch for {data['chat_id']}")
             raise HTTPException(401, "Invalid session token")
     
     return {"status": "authenticated"}
-
 
 # app/middleware.py
 async def validate_telegram_request(request: Request):
@@ -176,3 +185,7 @@ def update_order_status(order_id: str):
 
 
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
+
+
+
+
