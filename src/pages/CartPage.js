@@ -70,9 +70,7 @@ const CartPage = ({ cart, setCart }) => {
     return `${timestamp}-${randomString}`;
   };
 
-  const isTelegramWebApp = () => {
-    return typeof window !== 'undefined' && window.Telegram && window.Telegram.WebApp;
-  };
+
 
   const handleShareLocation = () => {
     if (isTelegramWebApp()) {
@@ -108,60 +106,115 @@ const CartPage = ({ cart, setCart }) => {
     }
   };
 
-  const handleConfirmOrder = async () => {
-    // Combine address and location
-    let fullAddress = orderDetails.delivery.address;
-    if (orderDetails.delivery.location) {
-      const { lat, lng } = orderDetails.delivery.location;
-      fullAddress = `${orderDetails.delivery.address} (Location: ${lat},${lng})`;
-    }
-  
-    try {
-      const response = await fetch('/create_order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': window.Telegram?.WebApp?.initData || ''
-        },
-        body: JSON.stringify({
-          chat_id: window.Telegram.WebApp.initDataUnsafe.user.id,
-          phone: orderDetails.phone,
-          address: fullAddress,  // Now contains coordinates
-          order_type: orderType,
-          items: cart,
-          total_price: totalPrice
-          // No separate location field needed
+ // 1. First, update the Telegram WebApp detection function
+const isTelegramWebApp = () => {
+  try {
+    return (
+      typeof window !== 'undefined' &&
+      window?.Telegram?.WebApp?.initDataUnsafe?.user?.id !== undefined
+    );
+  } catch (e) {
+    return false;
+  }
+};
+
+// 2. Then update your handleConfirmOrder function
+const handleConfirmOrder = async () => {
+  // Safely get chat_id with fallback for testing
+  const chat_id = isTelegramWebApp() 
+    ? window.Telegram.WebApp.initDataUnsafe.user.id
+    : 123456789; // Test value for development
+
+  // Validate phone number
+  const phoneRegex = /^(\+251|0)[79]\d{8}$/;
+  if (!phoneRegex.test(orderDetails.phone)) {
+    const message = "Please enter a valid Ethiopian phone number (e.g. +251912345678)";
+    isTelegramWebApp() ? window.Telegram.WebApp.showAlert(message) : alert(message);
+    return;
+  }
+
+  // Validate address if delivery
+  if (orderType === 'delivery' && !orderDetails.delivery.address.trim()) {
+    const message = "Please enter a delivery address";
+    isTelegramWebApp() ? window.Telegram.WebApp.showAlert(message) : alert(message);
+    return;
+  }
+
+  // Prepare address with location if available
+  let fullAddress = orderDetails.delivery.address;
+  if (orderDetails.delivery.location) {
+    const { lat, lng } = orderDetails.delivery.location;
+    fullAddress = `${orderDetails.delivery.address} (Location: ${lat},${lng})`;
+  }
+
+  try {
+    // 1. First save contact information
+    const contactResponse = await fetch('/update-contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(isTelegramWebApp() && { 
+          'x-telegram-init-data': window.Telegram.WebApp.initData 
         })
-      });
-      // ... rest of your code
-    } catch (error) {
-      // ... error handling
+      },
+      body: JSON.stringify({
+        chat_id: chat_id,
+        phone: orderDetails.phone,
+        address: orderType === 'delivery' ? fullAddress : 'Pickup'
+      })
+    });
+
+    if (!contactResponse.ok) {
+      const error = await contactResponse.json();
+      throw new Error(error.detail || 'Failed to save contact information');
     }
-  };
 
-
-  const handleSaveContact = async () => {
-    try {
-      const response = await fetch('/update-contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': window.Telegram?.WebApp?.initData || ''
-        },
-        body: JSON.stringify({
-          chat_id: window.Telegram.WebApp.initDataUnsafe.user.id,
-          phone: orderDetails.phone,  // Changed from 'phone' to 'orderDetails.phone'
-          address: orderDetails.delivery.address  // Changed from 'Address' to 'orderDetails.delivery.address'
+    // 2. Then create the order
+    const orderResponse = await fetch('/update-contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(isTelegramWebApp() && { 
+          'x-telegram-init-data': window.Telegram.WebApp.initData,
+          'Access-Control-Allow-Origin': '*'
         })
-      });
-  
-      if (!response.ok) throw new Error('Failed to save');
-      alert('Contact info saved successfully!');
-    } catch (error) {
-      alert(`Error: ${error.message}`);
-    }
-  };
+      },
+      body: JSON.stringify({
+        chat_id: chat_id,
+        phone: orderDetails.phone,
+        address: orderType === 'delivery' ? fullAddress : 'Pickup',
+        order_type: orderType,
+        items: cart,
+        total_price: totalPrice
+      })
+    });
 
+    const orderData = await orderResponse.json();
+    
+    if (!orderResponse.ok) {
+      throw new Error(orderData.detail || 'Failed to create order');
+    }
+
+    // 3. Redirect to payment page with order ID
+    navigate(`/payment/${orderData.order_id}`, {
+      state: {
+        orderId: orderData.order_id,
+        totalAmount: totalPrice,
+        phone: orderDetails.phone
+      }
+    });
+
+  } catch (error) {
+    const errorMessage = `Error: ${error.message}`;
+    if (isTelegramWebApp()) {
+      window.Telegram.WebApp.showAlert(errorMessage);
+    } else {
+      alert(errorMessage);
+    }
+  }
+};
+
+  
   return (
     <div className="cart-page">
       <button className="back-button" onClick={() => navigate(-1)}>
@@ -238,7 +291,7 @@ const CartPage = ({ cart, setCart }) => {
             
             <label>
               <input 
-                type="radio" 
+                  type="radio" 
                 value="pickup" 
                 checked={orderType === "pickup"} 
                 onChange={() => setOrderType("pickup")} 
