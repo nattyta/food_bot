@@ -139,3 +139,42 @@ LINE 2:     INSERT INTO users (chat_id, name, session_token)
 2025-05-24 23:10:20,851 - __main__ - INFO - User 6523397595 initialized
 2025-05-24 23:34:18,810 - __main__ - INFO - Saved user 6523397595 to database
 2025-05-24 23:34:18,833 - __main__ - INFO - User 6523397595 initialized
+2025-05-25 09:35:06,613 - __main__ - INFO - Starting FoodBot...
+2025-05-25 09:35:06,684 - __main__ - INFO - Database connection successful
+2025-05-25 09:39:41,011 - __main__ - INFO - Starting FoodBot...
+2025-05-25 09:39:41,036 - __main__ - INFO - Database connection successful
+2025-05-25 09:44:53,441 - __main__ - INFO - Starting FoodBot...
+2025-05-25 09:44:53,466 - __main__ - INFO - Database connection successful
+2025-05-25 09:45:23,910 - __main__ - INFO - Saved user 6523397595 to database
+2025-05-25 09:45:23,912 - __main__ - INFO - User 6523397595 initialized
+2025-05-25 10:07:31,565 - __main__ - INFO - Saved user 6523397595 to database
+2025-05-25 10:07:31,567 - __main__ - INFO - User 6523397595 initialized
+2025-05-25 11:01:00,356 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-27 08:48:34,694 - __main__ - INFO - Starting FoodBot...
+2025-05-27 08:48:34,781 - __main__ - INFO - Database connection successful
+2025-05-27 08:49:48,986 - __main__ - INFO - Saved user 6523397595 to database
+2025-05-27 08:49:48,994 - __main__ - INFO - User 6523397595 initialized
+2025-05-27 09:10:22,329 - __main__ - INFO - Saved user 916638938 to database
+2025-05-27 09:10:22,330 - __main__ - INFO - User 916638938 initialized
+2025-05-27 09:16:04,503 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-27 18:02:06,218 - __main__ - INFO - Starting FoodBot...
+2025-05-27 18:02:06,277 - __main__ - INFO - Database connection successful
+2025-05-27 18:03:25,049 - __main__ - INFO - Saved user 6523397595 to database
+2025-05-27 18:03:25,050 - __main__ - INFO - User 6523397595 initialized
+2025-05-27 18:06:56,048 - __main__ - INFO - Saved user 916638938 to database
+2025-05-27 18:06:56,049 - __main__ - INFO - User 916638938 initialized
+2025-05-27 18:07:11,681 - __main__ - ERROR - Start failed for 916638938: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/sendMessage?chat_id=916638938&text=Welcome+natnael%21+Click+below+to+start+ordering.&reply_markup=%7B%22keyboard%22%3A+%5B%5B%7B%22text%22%3A+%22%5Cud83c%5Cudf54+Order+Food%22%2C+%22web_app%22%3A+%7B%22url%22%3A+%22https%3A%2F%2Feae4-196-190-61-157.ngrok-free.app%3Fchat_id%3D916638938%26token%3D31db7e20-0df5-44ab-baf3-6b6c55f64d20%22%7D%7D%5D%5D%2C+%22resize_keyboard%22%3A+true%7D (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x732f1f234160>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-05-27 18:07:32,677 - __main__ - INFO - Saved user 916638938 to database
+2025-05-27 18:07:32,678 - __main__ - INFO - User 916638938 initialized
+2025-05-27 18:09:33,216 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-27 18:09:51,058 - __main__ - INFO - Starting FoodBot...
+2025-05-27 18:09:51,088 - __main__ - INFO - Database connection successful
+2025-05-27 18:10:20,550 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=20)
+2025-05-27 18:12:19,553 - __main__ - INFO - Starting FoodBot...
+2025-05-27 18:12:19,584 - __main__ - INFO - Database connection successful
+2025-05-27 18:12:36,951 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=15)
+2025-05-27 21:09:06,640 - __main__ - INFO - Starting FoodBot...
+2025-05-27 21:09:06,724 - __main__ - INFO - Database connection successful
+2025-05-27 21:19:18,383 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-05-27 21:22:33,291 - __main__ - INFO - Starting FoodBot...
+2025-05-27 21:22:33,391 - __main__ - INFO - Database connection successful

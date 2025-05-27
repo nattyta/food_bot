@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./cart.css";
 
@@ -14,6 +14,41 @@ const CartPage = ({ cart, setCart }) => {
       location: null
     }
   });
+
+
+  useEffect(() => {
+    // Initialize Telegram WebApp if available
+    if (isTelegramWebApp() && !window.Telegram.WebApp.isExpanded) {
+      window.Telegram.WebApp.expand();
+    }
+
+    // Try to get existing auth token
+    const token = localStorage.getItem('auth_token');
+    if (!token && isTelegramWebApp()) {
+      // If no token but in Telegram, authenticate
+      initializeTelegramAuth();
+    }
+  }, []);
+
+  const initializeTelegramAuth = async () => {
+    try {
+      const response = await fetch('/auth/telegram', {
+        method: 'POST',
+        headers: {
+          'x-telegram-init-data': window.Telegram.WebApp.initData
+        }
+      });
+      const data = await response.json();
+      localStorage.setItem('auth_token', data.token);
+    } catch (error) {
+      console.error('Auth failed:', error);
+      if (isTelegramWebApp()) {
+        window.Telegram.WebApp.showAlert("Failed to authenticate. Please try again.");
+      }
+    }
+  };
+
+  
 
   const totalPrice = useMemo(
     () =>
@@ -118,93 +153,79 @@ const isTelegramWebApp = () => {
   }
 };
 
-// 2. Then update your handleConfirmOrder function
 const handleConfirmOrder = async () => {
-  // Safely get chat_id with fallback for testing
-  const chat_id = isTelegramWebApp() 
-    ? window.Telegram.WebApp.initDataUnsafe.user.id
-    : 123456789; // Test value for development
-
-  // Validate phone number
-  const phoneRegex = /^(\+251|0)[79]\d{8}$/;
-  if (!phoneRegex.test(orderDetails.phone)) {
-    const message = "Please enter a valid Ethiopian phone number (e.g. +251912345678)";
-    isTelegramWebApp() ? window.Telegram.WebApp.showAlert(message) : alert(message);
-    return;
-  }
-
-  // Validate address if delivery
-  if (orderType === 'delivery' && !orderDetails.delivery.address.trim()) {
-    const message = "Please enter a delivery address";
-    isTelegramWebApp() ? window.Telegram.WebApp.showAlert(message) : alert(message);
-    return;
-  }
-
-  // Prepare address with location if available
-  let fullAddress = orderDetails.delivery.address;
-  if (orderDetails.delivery.location) {
-    const { lat, lng } = orderDetails.delivery.location;
-    fullAddress = `${orderDetails.delivery.address} (Location: ${lat},${lng})`;
-  }
-
   try {
-    // 1. First save contact information
-    const contactResponse = await fetch('/update-contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(isTelegramWebApp() && { 
-          'x-telegram-init-data': window.Telegram.WebApp.initData 
-        })
-      },
-      body: JSON.stringify({
-        chat_id: chat_id,
-        phone: orderDetails.phone,
-        address: orderType === 'delivery' ? fullAddress : 'Pickup'
-      })
-    });
-
-    if (!contactResponse.ok) {
-      const error = await contactResponse.json();
-      throw new Error(error.detail || 'Failed to save contact information');
-    }
-
-    // 2. Then create the order
-    const orderResponse = await fetch('/update-contact', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(isTelegramWebApp() && { 
-          'x-telegram-init-data': window.Telegram.WebApp.initData,
-          'Access-Control-Allow-Origin': '*'
-        })
-      },
-      body: JSON.stringify({
-        chat_id: chat_id,
-        phone: orderDetails.phone,
-        address: orderType === 'delivery' ? fullAddress : 'Pickup',
-        order_type: orderType,
-        items: cart,
-        total_price: totalPrice
-      })
-    });
-
-    const orderData = await orderResponse.json();
+    // 1. Get Telegram WebApp data
+    const isTelegram = isTelegramWebApp();
+    const tgWebApp = window.Telegram?.WebApp;
     
-    if (!orderResponse.ok) {
-      throw new Error(orderData.detail || 'Failed to create order');
+    // 2. Get chat_id (use test value if not in Telegram)
+    const chat_id = isTelegram 
+      ? tgWebApp.initDataUnsafe.user.id
+      : 123456789; // Test value for development
+
+    // 3. Prepare headers
+    const headers = {
+      'Content-Type': 'application/json'
+    };
+
+    // 4. Add auth token if available (from previous auth)
+    const authToken = localStorage.getItem('auth_token');
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    // Still include Telegram initData if available
+    else if (isTelegram && tgWebApp.initData) {
+      headers['x-telegram-init-data'] = tgWebApp.initData;
     }
 
-    // 3. Redirect to payment page with order ID
-    navigate(`/payment/${orderData.order_id}`, {
-      state: {
-        orderId: orderData.order_id,
-        totalAmount: totalPrice,
-        phone: orderDetails.phone
-      }
+    // 5. Prepare request data
+    const requestData = {
+      chat_id: chat_id,
+      phone: orderDetails.phone,
+      address: orderType === 'delivery' 
+        ? `${orderDetails.delivery.address} (Location: ${orderDetails.delivery.location?.lat},${orderDetails.delivery.location?.lng})`
+        : 'Pickup'
+    };
+
+    // 6. Make the request
+    const response = await fetch('/update-contact', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(requestData)
     });
 
+    // 7. Handle response
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.detail || `Request failed (status ${response.status})`;
+      
+      // Special handling for auth errors
+      if (response.status === 401) {
+        if (isTelegram) {
+          window.Telegram.WebApp.showAlert("Session expired. Please refresh the page.");
+        } else {
+          alert("Session expired. Please refresh.");
+        }
+        return;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    
+    // Continue with order creation after successful contact update
+    if (result.status === "success") {
+      // Your order creation logic here
+      navigate('/payment', { state: { 
+        contactInfo: requestData,
+        cartTotal: totalPrice 
+      }});
+    }
+    
   } catch (error) {
+    console.error('Order confirmation failed:', error);
     const errorMessage = `Error: ${error.message}`;
     if (isTelegramWebApp()) {
       window.Telegram.WebApp.showAlert(errorMessage);
@@ -214,7 +235,6 @@ const handleConfirmOrder = async () => {
   }
 };
 
-  
   return (
     <div className="cart-page">
       <button className="back-button" onClick={() => navigate(-1)}>

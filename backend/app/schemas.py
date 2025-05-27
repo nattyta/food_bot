@@ -40,3 +40,12 @@ class PaymentRequest(BaseModel):
     phone: str
     payment_method: str
     currency: str
+
+
+class ProfileUpdate(BaseModel):
+    chat_id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    profile_data: Optional[Dict] = None

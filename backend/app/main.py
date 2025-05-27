@@ -10,9 +10,12 @@ from app.database import UserData, register_user
 import logging
 import hmac
 import hashlib
+from app.sessions import validate_session
 from typing import Optional
 import json
+from .sessions import session_manager,validate_session
 from typing import List, Optional 
+from .auth import get_current_user, telegram_auth
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +24,10 @@ CHAPA_SECRET_KEY = os.getenv("Chapa_API")
 CHAPA_BASE_URL = "https://api.chapa.co/v1/transaction"
 
 app = FastAPI()
+
+
+if os.getenv("ENVIRONMENT") == "production":
+    session_manager.init_redis()
 
 app.include_router(routes.router)
 
@@ -44,94 +51,66 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Add this middleware before your routes
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
-    logger.info(f"Request: {request.method} {request.url}")
+async def session_middleware(request: Request, call_next):
+    """Main middleware handling both Telegram and session auth"""
     try:
-        if 'x-telegram-init-data' in request.headers:
-            logger.info("Telegram WebApp request detected")
+        # 1. Try Telegram authentication
+        try:
+            tg_user_id = await telegram_auth(request)
+        except Exception as auth_error:
+            logger.error(f"Telegram auth error: {str(auth_error)}")
+            tg_user_id = None
+
+        # 2. For API routes, require valid session
+        if request.url.path.startswith('/api/'):
+            try:
+                # Get the Authorization header
+                auth_header = request.headers.get('Authorization')
+                if not auth_header or not auth_header.startswith('Bearer '):
+                    raise HTTPException(401, "Missing auth token")
+                
+                token = auth_header[7:]
+                chat_id = session_manager.validate_session(token)
+                
+                if not chat_id:
+                    raise HTTPException(401, "Invalid or expired token")
+                
+                # Cross-validate with Telegram if both exist
+                if tg_user_id and str(tg_user_id) != str(chat_id):
+                    raise HTTPException(403, "Authentication mismatch")
+                
+                request.state.chat_id = chat_id
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Session validation failed: {str(e)}")
+                raise HTTPException(500, "Internal server error")
+    
+        # 3. Process request
+        response = await call_next(request)
+        return response
+        
+    except HTTPException as he:
+        logger.error(f"Auth failed: {he.detail}")
+        raise
     except Exception as e:
-        logger.error(f"Header check error: {e}")
+        logger.error(f"Middleware error: {str(e)}", exc_info=True)
+        raise HTTPException(500, "Internal server error")
+
+@app.post("/auth/telegram")
+async def login_via_telegram(request: Request):
+    """Endpoint for Telegram WebApp authentication"""
+    tg_user_id = await telegram_auth(request)
+    if not tg_user_id:
+        raise HTTPException(400, "Telegram auth required")
     
-    response = await call_next(request)
-    return response
-
-
-def validate_init_data(init_data: str, bot_token: str) -> bool:
-    """Validate Telegram WebApp initData"""
-    try:
-        # Parse key-value pairs
-        data = dict(pair.split('=') for pair in init_data.split('&'))
-        hash_str = data.pop('hash')
-        
-        # Sort and format data
-        data_str = '\n'.join(f"{k}={v}" for k,v in sorted(data.items()))
-        
-        # Compute secret key
-        secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
-        computed_hash = hmac.new(secret_key, data_str.encode(), hashlib.sha256).hexdigest()
-        
-        return computed_hash == hash_str
-    except Exception:
-        return False
-
-@app.post("/api/start-session")
-def start_session(request: Request):  # Changed from async
-    data = request.json()  # No await
-    logger.info(f"Start session request: {data}")
-    
-    # 1. Validate initData
-    if not validate_init_data(data['init_data'], os.getenv("Telegram_API")):
-        logger.error("Invalid Telegram auth")
-        raise HTTPException(403, "Invalid Telegram auth")
-    
-    # 2. Verify token matches database
-    with DatabaseManager() as db:  # Changed from async with
-        user = db.execute(  # No await
-            "SELECT id, session_token FROM users WHERE chat_id = %s",
-            (data['chat_id'],)
-        )
-        
-        if not user:
-            logger.error(f"No user found for chat_id {data['chat_id']}")
-            raise HTTPException(404, "User not found")
-            
-        if user['session_token'] != data['token']:
-            logger.error(f"Token mismatch for {data['chat_id']}")
-            raise HTTPException(401, "Invalid session token")
-    
-    return {"status": "authenticated"}
-
-# app/middleware.py
-async def validate_telegram_request(request: Request):
-    try:
-        data = await request.json()
-        init_data = data.get('init_data', '')
-        
-        # Parse user data from initData
-        from urllib.parse import parse_qs
-        parsed_data = parse_qs(init_data)
-        user_data = parsed_data.get('user', ['{}'])[0]
-        
-        logger.info(
-            f"🔍 Auth Attempt | "
-            f"IP: {request.client.host} | "
-            f"ChatID: {data.get('chat_id')} | "
-            f"UserAgent: {request.headers.get('user-agent')}"
-        )
-        
-        if not validate_init_data(init_data, os.getenv("Telegram_API")):
-            logger.warning(f"🚨 Invalid auth from {data.get('chat_id')}")
-            raise HTTPException(403, "Invalid Telegram auth")
-            
-        logger.info(f"✅ Auth Success | User: {user_data}")
-        return data
-        
-    except Exception as e:
-        logger.error(f"🔥 Auth Error: {str(e)}")
-        raise HTTPException(401, "Authentication failed")
-
+    token = session_manager.create_session(tg_user_id)
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "expires_in": 86400  # 24 hours
+    }
 
 # ✅ Define a request model for correct data validation
 class PaymentRequest(BaseModel):
