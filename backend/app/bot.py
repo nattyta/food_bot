@@ -5,8 +5,7 @@ from dotenv import load_dotenv
 import uuid
 import logging
 from datetime import datetime
-import psycopg2
-import psycopg2.extras
+import psycopg
 from telebot import TeleBot
     # ======================
     # INITIALIZATION
@@ -40,37 +39,40 @@ bot = telebot.TeleBot(TOKEN)
     # DATABASE FUNCTIONS
     # ======================
 def get_db_connection():
-        """Establish database connection"""
-        try:
-            conn = psycopg2.connect(DATABASE_URL)
-            return conn
-        except Exception as e:
-            logger.error(f"Database connection failed: {str(e)}")
-            raise
+    """Establish database connection"""
+    try:
+        conn = psycopg.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        logger.error(f"Database connection failed: {str(e)}")
+        raise
+
 
 def save_user_to_db(chat_id: int, name: str, session_token: str):
-        """Save or update user in database"""
-        query = """
-        INSERT INTO users (chat_id, name, session_token)
-        VALUES (%s, %s, %s)
-        ON CONFLICT (chat_id)
-        DO UPDATE SET
-            name = EXCLUDED.name,
-            session_token = EXCLUDED.session_token,
-            last_active = NOW()
-        RETURNING chat_id;
-        """
-        
-        try:
-            with get_db_connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(query, (chat_id, name, session_token))
-                    conn.commit()
-                    logger.info(f"Saved user {chat_id} to database")
-                    return cur.fetchone()[0]
-        except Exception as e:
-            logger.error(f"Failed to save user {chat_id}: {str(e)}")
-            raise
+    """Save or update user in database"""
+    query = """
+    INSERT INTO users (chat_id, name, session_token)
+    VALUES (%s, %s, %s)
+    ON CONFLICT (chat_id)
+    DO UPDATE SET
+        name = EXCLUDED.name,
+        session_token = EXCLUDED.session_token,
+        last_active = NOW()
+    RETURNING chat_id;
+    """
+    
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (chat_id, name, session_token))
+                result = cur.fetchone()
+                conn.commit()
+                logger.info(f"Saved user {chat_id} to database")
+                return result[0] if result else None
+    except Exception as e:
+        logger.error(f"Failed to save user {chat_id}: {str(e)}")
+        raise
+
 
     # ======================
     # BOT HANDLERS
