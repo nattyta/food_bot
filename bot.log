@@ -178,3 +178,1995 @@ LINE 2:     INSERT INTO users (chat_id, name, session_token)
 2025-05-27 21:19:18,383 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
 2025-05-27 21:22:33,291 - __main__ - INFO - Starting FoodBot...
 2025-05-27 21:22:33,391 - __main__ - INFO - Database connection successful
+                                                                                                                                                                                                                                                                                                                                                                                                                                        2025-07-07 13:13:45,196 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:13:45,231 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:13:45,231 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:14:03,961 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:14:04,051 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:14:04,051 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:14:11,893 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:14:11,927 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:14:11,928 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:16:18,924 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:16:18,993 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:16:18,993 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:16:32,988 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:16:33,014 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:16:33,014 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:16:46,547 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:16:46,576 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:16:46,576 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:24:49,445 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:24:49,472 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:24:49,472 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:24:59,250 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:24:59,279 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:24:59,279 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:36:37,354 - __main__ - INFO - Starting FoodBot...
+2025-07-07 13:36:37,420 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-07 13:36:37,420 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 18:46:23,209 - __main__ - INFO - Starting FoodBot...
+2025-07-08 18:46:23,265 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 18:46:23,268 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 19:28:21,814 - __main__ - INFO - Starting FoodBot...
+2025-07-08 19:28:21,904 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 19:28:21,905 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:14:56,942 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:14:57,737 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:14:57,737 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:15:32,317 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:15:32,370 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:15:32,372 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:15:46,684 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:15:46,713 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:15:46,713 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:15:54,848 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:15:54,877 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:15:54,877 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:16:57,241 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:16:57,280 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:16:57,280 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:19:31,930 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:19:31,958 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:19:31,958 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:20:10,008 - __main__ - INFO - Starting FoodBot...
+2025-07-08 20:20:10,264 - __main__ - ERROR - Database connection failed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 20:20:10,265 - __main__ - CRITICAL - Bot crashed: connection to server at "localhost" (127.0.0.1), port 5432 failed: FATAL:  database "foodbot_db" does not exist
+
+2025-07-08 21:55:57,052 - __main__ - INFO - Starting FoodBot...
+2025-07-08 21:55:57,159 - __main__ - INFO - Database connection successful
+2025-07-08 21:56:22,862 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=1&timeout=20 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x79dd2809f0d0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-09 15:25:12,169 - __main__ - INFO - Starting FoodBot...
+2025-07-09 15:25:13,148 - __main__ - INFO - Database connection successful
+2025-07-09 15:25:17,448 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:17,452 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:25:21,869 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:21,871 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:25:23,828 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:23,829 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:25:28,970 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:28,975 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:25:32,281 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:32,283 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:25:37,504 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:37,507 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:25:46,721 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:25:46,722 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:26:04,039 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:26:04,043 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:26:37,305 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:26:37,307 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:27:38,537 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:27:38,538 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:28:40,052 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:28:40,054 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:29:41,330 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:29:41,332 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:30:42,633 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:30:42,635 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:31:44,168 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:31:44,171 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:32:45,969 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:32:45,972 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:33:47,517 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:33:47,518 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:34:48,806 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:34:48,808 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:35:50,861 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:35:50,863 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:36:52,228 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:36:52,229 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:37:53,590 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:37:53,592 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:38:54,941 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:38:54,942 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:39:56,895 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:39:56,898 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:40:58,313 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:40:58,315 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:41:59,570 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:41:59,572 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:43:00,956 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:43:00,958 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:44:02,744 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:44:02,746 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:45:04,088 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:45:04,090 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:46:06,172 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:46:06,173 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:47:07,458 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:47:07,460 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:48:08,739 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:48:08,740 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:49:11,241 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:49:11,243 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:50:13,938 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:50:13,940 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:51:16,453 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:51:16,454 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:52:17,704 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:52:17,706 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:53:19,055 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:53:19,057 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:54:20,289 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:54:20,290 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:55:21,571 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:55:21,573 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:56:23,568 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:56:23,570 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:57:24,775 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:57:24,776 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:58:26,098 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:58:26,104 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 15:59:27,387 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 15:59:27,390 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:00:28,633 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:00:28,635 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:01:29,897 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:01:29,899 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:02:31,210 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:02:31,211 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:03:32,561 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:03:32,563 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:04:33,840 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:04:33,845 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:05:37,603 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:05:37,604 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:06:39,383 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:06:39,383 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:07:40,698 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:07:40,699 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:08:42,082 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:08:42,084 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:09:43,465 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:09:43,466 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:10:45,214 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:10:45,216 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:11:46,732 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:11:46,733 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:12:47,987 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:12:47,988 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:13:49,359 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:13:49,361 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:14:50,729 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:14:50,733 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:15:52,115 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:15:52,117 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:16:54,291 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:16:54,293 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:17:55,647 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:17:55,649 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:18:57,017 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:18:57,018 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:19:58,288 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:19:58,290 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:20:59,500 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:20:59,502 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:22:01,489 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:22:01,492 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:23:03,085 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:23:03,087 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:24:04,454 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:24:04,456 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:25:05,747 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:25:05,750 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:26:07,070 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:26:07,072 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:27:09,339 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:27:09,341 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:28:10,593 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:28:10,596 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:29:12,232 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:29:12,236 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:30:13,601 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 16:30:13,604 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 16:31:39,892 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-09 22:12:07,000 - __main__ - INFO - Starting FoodBot...
+2025-07-09 22:12:07,170 - __main__ - INFO - Database connection successful
+2025-07-09 22:12:10,937 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:10,941 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:15,420 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:15,422 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:17,369 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:17,375 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:22,691 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:22,693 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:25,968 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:25,969 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:31,196 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:31,197 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:40,513 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:40,519 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:12:57,820 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:12:57,822 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:13:31,074 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:13:31,081 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:14:33,694 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:14:33,695 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:15:35,051 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:15:35,052 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:16:38,230 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:16:38,231 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:17:39,473 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-09 22:17:39,474 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 1234, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 688, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/__init__.py", line 660, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 332, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/food_bot/venv/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-09 22:18:15,260 - __main__ - INFO - Starting FoodBot...
+2025-07-09 22:18:15,477 - __main__ - INFO - Database connection successful
+2025-07-09 22:18:16,394 - __main__ - INFO - Webhook removed
+2025-07-09 22:18:21,962 - __main__ - INFO - Saved user 916638938 to database
+2025-07-09 22:18:21,967 - __main__ - INFO - User 916638938 initialized
+2025-07-09 22:18:21,985 - __main__ - INFO - Saved user 916638938 to database
+2025-07-09 22:18:21,992 - __main__ - INFO - User 916638938 initialized
+2025-07-09 22:32:23,549 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-09 22:33:09,620 - __main__ - INFO - Starting FoodBot...
+2025-07-09 22:33:09,638 - __main__ - INFO - Database connection successful
+2025-07-09 22:33:19,680 - __main__ - INFO - Webhook removed
+2025-07-09 22:33:30,201 - __main__ - INFO - Saved user 916638938 to database
+2025-07-09 22:33:30,202 - __main__ - INFO - User 916638938 initialized
+2025-07-11 09:24:23,688 - __main__ - INFO - Starting FoodBot...
+2025-07-11 09:24:23,753 - __main__ - INFO - Database connection successful
+2025-07-11 09:24:27,934 - __main__ - INFO - Webhook removed
+2025-07-11 09:27:09,204 - __main__ - INFO - Starting FoodBot...
+2025-07-11 09:27:09,266 - __main__ - INFO - Database connection successful
+2025-07-11 09:27:12,818 - __main__ - INFO - Webhook removed
+2025-07-11 09:39:23,083 - __main__ - INFO - Starting FoodBot...
+2025-07-11 09:39:23,123 - __main__ - INFO - Database connection successful
+2025-07-11 09:39:27,198 - __main__ - INFO - Webhook removed
+2025-07-11 09:39:48,896 - __main__ - INFO - Saved user 916638938 to database
+2025-07-11 09:39:48,896 - __main__ - INFO - User 916638938 initialized
+2025-07-11 10:10:56,689 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-11 10:20:52,355 - __main__ - INFO - Starting FoodBot...
+2025-07-11 10:20:52,408 - __main__ - INFO - Database connection successful
+2025-07-11 10:21:00,813 - __main__ - INFO - Webhook removed
+2025-07-11 10:21:05,318 - __main__ - INFO - Saved user 916638938 to database
+2025-07-11 10:21:05,318 - __main__ - INFO - User 916638938 initialized
+2025-07-11 10:23:38,891 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-11 11:04:46,709 - __main__ - INFO - Starting FoodBot...
+2025-07-11 11:04:46,975 - __main__ - INFO - Database connection successful
+2025-07-11 11:04:47,961 - __main__ - INFO - Webhook removed
+2025-07-11 11:43:22,641 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-11 13:28:56,569 - __main__ - INFO - Starting FoodBot...
+2025-07-11 13:28:57,148 - __main__ - INFO - Database connection successful
+2025-07-11 13:28:58,711 - __main__ - INFO - Webhook removed
+2025-07-11 13:46:14,631 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-11 15:10:30,055 - __main__ - INFO - Starting FoodBot...
+2025-07-11 15:10:30,366 - __main__ - INFO - Database connection successful
+2025-07-11 15:10:31,917 - __main__ - INFO - Webhook removed
+2025-07-11 15:22:05,641 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-11 15:40:35,692 - __main__ - INFO - Starting FoodBot...
+2025-07-11 15:40:35,985 - __main__ - INFO - Database connection successful
+2025-07-11 15:40:37,244 - __main__ - INFO - Webhook removed
+2025-07-11 15:41:21,916 - __main__ - INFO - Saved user 916638938 to database
+2025-07-11 15:41:21,917 - __main__ - INFO - User 916638938 initialized
+2025-07-11 15:42:07,334 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-12 19:55:43,020 - __main__ - INFO - Starting FoodBot...
+2025-07-12 19:55:43,160 - __main__ - INFO - Database connection successful
+2025-07-12 19:55:49,095 - __main__ - INFO - Webhook removed
+2025-07-12 19:55:59,806 - __main__ - INFO - Saved user 916638938 to database
+2025-07-12 19:55:59,807 - __main__ - INFO - User 916638938 initialized
+2025-07-12 19:57:50,168 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-12 21:16:00,381 - __main__ - INFO - Starting FoodBot...
+2025-07-12 21:16:07,037 - __main__ - INFO - Database connection successful
+2025-07-12 21:16:11,685 - __main__ - INFO - Webhook removed
+2025-07-12 21:16:30,211 - __main__ - INFO - Saved user 916638938 to database
+2025-07-12 21:16:30,212 - __main__ - INFO - User 916638938 initialized
+2025-07-12 22:15:45,115 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 08:29:48,488 - __main__ - INFO - Starting FoodBot...
+2025-07-13 08:29:48,831 - __main__ - INFO - Database connection successful
+2025-07-13 08:29:49,657 - __main__ - INFO - Webhook removed
+2025-07-13 08:30:00,887 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 08:30:01,505 - __main__ - INFO - User 916638938 initialized
+2025-07-13 08:41:50,999 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 08:41:50,999 - __main__ - INFO - User 916638938 initialized
+2025-07-13 08:42:38,259 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 08:46:49,715 - __main__ - INFO - Starting FoodBot...
+2025-07-13 08:46:49,744 - __main__ - INFO - Database connection successful
+2025-07-13 08:46:50,507 - __main__ - INFO - Webhook removed
+2025-07-13 08:46:52,658 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 08:46:52,658 - __main__ - INFO - User 916638938 initialized
+2025-07-13 08:47:08,838 - __main__ - INFO - Saved user 6523397595 to database
+2025-07-13 08:47:08,839 - __main__ - INFO - User 6523397595 initialized
+2025-07-13 08:51:53,578 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 08:57:01,172 - __main__ - INFO - Starting FoodBot...
+2025-07-13 08:57:01,272 - __main__ - INFO - Database connection successful
+2025-07-13 08:57:02,038 - __main__ - INFO - Webhook removed
+2025-07-13 08:57:03,928 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 08:57:03,929 - __main__ - INFO - User 916638938 initialized
+2025-07-13 08:59:16,101 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 09:28:24,961 - __main__ - INFO - Starting FoodBot...
+2025-07-13 09:28:25,008 - __main__ - INFO - Database connection successful
+2025-07-13 09:28:25,803 - __main__ - INFO - Webhook removed
+2025-07-13 09:28:28,339 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 09:28:28,339 - __main__ - INFO - User 916638938 initialized
+2025-07-13 09:33:22,030 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 09:33:22,031 - __main__ - INFO - User 916638938 initialized
+2025-07-13 09:33:29,990 - __main__ - ERROR - Start failed for 916638938: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/sendMessage?chat_id=916638938&text=Welcome+natnael%21+Click+below+to+start+ordering.&reply_markup=%7B%22inline_keyboard%22%3A+%5B%5B%7B%22text%22%3A+%22%5Cud83c%5Cudf54+Order+Food%22%2C+%22web_app%22%3A+%7B%22url%22%3A+%22https%3A%2F%2F82c087e908ca.ngrok-free.app%2Ftgdebug.html%22%7D%7D%5D%5D%7D (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x79a53d708490>: Failed to establish a new connection: [Errno 113] No route to host'))
+2025-07-13 09:33:30,443 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/sendMessage?chat_id=916638938&text=%E2%9A%A0%EF%B8%8F+Registration+failed.+Please+try+again+or+contact+support.&reply_parameters=%7B%22message_id%22%3A+175%7D (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x79a53d708b80>: Failed to establish a new connection: [Errno -3] Temporary failure in name resolution'))
+2025-07-13 09:33:34,522 - __main__ - INFO - Starting FoodBot...
+2025-07-13 09:33:34,556 - __main__ - INFO - Database connection successful
+2025-07-13 09:33:35,127 - __main__ - INFO - Webhook removed
+2025-07-13 09:34:00,950 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 09:34:00,951 - __main__ - INFO - User 916638938 initialized
+2025-07-13 12:19:59,034 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 15:41:54,529 - __main__ - INFO - Starting FoodBot...
+2025-07-13 15:41:54,620 - __main__ - INFO - Database connection successful
+2025-07-13 15:41:56,682 - __main__ - INFO - Webhook removed
+2025-07-13 15:43:52,490 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 15:43:52,490 - __main__ - INFO - User 916638938 initialized
+2025-07-13 15:45:46,138 - __main__ - INFO - Starting FoodBot...
+2025-07-13 15:45:46,164 - __main__ - INFO - Database connection successful
+2025-07-13 15:45:47,218 - __main__ - INFO - Webhook removed
+2025-07-13 15:45:59,665 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 15:45:59,665 - __main__ - INFO - User 916638938 initialized
+2025-07-13 15:56:40,368 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 15:56:40,389 - __main__ - INFO - User 916638938 initialized
+2025-07-13 15:57:03,658 - __main__ - INFO - Starting FoodBot...
+2025-07-13 15:57:03,707 - __main__ - INFO - Database connection successful
+2025-07-13 15:57:04,501 - __main__ - INFO - Webhook removed
+2025-07-13 15:57:12,506 - __main__ - INFO - Saved user 916638938 to database
+2025-07-13 15:57:12,506 - __main__ - INFO - User 916638938 initialized
+2025-07-13 16:25:52,563 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 19:38:50,802 - __main__ - INFO - Starting FoodBot...
+2025-07-13 19:38:51,331 - __main__ - INFO - Database connection successful
+2025-07-13 19:38:52,322 - __main__ - INFO - Webhook removed
+2025-07-13 21:32:57,306 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 21:36:38,962 - __main__ - INFO - Starting FoodBot...
+2025-07-13 21:36:39,029 - __main__ - INFO - Database connection successful
+2025-07-13 21:36:55,418 - __main__ - INFO - Webhook removed
+2025-07-13 21:39:33,043 - __main__ - INFO - Saved user 5281145803 to database
+2025-07-13 21:39:33,044 - __main__ - INFO - User 5281145803 initialized
+2025-07-13 21:42:33,571 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-13 21:42:44,102 - __main__ - INFO - Starting FoodBot...
+2025-07-13 21:42:44,138 - __main__ - INFO - Database connection successful
+2025-07-13 21:43:02,067 - __main__ - INFO - Webhook removed
+2025-07-13 22:01:29,694 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)

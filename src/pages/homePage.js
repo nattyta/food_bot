@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegFrownOpen, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./homePage.css";
+const baseURL = process.env.REACT_APP_API_BASE;
+  console.log("🌍 API Base URL:", baseURL);
+
 
 const HomePage = ({ cart, setCart }) => {
   const [categories, setCategories] = useState([]);
@@ -15,6 +18,7 @@ const HomePage = ({ cart, setCart }) => {
   const navigate = useNavigate();
   const [selectedModifications, setSelectedModifications] = useState([]);
 
+  
 
   useEffect(() => {
     const fetchedCategories = ["All", "Popular", "Pizza", "Burger", "Pasta", "Drinks", "Desserts"];
@@ -61,6 +65,56 @@ const HomePage = ({ cart, setCart }) => {
       }
     });
   };
+  
+
+  useEffect(() => {
+    const tg = window?.Telegram?.WebApp;
+  
+    console.log("🔍 window.Telegram:", window.Telegram);
+    console.log("🔍 tg:", tg);
+    console.log("🔍 tg.initData:", tg?.initData);
+    console.log("🔍 tg.initDataUnsafe:", tg?.initDataUnsafe);
+  
+    if (!tg) {
+      alert("🚫 Telegram WebApp object not found");
+      return;
+    }
+  
+    if (!tg.initData || tg.initData.length < 10) {
+      alert("⚠️ initData is empty or invalid. Are you opening this from Telegram?");
+      return;
+    }
+  
+    if (!tg.isExpanded) tg.expand();
+  
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      authenticateTelegramUser(tg.initData);
+    }
+  }, []);
+  
+  
+  
+  
+  
+  const authenticateTelegramUser = async (initData) => {
+    try {
+      const response = await fetch(`${baseURL}/auth/telegram`, {
+        method: "POST",
+        headers: {
+          "x-telegram-init-data": initData,
+        },
+      });
+  
+      const data = await response.json();
+      localStorage.setItem("auth_token", data.token);
+      console.log("✅ Auth success:", data.token);
+    } catch (error) {
+      console.error("❌ Auth failed:", error);
+      window.Telegram?.WebApp?.showAlert?.("⚠️ Failed to authenticate. Please restart via the Telegram bot.");
+    }
+  };
+  
   
   
   
