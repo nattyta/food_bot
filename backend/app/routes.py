@@ -21,36 +21,28 @@ def authenticate_user(
     request: Request,
     x_telegram_init_data: str = Header(None)
 ):
-    """Telegram authentication endpoint"""
+    print("🔵 Received initData header:\n", x_telegram_init_data[:300])  # show only part for clarity
+
     if not x_telegram_init_data:
         raise HTTPException(400, "Telegram auth required")
-    
-    if not validate_init_data(x_telegram_init_data, os.getenv("Telegram_API")):
+
+    is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
+    print("🔍 Validated:", is_valid)
+
+    if not is_valid:
         raise HTTPException(403, "Invalid Telegram auth")
 
-    try:
-        tg_user = parse_telegram_user(x_telegram_init_data)
-        chat_id = tg_user['id']
-        
-        # Create new session
-        token = session_manager.create_session(chat_id)
-        
-        # Update user last active
-        with DatabaseManager() as db:
-            db.execute(
-                "UPDATE users SET last_active = NOW() WHERE chat_id = %s",
-                (chat_id,)
-            )
-        
-        return {
-            "token": token,
-            "expires_in": 86400,  # 24 hours
-            "chat_id": chat_id
-        }
-        
-    except Exception as e:
-        logger.error(f"Telegram auth failed: {str(e)}")
-        raise HTTPException(500, "Authentication error")
+    tg_user = parse_telegram_user(x_telegram_init_data)
+    print("✅ Parsed Telegram user:", tg_user)
+
+    token = session_manager.create_session(tg_user['id'])
+
+    return {
+        "token": token,
+        "expires_in": 86400,
+        "chat_id": tg_user['id']
+    }
+
 
 @router.post("/save_user")
 def save_user(

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Telegram Debug</title>
+    <script>
+      window.onload = () => {
+        const root = document.getElementById("output");
+
+        if (window.Telegram) {
+          const tg = window.Telegram.WebApp;
+          root.innerHTML = `
+            <h1>✅ Telegram WebApp Detected</h1>
+            <pre>${JSON.stringify(tg.initDataUnsafe, null, 2)}</pre>
+          `;
+        } else {
+          root.innerHTML = "<h1>❌ Not inside Telegram WebApp</h1>";
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <div id="output">Checking Telegram...</div>
+  </body>
+</html>

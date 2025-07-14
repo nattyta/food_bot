@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./paymentPage.css";
-import telebirrLogo from "/home/natty/food-bot/food_bot/src/assets/images/telebirrLogo.png";
-import cbeLogo from "/home/natty/food-bot/food_bot/src/assets/images/cbeLogo.png";
-import abisiniaLogo from "/home/natty/food-bot/food_bot/src/assets/images/abisiniaLogo.png";
-import cbeBirrLogo from "/home/natty/food-bot/food_bot/src/assets/images/cbebirrLogo.png";
+import telebirrLogo from '../assets/images/telebirrLogo.png';
+import cbeLogo from '../assets/images/cbeLogo.png';
+import abisiniaLogo from '../assets/images/abisiniaLogo.png';
+import cbebirrLogo from '../assets/images/cbebirrLogo.png';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -112,8 +112,9 @@ const Payment = () => {
           <img src={abisiniaLogo} alt="Abisinia" className="pay-logo"/> <span>Abisinia</span>
         </button>
         <button className="pay-btn" onClick={() => handlePayment("cbe_birr")}> 
-          <img src={cbeBirrLogo} alt="CBE Birr" className="pay-logo"/> <span>CBE Birr</span>
+         <img src={cbebirrLogo} alt="CBE Birr" className="pay-logo"/> <span>CBE Birr</span>
         </button>
+
       </div>
 
       {loading && <p className="loading-text">Processing payment...</p>}

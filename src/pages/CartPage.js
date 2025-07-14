@@ -1,6 +1,7 @@
 import React, { useMemo, useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./cart.css";
+const baseURL = process.env.REACT_APP_API_BASE;
 
 const CartPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
@@ -16,37 +17,6 @@ const CartPage = ({ cart, setCart }) => {
   });
 
 
-  useEffect(() => {
-    // Initialize Telegram WebApp if available
-    if (isTelegramWebApp() && !window.Telegram.WebApp.isExpanded) {
-      window.Telegram.WebApp.expand();
-    }
-
-    // Try to get existing auth token
-    const token = localStorage.getItem('auth_token');
-    if (!token && isTelegramWebApp()) {
-      // If no token but in Telegram, authenticate
-      initializeTelegramAuth();
-    }
-  }, []);
-
-  const initializeTelegramAuth = async () => {
-    try {
-      const response = await fetch('/auth/telegram', {
-        method: 'POST',
-        headers: {
-          'x-telegram-init-data': window.Telegram.WebApp.initData
-        }
-      });
-      const data = await response.json();
-      localStorage.setItem('auth_token', data.token);
-    } catch (error) {
-      console.error('Auth failed:', error);
-      if (isTelegramWebApp()) {
-        window.Telegram.WebApp.showAlert("Failed to authenticate. Please try again.");
-      }
-    }
-  };
 
   
 
@@ -159,10 +129,15 @@ const handleConfirmOrder = async () => {
     const isTelegram = isTelegramWebApp();
     const tgWebApp = window.Telegram?.WebApp;
     
-    // 2. Get chat_id (use test value if not in Telegram)
     const chat_id = isTelegram 
-      ? tgWebApp.initDataUnsafe.user.id
-      : 123456789; // Test value for development
+   ? tgWebApp?.initDataUnsafe?.user?.id
+   : null;
+
+   if (!chat_id) {
+   const alertMsg = "❌ Failed to detect Telegram user. Please restart this WebApp via the Telegram bot.";
+   isTelegram ? tgWebApp.showAlert(alertMsg) : alert(alertMsg);
+   return;
+  }
 
     // 3. Prepare headers
     const headers = {
@@ -189,7 +164,7 @@ const handleConfirmOrder = async () => {
     };
 
     // 6. Make the request
-    const response = await fetch('/update-contact', {
+    const response = await fetch(`${baseURL}/update-contact`, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify(requestData)

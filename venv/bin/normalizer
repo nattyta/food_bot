@@ -1,4 +1,4 @@
-#!/home/natty/food-bot/food_bot/venv/bin/python3
+#!/home/natty/food_bot/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
