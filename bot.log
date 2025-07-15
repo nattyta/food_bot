@@ -2215,3 +2215,4 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-15 18:08:39,953 - __main__ - INFO - Webhook removed
 2025-07-15 18:08:44,208 - __main__ - INFO - Saved user 916638938 to database
 2025-07-15 18:08:44,210 - __main__ - INFO - User 916638938 initialized
+2025-07-15 19:35:42,388 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)

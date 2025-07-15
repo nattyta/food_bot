@@ -28,40 +28,28 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
     return chat_id
 
 def validate_init_data(init_data: str, bot_token: str) -> bool:
-    """
-    Validates Telegram WebApp initData using the HMAC algorithm.
-    Follows official Telegram spec:
-    https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
-    """
     try:
-        # Parse and clean query string
-        parsed = dict(pair.split('=', 1) for pair in init_data.split('&') if '=' in pair)
-        received_hash = parsed.pop('hash', '')
+        data_dict = dict(pair.split('=') for pair in init_data.split('&'))
+        auth_hash = data_dict.pop('hash', '')
 
-        # Sort and rebuild data string
-        data_check_string = '\n'.join(
-            f"{k}={v}" for k, v in sorted(parsed.items())
-        )
-
-        # Generate secret key from bot token
+        sorted_data = '\n'.join(f"{k}={v}" for k, v in sorted(data_dict.items()))
         secret_key = hmac.new(
-            key=bot_token.encode(),        # ✅ Correct order: bot token is the key
-            msg=b'WebAppData',
+            key=b"WebAppData",
+            msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
 
-        # Compute HMAC hash
-        computed_hash = hmac.new(
+        calculated_hash = hmac.new(
             key=secret_key,
-            msg=data_check_string.encode(),
+            msg=sorted_data.encode(),
             digestmod=hashlib.sha256
         ).hexdigest()
 
-        # Compare computed hash with received one
-        return hmac.compare_digest(computed_hash, received_hash)
+        return hmac.compare_digest(calculated_hash, auth_hash)
     except Exception as e:
-        print("❌ validate_init_data error:", str(e))
+        print("🔴 validate_init_data error:", e)
         return False
+
 
 def parse_telegram_user(init_data: str) -> dict:
     """Parse Telegram WebApp initData to get user info"""

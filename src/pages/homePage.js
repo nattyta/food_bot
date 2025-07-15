@@ -74,7 +74,10 @@ const HomePage = ({ cart, setCart }) => {
     console.log("🔍 tg:", tg);
     console.log("🔍 tg.initData:", tg?.initData);
     console.log("🔍 tg.initDataUnsafe:", tg?.initDataUnsafe);
-  
+
+    console.log("🔑 initData:", tg?.initData);
+
+
     if (!tg) {
       alert("🚫 Telegram WebApp object not found");
       return;
