@@ -16,6 +16,7 @@ import json
 from .sessions import session_manager,validate_session
 from typing import List, Optional 
 from .auth import get_current_user, telegram_auth
+from app.routes import router
 
 # Load environment variables
 load_dotenv()
@@ -98,19 +99,6 @@ async def session_middleware(request: Request, call_next):
         logger.error(f"Middleware error: {str(e)}", exc_info=True)
         raise HTTPException(500, "Internal server error")
 
-@app.post("/auth/telegram")
-async def login_via_telegram(request: Request):
-    """Endpoint for Telegram WebApp authentication"""
-    tg_user_id = await telegram_auth(request)
-    if not tg_user_id:
-        raise HTTPException(400, "Telegram auth required")
-    
-    token = session_manager.create_session(tg_user_id)
-    return {
-        "access_token": token,
-        "token_type": "bearer",
-        "expires_in": 86400  # 24 hours
-    }
 
 # ✅ Define a request model for correct data validation
 class PaymentRequest(BaseModel):

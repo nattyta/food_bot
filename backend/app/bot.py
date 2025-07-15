@@ -99,7 +99,7 @@ def handle_start(message):
             markup.add(
                  InlineKeyboardButton(
                  text="🍔 Order Food",
-                 web_app=WebAppInfo(url="https://profound-ghost-engaging.ngrok-free.app/tgdebug.html")
+                 web_app=WebAppInfo(url="https://food-bot-vulm.onrender.com/tgdebug.html")
                  )
             )
 

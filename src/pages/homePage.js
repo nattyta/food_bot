@@ -80,10 +80,11 @@ const HomePage = ({ cart, setCart }) => {
       return;
     }
   
-    if (!tg.initData || tg.initData.length < 10) {
-      alert("⚠️ initData is empty or invalid. Are you opening this from Telegram?");
+    if (!tg.initData || tg.initData.length === 0) {
+      alert("❌ Not inside Telegram WebApp. Please open this from Telegram.");
       return;
     }
+    
   
     if (!tg.isExpanded) tg.expand();
   
@@ -107,13 +108,22 @@ const HomePage = ({ cart, setCart }) => {
       });
   
       const data = await response.json();
+  
+      if (!data.token) {
+        alert("❌ Authentication failed. Telegram data was invalid.");
+        return;
+      }
+  
       localStorage.setItem("auth_token", data.token);
       console.log("✅ Auth success:", data.token);
     } catch (error) {
       console.error("❌ Auth failed:", error);
-      window.Telegram?.WebApp?.showAlert?.("⚠️ Failed to authenticate. Please restart via the Telegram bot.");
+      window.Telegram?.WebApp?.showAlert?.(
+        "⚠️ Failed to authenticate. Please restart via the Telegram bot."
+      );
     }
   };
+  
   
   
   
