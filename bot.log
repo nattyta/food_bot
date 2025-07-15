@@ -2182,3 +2182,25 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-15 09:23:46,184 - __main__ - INFO - Starting FoodBot...
 2025-07-15 09:23:46,451 - __main__ - INFO - Database connection successful
 2025-07-15 09:23:47,205 - __main__ - INFO - Webhook removed
+2025-07-15 10:17:06,294 - __main__ - INFO - Saved user 916638938 to database
+2025-07-15 10:17:06,309 - __main__ - INFO - User 916638938 initialized
+2025-07-15 10:17:20,609 - __main__ - INFO - Starting FoodBot...
+2025-07-15 10:17:20,661 - __main__ - INFO - Database connection successful
+2025-07-15 10:17:21,288 - __main__ - INFO - Webhook removed
+2025-07-15 10:17:40,639 - __main__ - INFO - Starting FoodBot...
+2025-07-15 10:17:40,670 - __main__ - INFO - Database connection successful
+2025-07-15 10:17:41,260 - __main__ - INFO - Webhook removed
+2025-07-15 10:18:18,661 - __main__ - INFO - Starting FoodBot...
+2025-07-15 10:18:18,700 - __main__ - INFO - Database connection successful
+2025-07-15 10:18:21,612 - __main__ - INFO - Webhook removed
+2025-07-15 10:19:17,204 - __main__ - INFO - Starting FoodBot...
+2025-07-15 10:19:17,248 - __main__ - INFO - Database connection successful
+2025-07-15 10:19:18,169 - __main__ - INFO - Webhook removed
+2025-07-15 10:19:33,249 - __main__ - INFO - Saved user 916638938 to database
+2025-07-15 10:19:33,251 - __main__ - INFO - User 916638938 initialized
+2025-07-15 10:37:16,121 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-15 17:48:06,137 - __main__ - INFO - Starting FoodBot...
+2025-07-15 17:48:06,405 - __main__ - INFO - Database connection successful
+2025-07-15 17:48:08,524 - __main__ - INFO - Webhook removed
+2025-07-15 17:48:14,739 - __main__ - INFO - Saved user 916638938 to database
+2025-07-15 17:48:14,740 - __main__ - INFO - User 916638938 initialized

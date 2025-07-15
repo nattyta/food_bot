@@ -1,39 +1,43 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Telegram Debug</title>
-    <style>
-      body { font-family: monospace; background: #111; color: #0f0; padding: 2rem; }
-      pre { background: #222; padding: 1rem; border-radius: 5px; }
-    </style>
-    <script>
-      window.onload = () => {
-        const root = document.getElementById("output");
+<head>
+  <title>Telegram Debug</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 2rem; }
+    pre { background: #222; padding: 1rem; border-radius: 5px; }
+  </style>
+  <!-- ✅ Load Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    window.onload = () => {
+      const root = document.getElementById("output");
 
-        const tg = window.Telegram?.WebApp;
+      const tg = window.Telegram?.WebApp;
 
-        if (!tg) {
-          root.innerHTML = "<h1>❌ Not inside Telegram WebApp</h1><p>window.Telegram is not available.</p>";
-          return;
-        }
+      console.log("📦 Telegram object:", window.Telegram);
+      console.log("📦 tg:", tg);
+      console.log("📦 initData:", tg?.initData);
+      console.log("📦 initDataUnsafe:", tg?.initDataUnsafe);
 
-        if (!tg.initData || tg.initData.length < 10) {
-          root.innerHTML = "<h1>⚠️ Invalid initData</h1><p>Probably not opened via Telegram.</p>";
-          return;
-        }
+      if (!tg) {
+        root.innerHTML = "<h1>❌ Not inside Telegram WebApp</h1><p>window.Telegram is not available.</p>";
+        return;
+      }
 
-        // ✅ Everything looks good
-        root.innerHTML = `
-          <h1>✅ Telegram WebApp Detected</h1>
-          <h3>🔐 initData:</h3>
-          <pre>${tg.initData}</pre>
-          <h3>🧠 initDataUnsafe:</h3>
-          <pre>${JSON.stringify(tg.initDataUnsafe, null, 2)}</pre>
-        `;
-      };
-    </script>
-  </head>
-  <body>
+      if (!tg.initData || tg.initData.length < 10) {
+        root.innerHTML = "<h1>⚠️ Invalid initData</h1><p>Probably not opened via Telegram properly.</p>";
+        return;
+      }
+
+      root.innerHTML = `
+        <h1>✅ Telegram WebApp Detected</h1>
+        <h3>🔐 initData:</h3>
+        <pre>${tg.initData}</pre>
+        <h3>🧠 initDataUnsafe:</h3>
+        <pre>${JSON.stringify(tg.initDataUnsafe, null, 2)}</pre>
+      `;
+    };
+  </script>
+</head>
+
     <div id="output">🔍 Checking Telegram...</div>
   </body>
 </html>
