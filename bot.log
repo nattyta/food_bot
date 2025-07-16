@@ -2216,3 +2216,37 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-15 18:08:44,208 - __main__ - INFO - Saved user 916638938 to database
 2025-07-15 18:08:44,210 - __main__ - INFO - User 916638938 initialized
 2025-07-15 19:35:42,388 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-16 00:23:42,360 - __main__ - INFO - Starting FoodBot...
+2025-07-16 00:23:42,360 - __main__ - ERROR - Database connection failed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:23:42,361 - __main__ - CRITICAL - Bot crashed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:23:46,385 - __main__ - INFO - Starting FoodBot...
+2025-07-16 00:23:46,385 - __main__ - ERROR - Database connection failed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:23:46,385 - __main__ - CRITICAL - Bot crashed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:25:14,189 - __main__ - INFO - Starting FoodBot...
+2025-07-16 00:25:14,189 - __main__ - ERROR - Database connection failed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:25:14,190 - __main__ - CRITICAL - Bot crashed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:25:20,340 - __main__ - INFO - Starting FoodBot...
+2025-07-16 00:25:20,340 - __main__ - ERROR - Database connection failed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:25:20,340 - __main__ - CRITICAL - Bot crashed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:25:43,515 - __main__ - INFO - Starting FoodBot...
+2025-07-16 00:25:43,515 - __main__ - ERROR - Database connection failed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 00:25:43,516 - __main__ - CRITICAL - Bot crashed: missing "=" after "pg_restore" in connection info string
+
+2025-07-16 14:00:57,689 - __main__ - INFO - Starting FoodBot...
+2025-07-16 14:01:11,111 - __main__ - INFO - Database connection successful
+2025-07-16 14:01:28,593 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=15)
+2025-07-16 14:01:49,195 - __main__ - INFO - Starting FoodBot...
+2025-07-16 14:01:55,389 - __main__ - INFO - Database connection successful
+2025-07-16 14:02:06,769 - __main__ - INFO - Webhook removed
+2025-07-16 14:03:47,270 - __main__ - INFO - Saved user 916638938 to database
+2025-07-16 14:03:47,271 - __main__ - INFO - User 916638938 initialized
+2025-07-16 14:26:59,040 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)

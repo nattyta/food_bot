@@ -93,7 +93,7 @@ def handle_start(message):
             )
             
             logger.info(f"User {saved_id} initialized")
-
+ 
             # Create menu
             markup = InlineKeyboardMarkup()
             markup.add(
