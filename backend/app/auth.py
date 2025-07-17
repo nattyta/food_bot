@@ -33,30 +33,32 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> bool:
     try:
-        # Parse init data string into dict
-        parsed_data = dict(parse_qsl(init_data, keep_blank_values=True))
+        init_data = unquote(init_data)
+        parsed = dict(parse_qsl(init_data))
+        received_hash = parsed.pop("hash", "")
 
-        auth_hash = parsed_data.pop("hash", None)
-        if not auth_hash:
-            return False
+        # 👇 Must sort by key, and join key=value with "\n"
+        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
 
-        # Create data check string
-        sorted_data = sorted([f"{k}={v}" for k, v in parsed_data.items()])
-        data_check_string = '\n'.join(sorted_data)
-
-        # ✅ Correct secret key = SHA256(bot_token)
+        # ✅ Use SHA-256 hash of the bot token directly
         secret_key = hashlib.sha256(bot_token.encode()).digest()
 
-        # ✅ Correct HMAC using SHA256(secret_key, data_check_string)
         calculated_hash = hmac.new(
             secret_key,
             data_check_string.encode(),
             hashlib.sha256
         ).hexdigest()
 
-        return hmac.compare_digest(calculated_hash, auth_hash)
+        print("🔐 Bot Token:", bot_token)
+        print("🔐 Secret Key:", secret_key.hex())
+        print("📦 Data Check String:\n", data_check_string)
+        print("📦 Received Hash:", received_hash)
+        print("📦 Calculated Hash:", calculated_hash)
+
+
+        return hmac.compare_digest(calculated_hash, received_hash)
     except Exception as e:
-        print("🔴 validate_init_data error:", e)
+        print("❌ validate_init_data error:", e)
         return False
 
 
