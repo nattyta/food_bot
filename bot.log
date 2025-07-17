@@ -2303,3 +2303,5 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-18 00:10:24,760 - __main__ - INFO - Webhook removed
 2025-07-18 00:12:19,176 - __main__ - INFO - Saved user 916638938 to database
 2025-07-18 00:12:19,181 - __main__ - INFO - User 916638938 initialized
+2025-07-18 00:33:51,257 - __main__ - INFO - Saved user 916638938 to database
+2025-07-18 00:33:51,258 - __main__ - INFO - User 916638938 initialized
