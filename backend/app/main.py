@@ -17,6 +17,7 @@ from .sessions import session_manager,validate_session
 from typing import List, Optional 
 from .auth import get_current_user, telegram_auth
 from app.routes import router
+from fastapi.middleware.cors import CORSMiddleware
 
 # Load environment variables
 load_dotenv()
@@ -32,7 +33,6 @@ if os.getenv("ENVIRONMENT") == "production":
 
 app.include_router(routes.router)
 
-from fastapi.middleware.cors import CORSMiddleware
 
 # CORS Configuration
 app.add_middleware(
@@ -51,6 +51,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
 
 @app.middleware("http")
 async def session_middleware(request: Request, call_next):
@@ -152,7 +154,4 @@ def update_order_status(order_id: str):
 
 
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
-
-
-
 

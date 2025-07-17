@@ -2259,3 +2259,37 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-17 14:58:46,197 - __main__ - INFO - Saved user 916638938 to database
 2025-07-17 14:58:46,198 - __main__ - INFO - User 916638938 initialized
 2025-07-17 15:09:44,956 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-17 16:38:16,121 - __main__ - INFO - Starting FoodBot...
+2025-07-17 16:38:32,269 - __main__ - INFO - Database connection successful
+2025-07-17 16:38:46,548 - __main__ - INFO - Webhook removed
+2025-07-17 16:39:12,784 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=20)
+2025-07-17 16:39:22,752 - __main__ - INFO - Starting FoodBot...
+2025-07-17 16:39:42,830 - __main__ - INFO - Database connection successful
+2025-07-17 16:40:03,569 - __main__ - INFO - Webhook removed
+2025-07-17 16:40:55,188 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-17 16:40:59,439 - __main__ - INFO - Starting FoodBot...
+2025-07-17 16:41:17,046 - __main__ - INFO - Database connection successful
+2025-07-17 16:41:34,282 - __main__ - INFO - Webhook removed
+2025-07-17 16:43:30,737 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-17 16:43:40,729 - __main__ - INFO - Starting FoodBot...
+2025-07-17 16:44:05,629 - __main__ - INFO - Database connection successful
+2025-07-17 16:44:37,357 - __main__ - INFO - Webhook removed
+2025-07-17 16:45:33,923 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-17 16:45:41,185 - __main__ - INFO - Starting FoodBot...
+2025-07-17 16:46:21,336 - __main__ - INFO - Database connection successful
+2025-07-17 16:46:55,254 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=15)
+2025-07-17 16:58:41,376 - __main__ - INFO - Starting FoodBot...
+2025-07-17 16:58:53,546 - __main__ - INFO - Database connection successful
+2025-07-17 16:58:57,336 - __main__ - INFO - Webhook removed
+2025-07-17 16:59:06,591 - __main__ - INFO - Saved user 916638938 to database
+2025-07-17 16:59:06,592 - __main__ - INFO - User 916638938 initialized
+2025-07-17 17:09:24,054 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=888014770&timeout=20 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x706d79ed83a0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-17 17:10:37,755 - __main__ - INFO - Starting FoodBot...
+2025-07-17 17:10:51,638 - __main__ - INFO - Database connection successful
+2025-07-17 17:11:03,874 - __main__ - INFO - Webhook removed
+2025-07-17 17:12:12,291 - __main__ - INFO - Saved user 916638938 to database
+2025-07-17 17:12:12,292 - __main__ - INFO - User 916638938 initialized
+2025-07-17 17:15:30,497 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-17 18:24:19,327 - __main__ - INFO - Starting FoodBot...
+2025-07-17 18:24:23,129 - __main__ - INFO - Database connection successful
+2025-07-17 18:24:25,147 - __main__ - INFO - Webhook removed

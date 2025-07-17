@@ -1,4 +1,5 @@
-from fastapi import Request, HTTPException, Depends, logger
+from fastapi import Request, HTTPException, Depends
+import logging
 from fastapi.security import HTTPBearer
 from .sessions import session_manager
 import os
@@ -8,6 +9,9 @@ from urllib.parse import parse_qs
 import json
 import logging
 from typing import Optional
+
+
+logger = logging.getLogger("uvicorn.error")
 
 security_scheme = HTTPBearer()
 

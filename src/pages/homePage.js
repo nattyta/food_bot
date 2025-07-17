@@ -69,33 +69,29 @@ const HomePage = ({ cart, setCart }) => {
 
   useEffect(() => {
     const tg = window?.Telegram?.WebApp;
-  
-    console.log("🔍 window.Telegram:", window.Telegram);
-    console.log("🔍 tg:", tg);
-    console.log("🔍 tg.initData:", tg?.initData);
-    console.log("🔍 tg.initDataUnsafe:", tg?.initDataUnsafe);
-
-    console.log("🔑 initData:", tg?.initData);
-
-
     if (!tg) {
       alert("🚫 Telegram WebApp object not found");
       return;
     }
   
+    tg.ready(); // 🚨 REQUIRED!
+  
     if (!tg.initData || tg.initData.length === 0) {
       alert("❌ Not inside Telegram WebApp. Please open this from Telegram.");
       return;
     }
-    
   
     if (!tg.isExpanded) tg.expand();
   
     const token = localStorage.getItem("auth_token");
     if (!token) {
-      authenticateTelegramUser(tg.initData);
+      authenticateTelegramUser(tg.initData); // make sure tg.initData is defined
     }
+  
+    console.log("🧾 initData:", tg.initData);
+    console.log("🔍 initDataUnsafe:", tg.initDataUnsafe);
   }, []);
+  
   
   
   
