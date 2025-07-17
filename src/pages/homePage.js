@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegFrownOpen, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./homePage.css";
-const baseURL = process.env.REACT_APP_API_BASE;
-  console.log("🌍 API Base URL:", baseURL);
+
+const baseURL = "https://food-bot-vulm.onrender.com"; 
+
 
 
 const HomePage = ({ cart, setCart }) => {
