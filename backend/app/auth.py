@@ -9,7 +9,7 @@ from urllib.parse import parse_qs
 import json
 import logging
 from typing import Optional
-
+from urllib.parse import parse_qsl
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -33,26 +33,32 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> bool:
     try:
-        data_dict = dict(pair.split('=') for pair in init_data.split('&'))
-        auth_hash = data_dict.pop('hash', '')
+        # Parse init data string into dict
+        parsed_data = dict(parse_qsl(init_data, keep_blank_values=True))
 
-        sorted_data = '\n'.join(f"{k}={v}" for k, v in sorted(data_dict.items()))
-        secret_key = hmac.new(
-            key=b"WebAppData",
-            msg=bot_token.encode(),
-            digestmod=hashlib.sha256
-        ).digest()
+        auth_hash = parsed_data.pop("hash", None)
+        if not auth_hash:
+            return False
 
+        # Create data check string
+        sorted_data = sorted([f"{k}={v}" for k, v in parsed_data.items()])
+        data_check_string = '\n'.join(sorted_data)
+
+        # ✅ Correct secret key = SHA256(bot_token)
+        secret_key = hashlib.sha256(bot_token.encode()).digest()
+
+        # ✅ Correct HMAC using SHA256(secret_key, data_check_string)
         calculated_hash = hmac.new(
-            key=secret_key,
-            msg=sorted_data.encode(),
-            digestmod=hashlib.sha256
+            secret_key,
+            data_check_string.encode(),
+            hashlib.sha256
         ).hexdigest()
 
         return hmac.compare_digest(calculated_hash, auth_hash)
     except Exception as e:
         print("🔴 validate_init_data error:", e)
         return False
+
 
 
 def parse_telegram_user(init_data: str) -> dict:
