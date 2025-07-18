@@ -2308,3 +2308,16 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-18 00:59:10,710 - __main__ - INFO - Saved user 916638938 to database
 2025-07-18 00:59:10,740 - __main__ - INFO - User 916638938 initialized
 2025-07-18 01:27:55,609 - __main__ - CRITICAL - Bot crashed: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2025-07-18 19:24:15,562 - __main__ - INFO - Starting FoodBot...
+2025-07-18 19:24:34,841 - __main__ - INFO - Database connection successful
+2025-07-18 19:24:43,677 - __main__ - INFO - Webhook removed
+2025-07-18 19:25:51,026 - __main__ - INFO - Saved user 916638938 to database
+2025-07-18 19:25:51,028 - __main__ - INFO - User 916638938 initialized
+2025-07-18 19:28:38,100 - __main__ - INFO - Saved user 916638938 to database
+2025-07-18 19:28:38,102 - __main__ - INFO - User 916638938 initialized
+2025-07-18 20:41:13,475 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-18 22:00:18,925 - __main__ - INFO - Starting FoodBot...
+2025-07-18 22:00:21,243 - __main__ - INFO - Database connection successful
+2025-07-18 22:00:21,965 - __main__ - INFO - Webhook removed
+2025-07-18 22:00:36,983 - __main__ - INFO - Saved user 916638938 to database
+2025-07-18 22:00:36,986 - __main__ - INFO - User 916638938 initialized
