@@ -37,12 +37,13 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
         parsed = dict(parse_qsl(init_data))
         received_hash = parsed.pop("hash", "")
 
-        # 👇 Must sort by key, and join key=value with "\n"
-        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
+        
+        data_check_string = "\n".join([f"{k}={v}" for k, v in sorted(parsed.items()()) if k != "hash"])
+
 
         # ✅ Use SHA-256 hash of the bot token directly
         secret_key = hashlib.sha256(bot_token.encode()).digest()
-
+  
         calculated_hash = hmac.new(
             secret_key,
             data_check_string.encode(),

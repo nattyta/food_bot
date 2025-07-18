@@ -2305,3 +2305,6 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-18 00:12:19,181 - __main__ - INFO - User 916638938 initialized
 2025-07-18 00:33:51,257 - __main__ - INFO - Saved user 916638938 to database
 2025-07-18 00:33:51,258 - __main__ - INFO - User 916638938 initialized
+2025-07-18 00:59:10,710 - __main__ - INFO - Saved user 916638938 to database
+2025-07-18 00:59:10,740 - __main__ - INFO - User 916638938 initialized
+2025-07-18 01:27:55,609 - __main__ - CRITICAL - Bot crashed: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
