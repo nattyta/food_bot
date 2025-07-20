@@ -11,6 +11,8 @@ import logging
 from typing import Optional
 from urllib.parse import parse_qsl
 
+
+
 logger = logging.getLogger("uvicorn.error")
 
 security_scheme = HTTPBearer()
@@ -45,10 +47,10 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
             user_dict = json.loads(user_data)
             for k, v in user_dict.items():
                 key = f"user.{k}"
-                parsed[key] = str(v).lower() if isinstance(v, bool) else str(v)
+                parsed[key] = str(v) if isinstance(v, bool) else str(v)
 
         # Sort and build data_check_string
-        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
+        data_check_string = "\n".join([f"{k}={v}" for k, v in sorted(parsed.items())])
 
         secret_key = hashlib.sha256(bot_token.encode()).digest()
         calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()

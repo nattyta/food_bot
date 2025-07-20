@@ -2323,3 +2323,6 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-18 22:00:36,986 - __main__ - INFO - User 916638938 initialized
 2025-07-18 22:16:32,062 - __main__ - INFO - Saved user 916638938 to database
 2025-07-18 22:16:32,064 - __main__ - INFO - User 916638938 initialized
+2025-07-20 13:34:20,136 - __main__ - INFO - Starting FoodBot...
+2025-07-20 13:34:21,203 - __main__ - INFO - Database connection successful
+2025-07-20 13:34:23,506 - __main__ - INFO - Webhook removed
