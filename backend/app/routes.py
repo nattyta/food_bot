@@ -18,25 +18,25 @@ logger = logging.getLogger(__name__)
 
 
 
-class TelegramAuthRequest(BaseModel):
+class TelegramAuthData(BaseModel):
     initData: str
 
 @router.post("/auth/telegram")
-def authenticate_user(data: TelegramAuthRequest):
-    x_telegram_init_data = data.initData
+async def authenticate_user(data: TelegramAuthData):
+    init_data = data.initData
 
-    print("🔵 Received initData:\n", x_telegram_init_data[:300])  # show only first 300 chars
+    print("🔵 Received initData:", init_data[:300])
 
-    if not x_telegram_init_data:
-        raise HTTPException(status_code=400, detail="Telegram auth required")
+    if not init_data:
+        raise HTTPException(400, "Telegram auth required")
 
-    is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
+    is_valid = validate_init_data(init_data, os.getenv("Telegram_API"))
     print("🔍 Validated:", is_valid)
 
     if not is_valid:
-        raise HTTPException(status_code=403, detail="Invalid Telegram auth")
+        raise HTTPException(403, "Invalid Telegram auth")
 
-    tg_user = parse_telegram_user(x_telegram_init_data)
+    tg_user = parse_telegram_user(init_data)
     print("✅ Parsed Telegram user:", tg_user)
 
     token = session_manager.create_session(tg_user['id'])
