@@ -58,6 +58,7 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
         print("📦 Data Check String:\n", data_check_string)
         print("📦 Received Hash:", received_hash)
         print("📦 Calculated Hash:", calculated_hash)
+        print("📦 Raw init_data:", init_data)
 
         return hmac.compare_digest(calculated_hash, received_hash)
 

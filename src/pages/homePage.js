@@ -70,6 +70,7 @@ const HomePage = ({ cart, setCart }) => {
 
   useEffect(() => {
     const tg = window?.Telegram?.WebApp;
+    const rawInitData = tg?.initData || tg?.initDataRaw;
     if (!tg) {
       alert("🚫 Telegram WebApp object not found");
       return;
@@ -103,8 +104,9 @@ const HomePage = ({ cart, setCart }) => {
       const response = await fetch(`${baseURL}/auth/telegram`, {
         method: "POST",
         headers: {
-          "x-telegram-init-data": initData,
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ initData }),
       });
   
       const data = await response.json();
@@ -123,6 +125,7 @@ const HomePage = ({ cart, setCart }) => {
       );
     }
   };
+  
   
   
   
