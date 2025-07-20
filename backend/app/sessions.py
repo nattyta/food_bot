@@ -1,14 +1,23 @@
 import secrets
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-import redis  # Only for production
+import redis
 import os
 import json
+import jwt
+
+# Load secret key from environment or fallback
+JWT_SECRET = os.getenv("JWT_SECRET", "your-default-secret")
+JWT_ALGORITHM = "HS256"
 
 class SessionManager:
     def __init__(self):
         self.sessions: Dict[str, dict] = {}
         self.redis_client = None
+
+        # Auto-init Redis on creation if REDIS_HOST is set
+        if os.getenv("REDIS_HOST"):
+            self.init_redis()
 
     def init_redis(self):
         """Initialize Redis connection for production"""
@@ -19,7 +28,7 @@ class SessionManager:
         )
 
     def create_session(self, chat_id: int) -> str:
-        """Create a new session and return the token"""
+        """Create a session token and store it"""
         token = secrets.token_urlsafe(32)
         session_data = {
             'chat_id': chat_id,
@@ -52,6 +61,7 @@ class SessionManager:
         if not session_data:
             return None
 
+        # Check expiration
         if datetime.fromisoformat(session_data['expires_at']) < datetime.now():
             self.revoke_session(token)
             return None
@@ -65,10 +75,29 @@ class SessionManager:
         else:
             self.sessions.pop(token, None)
 
-# Create a single instance of SessionManager
+    def generate_token(self, user_id: int) -> str:
+        """Generate a JWT token for the user"""
+        payload = {
+            "sub": user_id,
+            "exp": datetime.utcnow() + timedelta(days=1)
+        }
+        return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+    def verify_token(self, token: str) -> Optional[int]:
+        """(Optional) Decode and verify a JWT token"""
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            return payload.get("sub")
+        except jwt.ExpiredSignatureError:
+            return None
+        except jwt.InvalidTokenError:
+            return None
+
+# ✅ Singleton instance
 session_manager = SessionManager()
 
-# Create aliases for the commonly used functions
+# Aliases
 create_session = session_manager.create_session
 validate_session = session_manager.validate_session
 revoke_session = session_manager.revoke_session
+generate_token = session_manager.generate_token

@@ -2327,3 +2327,13 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-20 13:34:21,203 - __main__ - INFO - Database connection successful
 2025-07-20 13:34:23,506 - __main__ - INFO - Webhook removed
 2025-07-20 17:56:51,116 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-20 18:20:21,424 - __main__ - INFO - Starting FoodBot...
+2025-07-20 18:20:21,820 - __main__ - INFO - Database connection successful
+2025-07-20 18:20:41,870 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x73c69e323460>: Failed to resolve 'api.telegram.org' ([Errno -3] Temporary failure in name resolution)"))
+2025-07-20 18:20:49,886 - __main__ - INFO - Starting FoodBot...
+2025-07-20 18:20:49,919 - __main__ - INFO - Database connection successful
+2025-07-20 18:21:09,951 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x71bf7333f460>: Failed to resolve 'api.telegram.org' ([Errno -3] Temporary failure in name resolution)"))
+2025-07-20 23:19:08,457 - __main__ - INFO - Starting FoodBot...
+2025-07-20 23:19:09,038 - __main__ - INFO - Database connection successful
+2025-07-20 23:19:10,894 - __main__ - INFO - Webhook removed
+2025-07-20 23:36:24,866 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
