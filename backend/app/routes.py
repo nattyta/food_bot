@@ -12,28 +12,29 @@ from .schemas import UserCreate, OrderCreate, UserContactUpdate, ProfileUpdate
 from .crud import create_user, update_user_contact
 from .auth import get_current_user, telegram_auth, validate_init_data, parse_telegram_user
 from .sessions import session_manager
-
+from pydantic import BaseModel
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
+
+class TelegramAuthRequest(BaseModel):
+    initData: str
+
 @router.post("/auth/telegram")
-def authenticate_user(
-    request: Request,
-    x_telegram_init_data: str = Header(None)
-):
-    print("🔵 Received initData header:\n", x_telegram_init_data[:300])  # show only part for clarity
+def authenticate_user(data: TelegramAuthRequest):
+    x_telegram_init_data = data.initData
+
+    print("🔵 Received initData:\n", x_telegram_init_data[:300])  # show only first 300 chars
 
     if not x_telegram_init_data:
-        raise HTTPException(400, "Telegram auth required")
+        raise HTTPException(status_code=400, detail="Telegram auth required")
 
-    telegram_api = os.getenv("Telegram_API")
-    print("🧪 Loaded Telegram_API from env:", telegram_api)  # 👈 Add this log
-
-    is_valid = validate_init_data(x_telegram_init_data, telegram_api)
+    is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
     print("🔍 Validated:", is_valid)
 
     if not is_valid:
-        raise HTTPException(403, "Invalid Telegram auth")
+        raise HTTPException(status_code=403, detail="Invalid Telegram auth")
 
     tg_user = parse_telegram_user(x_telegram_init_data)
     print("✅ Parsed Telegram user:", tg_user)
