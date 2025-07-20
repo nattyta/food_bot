@@ -21,26 +21,23 @@ def authenticate_user(
     request: Request,
     x_telegram_init_data: str = Header(None)
 ):
-    print("🔵 Received initData header:\n", x_telegram_init_data[:300])  # show only part for clarity
-
     if not x_telegram_init_data:
         raise HTTPException(400, "Telegram auth required")
 
     is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
-    print("🔍 Validated:", is_valid)
 
     if not is_valid:
         raise HTTPException(403, "Invalid Telegram auth")
 
     tg_user = parse_telegram_user(x_telegram_init_data)
-    print("✅ Parsed Telegram user:", tg_user)
 
     token = session_manager.create_session(tg_user['id'])
 
     return {
         "token": token,
         "expires_in": 86400,
-        "chat_id": tg_user['id']
+        "chat_id": tg_user['id'],
+        "user": tg_user  # optional: helpful for frontend to display name, pic, etc.
     }
 
 
