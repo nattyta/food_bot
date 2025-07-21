@@ -27,45 +27,36 @@ router = APIRouter()
 @router.post("/auth/telegram")
 def authenticate_user(
     request: Request,
-    x_telegram_init_data: str = Header(default=None, convert_underscores=False)
+    x_telegram_init_data: str = Header(None)
 ):
+    print("🔵 Received initData header:\n", x_telegram_init_data[:300])
+
     if not x_telegram_init_data:
-        print("❌ Missing Telegram initData header")
         raise HTTPException(status_code=400, detail="Telegram auth required")
 
-    try:
-        print("🔵 Received initData header:\n", x_telegram_init_data)
-        
-        # ✅ Validate Telegram init data using bot token
-        is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
-        print("🔍 Validated:", is_valid)
+    is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
+    print("🔍 Validated:", is_valid)
 
-        if not is_valid:
-            raise HTTPException(status_code=403, detail="Invalid Telegram auth")
+    if not is_valid:
+        raise HTTPException(status_code=403, detail="Invalid Telegram auth")
 
-        # ✅ Parse Telegram user from initData
-        tg_user = parse_telegram_user(x_telegram_init_data)
-        print("✅ Parsed Telegram user:", tg_user)
+    tg_user = parse_telegram_user(x_telegram_init_data)
+    print("✅ Parsed Telegram user:", tg_user)
 
-        # ✅ Create a session (in-memory or Redis)
-        create_session(tg_user["id"])
+    # ✅ Create session
+    session_manager.create_session(tg_user["id"])
 
-        # ✅ Generate JWT token (24 hours)
-        token = generate_token(tg_user["id"])
+    # ✅ Generate JWT token (expires in 1 day)
+    token = generate_token(tg_user["id"])
 
-        return {
-            "token": token,
-            "expires_in": 86400,  # seconds
-            "chat_id": tg_user["id"],
-            "username": tg_user.get("username"),
-            "first_name": tg_user.get("first_name"),
-            "photo_url": tg_user.get("photo_url")
-        }
-
-    except Exception as e:
-        print("❌ Exception in auth route:", e)
-        raise HTTPException(status_code=500, detail="Authentication failed")
-
+    return {
+        "token": token,
+        "expires_in": 86400,  # seconds
+        "chat_id": tg_user["id"],
+        "username": tg_user.get("username"),
+        "first_name": tg_user.get("first_name"),
+        "photo_url": tg_user.get("photo_url")
+    }
 
 
 
