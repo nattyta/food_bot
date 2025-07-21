@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 bot_token = os.getenv("Telegram_API")
+print("✅ Telegram_API:", repr(os.getenv("Telegram_API")))
 
 logger = logging.getLogger("uvicorn.error")
 
