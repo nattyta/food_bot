@@ -3,7 +3,8 @@ import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegFrownOpen, FaRe
 import { useNavigate } from "react-router-dom";
 import "./homePage.css";
 
-const baseURL = "https://food-bot-vulm.onrender.com"; 
+// At the top of your component, replace both with:
+const API_BASE = process.env.REACT_APP_API_URL || "https://food-bot-vulm.onrender.com";
 
 
 
@@ -69,66 +70,64 @@ const HomePage = ({ cart, setCart }) => {
   
 
   useEffect(() => {
-    const tg = window?.Telegram?.WebApp;
-    const rawInitData = tg?.initData || tg?.initDataRaw;
-    if (!tg) {
-      alert("🚫 Telegram WebApp object not found");
-      return;
-    }
+    const initializeApp = async () => {
+      const tg = window.Telegram?.WebApp;
+      if (!tg) {
+        console.warn("Telegram WebApp not available");
+        return;
+      }
   
-    tg.ready(); // 🚨 REQUIRED!
+      tg.ready();
+      tg.expand();
   
-    if (!tg.initData || tg.initData.length === 0) {
-      alert("❌ Not inside Telegram WebApp. Please open this from Telegram.");
-      return;
-    }
+      if (!tg.initData) {
+        console.warn("No initData - not in Telegram WebApp");
+        return;
+      }
   
-    if (!tg.isExpanded) tg.expand();
+      try {
+        if (!localStorage.getItem("auth_token")) {
+          await authenticateWithTelegram();
+        }
+      } catch (error) {
+        console.error("Initialization error:", error);
+      }
+    };
   
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      authenticateTelegramUser(tg.initData); // make sure tg.initData is defined
-    }
-  
-    console.log("🧾 initData:", tg.initData);
-    console.log("🔍 initDataUnsafe:", tg.initDataUnsafe);
+    initializeApp();
   }, []);
   
-  
-  
-  
-  
-  
-  const authenticateTelegramUser = async () => {
-    try {
-      const tg = window.Telegram?.WebApp;
-      if (!tg || !tg.initData) {
-        throw new Error("Telegram WebApp not available");
-      }
-  
-      const response = await fetch(`${baseURL}/auth/telegram`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": tg.initData
-        }
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Authentication failed");
-      }
-  
-      const data = await response.json();
-      localStorage.setItem("auth_token", data.token);
-      console.log("🔑 Auth result:", data);
-      
-    } catch (error) {
-      console.error("❌ Auth failed:", error);
-      tg?.showAlert?.(`Authentication failed: ${error.message}`);
+
+
+const authenticateWithTelegram = async () => {
+  try {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) {
+      throw new Error("Telegram WebApp not available");
     }
-  };
-  
+
+    const response = await fetch(`${API_BASE}/auth/telegram`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Telegram-Init-Data": tg.initData
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Authentication failed");
+    }
+
+    const data = await response.json();
+    localStorage.setItem("auth_token", data.token);
+    return data;
+  } catch (error) {
+    console.error("❌ Auth failed:", error);
+    window.Telegram?.WebApp?.showAlert?.(`Error: ${error.message}`);
+    throw error;
+  }
+};
   
   
   

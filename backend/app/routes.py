@@ -141,3 +141,23 @@ def update_profile(
     except Exception as e:
         logger.error(f"Profile update failed: {str(e)}")
         raise HTTPException(500, "Profile update failed")
+
+
+@router.post("/api/start-session")
+async def start_session(request: Request):
+    """Initialize a new session with Telegram validation"""
+    init_data = request.headers.get("x-telegram-init-data")
+    if not init_data:
+        raise HTTPException(status_code=400, detail="Telegram auth required")
+    
+    if not validate_init_data(init_data, os.getenv("Telegram_API")):
+        raise HTTPException(status_code=403, detail="Invalid Telegram auth")
+    
+    user_data = parse_telegram_user(init_data)
+    token = create_session(user_data["id"])
+    
+    return {
+        "status": "authenticated",
+        "token": token,
+        "user": user_data
+    }
