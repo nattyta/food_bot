@@ -13,6 +13,8 @@ from .crud import create_user, update_user_contact
 from .auth import get_current_user, telegram_auth, validate_init_data, parse_telegram_user
 from .sessions import session_manager, generate_token,create_session
 from pydantic import BaseModel
+from .jwt import create_jwt
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -29,29 +31,22 @@ def authenticate_user(
     request: Request,
     x_telegram_init_data: str = Header(None)
 ):
-    print("🔵 Received initData header:\n", x_telegram_init_data[:300])
-
     if not x_telegram_init_data:
         raise HTTPException(status_code=400, detail="Telegram auth required")
 
-    is_valid = validate_init_data(x_telegram_init_data, os.getenv("Telegram_API"))
-    print("🔍 Validated:", is_valid)
-
-    if not is_valid:
+    bot_token = os.getenv("Telegram_API")
+    if not validate_init_data(x_telegram_init_data, bot_token):
         raise HTTPException(status_code=403, detail="Invalid Telegram auth")
 
     tg_user = parse_telegram_user(x_telegram_init_data)
-    print("✅ Parsed Telegram user:", tg_user)
 
-    # ✅ Create session
-    session_manager.create_session(tg_user["id"])
+    # store_telegram_session(tg_user["id"])  # optional
 
-    # ✅ Generate JWT token (expires in 1 day)
-    token = generate_token(tg_user["id"])
+    token = create_jwt({"user_id": tg_user["id"]})
 
     return {
         "token": token,
-        "expires_in": 86400,  # seconds
+        "expires_in": 86400,
         "chat_id": tg_user["id"],
         "username": tg_user.get("username"),
         "first_name": tg_user.get("first_name"),
