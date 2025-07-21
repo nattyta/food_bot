@@ -38,16 +38,15 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
         # Parse the init data
         parsed = dict(parse_qsl(init_data))
         
-        # Extract and remove the hash
+        # Extract the hash
         received_hash = parsed.pop("hash", "")
         
-        # Handle user object if present
+        # Process user object if present
         if "user" in parsed:
             try:
                 user_data = json.loads(parsed["user"])
                 for key, value in user_data.items():
                     parsed[f"user.{key}"] = str(value).lower() if isinstance(value, bool) else str(value)
-                del parsed["user"]
             except json.JSONDecodeError:
                 return False
         
@@ -55,21 +54,15 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
         data_check_string = "\n".join(
             f"{key}={value}" 
             for key, value in sorted(parsed.items())
-            if value  # Skip empty values
-        )
         
-        # Compute secret key
-        secret_key = hmac.new(
-            key=b"WebAppData",
-            msg=bot_token.encode(),
-            digestmod=hashlib.sha256
-        ).digest()
+        # Compute secret key (NEW METHOD)
+        secret_key = hashlib.sha256(bot_token.encode()).digest()
         
         # Compute HMAC
         computed_hash = hmac.new(
-            key=secret_key,
-            msg=data_check_string.encode(),
-            digestmod=hashlib.sha256
+            secret_key,
+            data_check_string.encode(),
+            hashlib.sha256
         ).hexdigest()
         
         return hmac.compare_digest(computed_hash, received_hash)
