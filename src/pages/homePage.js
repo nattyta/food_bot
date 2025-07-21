@@ -77,6 +77,10 @@ const HomePage = ({ cart, setCart }) => {
   
         tg.ready();
         tg.expand();
+
+        const initData = tg.initData;
+        console.log("✅ initData:", initData);
+
   
         if (!tg.initData) {
           console.warn("No initData - not in Telegram WebApp");
@@ -144,9 +148,13 @@ const HomePage = ({ cart, setCart }) => {
           "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
         }
       });
-
+  
       if (!response.ok) throw new Error("Session start failed");
-      return await response.json();
+      
+      const sessionData = await response.json();
+      console.log("Session initialized:", sessionData); // Now logging after we have the data
+      
+      return sessionData;
     } catch (error) {
       console.error("Session error:", error);
       throw error;

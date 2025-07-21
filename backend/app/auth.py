@@ -89,6 +89,8 @@ async def telegram_auth(request: Request) -> Optional[int]:
             
         if not validate_init_data(init_data, os.getenv("Telegram_API")):
             raise ValueError("Invalid Telegram auth")
+        print("🧪 Telegram_API:", os.getenv("Telegram_API"))
+
 
         user_data = parse_telegram_user(init_data)
         request.state.telegram_user = user_data
