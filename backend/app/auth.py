@@ -35,38 +35,47 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> bool:
     try:
-        init_data = unquote(init_data)
+        # Parse the init data
         parsed = dict(parse_qsl(init_data))
-
+        
+        # Extract and remove the hash
         received_hash = parsed.pop("hash", "")
-        parsed.pop("signature", None)
-
-        # ✅ Flatten `user` field
-        user_data = parsed.pop("user", None)
-        if user_data:
+        
+        # Handle user object if present
+        if "user" in parsed:
             try:
-                user_dict = json.loads(user_data)
-                for k, v in user_dict.items():
-                    key = f"user.{k}"
-                    parsed[key] = str(v).lower() if isinstance(v, bool) else str(v)
-            except Exception as e:
-                print("❌ Failed to parse user JSON:", e)
+                user_data = json.loads(parsed["user"])
+                for key, value in user_data.items():
+                    parsed[f"user.{key}"] = str(value).lower() if isinstance(value, bool) else str(value)
+                del parsed["user"]
+            except json.JSONDecodeError:
                 return False
-
-        # ✅ Sort the parameters and make the string
-        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
-
-        secret_key = hashlib.sha256(bot_token.encode()).digest()
-        calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
-
-        print("📦 Data Check String:\n", data_check_string)
-        print("📦 Received Hash:", received_hash)
-        print("📦 Calculated Hash:", calculated_hash)
-
-        return hmac.compare_digest(calculated_hash, received_hash)
-
+        
+        # Create data check string
+        data_check_string = "\n".join(
+            f"{key}={value}" 
+            for key, value in sorted(parsed.items())
+            if value  # Skip empty values
+        )
+        
+        # Compute secret key
+        secret_key = hmac.new(
+            key=b"WebAppData",
+            msg=bot_token.encode(),
+            digestmod=hashlib.sha256
+        ).digest()
+        
+        # Compute HMAC
+        computed_hash = hmac.new(
+            key=secret_key,
+            msg=data_check_string.encode(),
+            digestmod=hashlib.sha256
+        ).hexdigest()
+        
+        return hmac.compare_digest(computed_hash, received_hash)
+        
     except Exception as e:
-        print("❌ validate_init_data error:", e)
+        logger.error(f"Validation error: {str(e)}")
         return False
 
 

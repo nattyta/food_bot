@@ -99,31 +99,33 @@ const HomePage = ({ cart, setCart }) => {
   
   
   
-  const authenticateTelegramUser = async (initData) => {
+  const authenticateTelegramUser = async () => {
     try {
-      const response = await fetch("https://food-bot-vulm.onrender.com/auth/telegram", {
+      const tg = window.Telegram?.WebApp;
+      if (!tg || !tg.initData) {
+        throw new Error("Telegram WebApp not available");
+      }
+  
+      const response = await fetch(`${baseURL}/auth/telegram`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-telegram-init-data": window.Telegram.WebApp.initData || ""
+          "X-Telegram-Init-Data": tg.initData
         }
       });
-      
   
-      const data = await response.json();
-  
-      if (!data.token) {
-        alert("❌ Authentication failed. Telegram data was invalid.");
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Authentication failed");
       }
   
+      const data = await response.json();
       localStorage.setItem("auth_token", data.token);
-      console.log("✅ Auth success:", data.token);
+      console.log("🔑 Auth result:", data);
+      
     } catch (error) {
       console.error("❌ Auth failed:", error);
-      window.Telegram?.WebApp?.showAlert?.(
-        "⚠️ Failed to authenticate. Please restart via the Telegram bot."
-      );
+      tg?.showAlert?.(`Authentication failed: ${error.message}`);
     }
   };
   
