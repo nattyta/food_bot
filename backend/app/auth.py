@@ -35,22 +35,17 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> bool:
     try:
+        # Make sure init_data is properly decoded
         init_data = unquote(init_data)
         parsed = dict(parse_qsl(init_data))
 
         received_hash = parsed.pop("hash", "")
-        parsed.pop("signature", None)
+        parsed.pop("signature", None)  # optional cleanup
 
-        # If `user` is a JSON string, flatten it into `user.key=value` pairs
-        user_data = parsed.pop("user", None)
-        if user_data:
-            user_dict = json.loads(user_data)
-            for k, v in user_dict.items():
-                key = f"user.{k}"
-                parsed[key] = str(v) if isinstance(v, bool) else str(v)
-
-        # Sort and build data_check_string
-        data_check_string = "\n".join([f"{k}={v}" for k, v in sorted(parsed.items())])
+        # ❌ Do NOT parse or flatten `user` — treat it as a raw string
+        data_check_string = "\n".join(
+            [f"{k}={v}" for k, v in sorted(parsed.items())]
+        )
 
         secret_key = hashlib.sha256(bot_token.encode()).digest()
         calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()

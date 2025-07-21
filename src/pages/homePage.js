@@ -101,14 +101,14 @@ const HomePage = ({ cart, setCart }) => {
   
   const authenticateTelegramUser = async (initData) => {
     try {
-      const response = await fetch(`${baseURL}/auth/telegram`, {
+      const response = await fetch("https://food-bot-vulm.onrender.com/auth/telegram", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-telegram-init-data": initData,
-        },
-        body: JSON.stringify({ initData }),
+          "x-telegram-init-data": window.Telegram.WebApp.initData || ""
+        }
       });
+      
   
       const data = await response.json();
   
