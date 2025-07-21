@@ -105,6 +105,7 @@ const HomePage = ({ cart, setCart }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-telegram-init-data": initData,
         },
         body: JSON.stringify({ initData }),
       });
