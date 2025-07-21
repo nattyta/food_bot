@@ -37,7 +37,11 @@ app.include_router(routes.router)
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://food-bot-vulm.onrender.com"],
+     allow_origins=[
+        "https://food-bot-vulm.onrender.com",
+        "https://web.telegram.org",
+        "https://telegram.org"
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

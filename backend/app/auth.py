@@ -39,7 +39,7 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
         parsed = dict(parse_qsl(init_data))
         received_hash = parsed.pop("hash", "")
         
-        # Process user object
+        # Process user object if present
         if "user" in parsed:
             try:
                 user_data = json.loads(parsed["user"])
@@ -49,13 +49,13 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
             except json.JSONDecodeError:
                 return False
         
-        # Create data check string (FIXED - added missing parenthesis)
+        # Create data check string
         data_check_string = "\n".join(
             f"{key}={value}" 
             for key, value in sorted(parsed.items())
-        )  # This was missing
+        )
         
-        # Compute secret key (HMAC-SHA256)
+        # Compute secret key
         secret_key = hmac.new(
             key=b"WebAppData",
             msg=bot_token.encode(),
