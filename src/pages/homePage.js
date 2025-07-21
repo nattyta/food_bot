@@ -130,7 +130,47 @@ const authenticateWithTelegram = async () => {
 };
   
   
-  
+const startSession = async () => {
+  try {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.initData) {
+      throw new Error("Telegram WebApp not initialized");
+    }
+
+    const response = await fetch(`${API_BASE}/api/start-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Telegram-Init-Data": tg.initData
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Session start failed");
+    }
+
+    const data = await response.json();
+    
+    // Store the token if provided
+    if (data.token) {
+      localStorage.setItem("auth_token", data.token);
+    }
+    
+    // Handle session data (customize based on your API response)
+    console.log("Session started:", data);
+    return data;
+    
+  } catch (error) {
+    console.error("Session error:", error);
+    
+    // Show alert in Telegram WebApp if available
+    window.Telegram?.WebApp?.showAlert?.(`Session error: ${error.message}`);
+    
+    // Re-throw for further handling if needed
+    throw error;
+  }
+};
   
   
   
