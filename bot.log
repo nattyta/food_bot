@@ -2347,3 +2347,4 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-21 16:35:53,570 - __main__ - INFO - Starting FoodBot...
 2025-07-21 16:35:53,684 - __main__ - INFO - Database connection successful
 2025-07-21 16:35:57,952 - __main__ - INFO - Webhook removed
+2025-07-21 18:00:13,547 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
