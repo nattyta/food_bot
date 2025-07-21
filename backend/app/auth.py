@@ -10,8 +10,12 @@ import json
 import logging
 from typing import Optional
 from urllib.parse import parse_qsl
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
+bot_token = os.getenv("Telegram_API")
 
 logger = logging.getLogger("uvicorn.error")
 
