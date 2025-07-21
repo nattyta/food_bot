@@ -19,7 +19,7 @@ const HomePage = ({ cart, setCart }) => {
   const [specialInstruction, setSpecialInstruction] = useState("");  
   const navigate = useNavigate();
   const [selectedModifications, setSelectedModifications] = useState([]);
-
+  const [loading, setLoading] = useState(false);
   
 
   useEffect(() => {
@@ -70,107 +70,89 @@ const HomePage = ({ cart, setCart }) => {
   
 
   useEffect(() => {
-    const initializeApp = async () => {
-      const tg = window.Telegram?.WebApp;
-      if (!tg) {
-        console.warn("Telegram WebApp not available");
-        return;
-      }
-  
-      tg.ready();
-      tg.expand();
-  
-      if (!tg.initData) {
-        console.warn("No initData - not in Telegram WebApp");
-        return;
-      }
-  
+    const initialize = async () => {
       try {
-        if (!localStorage.getItem("auth_token")) {
-          await authenticateWithTelegram();
+        const tg = window.Telegram?.WebApp;
+        if (!tg) return;
+  
+        tg.ready();
+        tg.expand();
+  
+        if (!tg.initData) {
+          console.warn("No initData - not in Telegram WebApp");
+          return;
         }
+  
+        setLoading(true);
+        
+        // First authenticate
+        const authData = await authenticateWithTelegram();
+        localStorage.setItem("auth_token", authData.token);
+        
+        // Then start session
+        const sessionData = await startSession();
+        console.log("Session initialized:", sessionData);
+        
       } catch (error) {
         console.error("Initialization error:", error);
+      } finally {
+        setLoading(false);
       }
     };
   
-    initializeApp();
+    initialize();
   }, []);
+
   
 
 
-const authenticateWithTelegram = async () => {
-  try {
-    const tg = window.Telegram?.WebApp;
-    if (!tg?.initData) {
-      throw new Error("Telegram WebApp not available");
-    }
+  const authenticateWithTelegram = async () => {
+    try {
+      const tg = window.Telegram?.WebApp;
+      if (!tg?.initData) throw new Error("Telegram WebApp not available");
 
-    const response = await fetch(`${API_BASE}/auth/telegram`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Telegram-Init-Data": tg.initData
+      const response = await fetch(`${API_BASE}/auth/telegram`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Telegram-Init-Data": tg.initData
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Authentication failed");
       }
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Authentication failed");
+      return await response.json();
+    } catch (error) {
+      console.error("❌ Auth failed:", error);
+      window.Telegram?.WebApp?.showAlert?.(`Error: ${error.message}`);
+      throw error;
     }
-
-    const data = await response.json();
-    localStorage.setItem("auth_token", data.token);
-    return data;
-  } catch (error) {
-    console.error("❌ Auth failed:", error);
-    window.Telegram?.WebApp?.showAlert?.(`Error: ${error.message}`);
-    throw error;
-  }
-};
+  };
   
   
-const startSession = async () => {
-  try {
-    const tg = window.Telegram?.WebApp;
-    if (!tg?.initData) {
-      throw new Error("Telegram WebApp not initialized");
-    }
+  const startSession = async () => {
+    try {
+      const tg = window.Telegram?.WebApp;
+      const response = await fetch(`${API_BASE}/api/start-session`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Telegram-Init-Data": tg.initData,
+          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+        }
+      });
 
-    const response = await fetch(`${API_BASE}/api/start-session`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Telegram-Init-Data": tg.initData
-      }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || "Session start failed");
+      if (!response.ok) throw new Error("Session start failed");
+      return await response.json();
+    } catch (error) {
+      console.error("Session error:", error);
+      throw error;
     }
+  };
 
-    const data = await response.json();
-    
-    // Store the token if provided
-    if (data.token) {
-      localStorage.setItem("auth_token", data.token);
-    }
-    
-    // Handle session data (customize based on your API response)
-    console.log("Session started:", data);
-    return data;
-    
-  } catch (error) {
-    console.error("Session error:", error);
-    
-    // Show alert in Telegram WebApp if available
-    window.Telegram?.WebApp?.showAlert?.(`Session error: ${error.message}`);
-    
-    // Re-throw for further handling if needed
-    throw error;
-  }
-};
   
   
   

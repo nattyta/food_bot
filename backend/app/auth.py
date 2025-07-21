@@ -37,11 +37,9 @@ def validate_init_data(init_data: str, bot_token: str) -> bool:
     try:
         # Parse the init data
         parsed = dict(parse_qsl(init_data))
-        
-        # Extract the hash
         received_hash = parsed.pop("hash", "")
         
-        # Process user object if present
+        # Process user object
         if "user" in parsed:
             try:
                 user_data = json.loads(parsed["user"])
