@@ -2368,3 +2368,6 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-22 00:05:18,359 - __main__ - INFO - Starting FoodBot...
 2025-07-22 00:05:18,734 - __main__ - INFO - Database connection successful
 2025-07-22 00:05:19,840 - __main__ - INFO - Webhook removed
+2025-07-22 02:52:55,052 - __main__ - INFO - Saved user 916638938 to database
+2025-07-22 02:52:55,091 - __main__ - INFO - User 916638938 initialized
+2025-07-22 03:41:12,263 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=888014782&timeout=20 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f40992606d0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))

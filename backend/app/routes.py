@@ -14,7 +14,7 @@ from .auth import get_current_user, telegram_auth, validate_init_data, parse_tel
 from .sessions import session_manager, generate_token,create_session
 from pydantic import BaseModel
 from .jwt import create_jwt
-
+import datetime
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -27,30 +27,71 @@ class TelegramAuthData(BaseModel):
 router = APIRouter()
 
 @router.post("/auth/telegram")
-def authenticate_user(
+async def authenticate_user(
     request: Request,
-    x_telegram_init_data: str = Header(None)
+    x_telegram_init_data: str = Header(None, alias="X-Telegram-Init-Data")
 ):
+    """
+    Authenticate Telegram user with WebApp initData
+    Returns JWT token with user data
+    """
+    # 1. Validate presence of init data
     if not x_telegram_init_data:
-        raise HTTPException(status_code=400, detail="Telegram auth required")
+        raise HTTPException(
+            status_code=400,
+            detail="Telegram auth required. Please provide X-Telegram-Init-Data header."
+        )
 
+    # 2. Get bot token from environment
     bot_token = os.getenv("Telegram_API")
+    if not bot_token:
+        raise HTTPException(
+            status_code=500,
+            detail="Server configuration error"
+        )
+
+    # 3. Validate initData signature
     if not validate_init_data(x_telegram_init_data, bot_token):
-        raise HTTPException(status_code=403, detail="Invalid Telegram auth")
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid Telegram authentication data"
+        )
 
-    tg_user = parse_telegram_user(x_telegram_init_data)
+    # 4. Parse user data
+    try:
+        tg_user = parse_telegram_user(x_telegram_init_data)
+        if not tg_user.get("id"):
+            raise ValueError("Missing user ID in Telegram data")
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid user data: {str(e)}"
+        )
 
-    # store_telegram_session(tg_user["id"])  # optional
+    # 5. Create JWT token
+    try:
+        token = create_jwt({
+            "user_id": tg_user["id"],
+            "username": tg_user.get("username"),
+            "auth_time": datetime.utcnow().timestamp()
+        })
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Token creation failed: {str(e)}"
+        )
 
-    token = create_jwt({"user_id": tg_user["id"]})
-
+    # 6. Return response
     return {
+        "status": "authenticated",
         "token": token,
-        "expires_in": 86400,
-        "chat_id": tg_user["id"],
-        "username": tg_user.get("username"),
-        "first_name": tg_user.get("first_name"),
-        "photo_url": tg_user.get("photo_url")
+        "expires_in": 86400,  # 1 day in seconds
+        "user": {
+            "chat_id": tg_user["id"],
+            "username": tg_user.get("username"),
+            "first_name": tg_user.get("first_name"),
+            "photo_url": tg_user.get("photo_url")
+        }
     }
 
 

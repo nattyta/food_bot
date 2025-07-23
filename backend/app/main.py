@@ -40,7 +40,8 @@ app.add_middleware(
      allow_origins=[
         "https://food-bot-vulm.onrender.com",
         "https://web.telegram.org",
-        "https://telegram.org"
+        "https://telegram.org",
+        "https://t.me/RE_foodBot/fbot"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

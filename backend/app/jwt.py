@@ -5,15 +5,13 @@ import os
 JWT_SECRET = os.getenv("JWT_SECRET", "changeme")  # replace in production
 JWT_ALGORITHM = "HS256"
 
-def create_jwt(payload: dict, days: int = 7) -> str:
+def create_jwt(payload: dict) -> str:
+    """Create JWT token with 1 day expiration"""
     return jwt.encode(
         {
             **payload,
-            "exp": datetime.utcnow() + timedelta(days=days)
+            "exp": datetime.utcnow() + timedelta(days=1)
         },
-        JWT_SECRET,
-        algorithm=JWT_ALGORITHM
+        os.getenv("JWT_SECRET"),
+        algorithm="HS256"
     )
-
-def decode_jwt(token: str):
-    return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
