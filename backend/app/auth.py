@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException, Depends
+from fastapi import Request, HTTPException, Depends,APIRouter
 import logging
 from fastapi.security import HTTPBearer
 from .sessions import session_manager
@@ -13,6 +13,9 @@ from urllib.parse import parse_qsl
 import os
 from dotenv import load_dotenv
 import datetime
+
+router = APIRouter()
+
 load_dotenv()
 
 bot_token = os.getenv("Telegram_API")
@@ -87,70 +90,21 @@ def parse_telegram_user(init_data: str) -> dict:
         raise ValueError(f"Invalid initData: {str(e)}")
     
 
-@router.post("/auth/telegram")
-async def authenticate_user(
-    request: Request,
-    x_telegram_init_data: str = Header(None, alias="X-Telegram-Init-Data")
-):
-    """
-    Authenticate Telegram user with WebApp initData
-    Returns JWT token with user data
-    """
-    # 1. Validate presence of init data
-    if not x_telegram_init_data:
-        raise HTTPException(
-            status_code=400,
-            detail="Telegram auth required. Please provide X-Telegram-Init-Data header."
-        )
-
-    # 2. Get bot token from environment
-    bot_token = os.getenv("Telegram_API")
-    if not bot_token:
-        raise HTTPException(
-            status_code=500,
-            detail="Server configuration error"
-        )
-
-    # 3. Validate initData signature
-    if not validate_init_data(x_telegram_init_data, bot_token):
-        raise HTTPException(
-            status_code=403,
-            detail="Invalid Telegram authentication data"
-        )
-
-    # 4. Parse user data
+async def telegram_auth(request: Request) -> Optional[int]:
+    """Handle Telegram WebApp authentication"""
     try:
-        tg_user = parse_telegram_user(x_telegram_init_data)
-        if not tg_user.get("id"):
-            raise ValueError("Missing user ID in Telegram data")
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid user data: {str(e)}"
-        )
+        init_data = request.headers.get('x-telegram-init-data')
+        if not init_data:
+            return None
+            
+        if not validate_init_data(init_data, os.getenv("Telegram_API")):
+            raise ValueError("Invalid Telegram auth")
+        print("🧪 Telegram_API:", os.getenv("Telegram_API"))
 
-    # 5. Create JWT token
-    try:
-        token = create_jwt({
-            "user_id": tg_user["id"],
-            "username": tg_user.get("username"),
-            "auth_time": datetime.utcnow().timestamp()
-        })
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Token creation failed: {str(e)}"
-        )
 
-    # 6. Return response
-    return {
-        "status": "authenticated",
-        "token": token,
-        "expires_in": 86400,  # 1 day in seconds
-        "user": {
-            "chat_id": tg_user["id"],
-            "username": tg_user.get("username"),
-            "first_name": tg_user.get("first_name"),
-            "photo_url": tg_user.get("photo_url")
-        }
-    }
+        user_data = parse_telegram_user(init_data)
+        request.state.telegram_user = user_data
+        return user_data.get('id')
+    except Exception as e:
+        logger.error(f"Telegram auth error: {str(e)}")
+        return None
