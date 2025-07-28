@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegFrownOpen, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
+import { FaBell } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
+import { FaRegArrowAltCircleRight} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { initTelegramSession, startBackendSession,validateTelegramHash } from '../auth';
 import "./homePage.css";
 
 // At the top of your component, replace both with:
 const API_BASE = process.env.REACT_APP_API_URL || "https://food-bot-vulm.onrender.com";
+const TELEGRAM_TOKEN = process.env.Telegram_API;
 
 
 
@@ -72,35 +79,29 @@ const HomePage = ({ cart, setCart }) => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const tg = window.Telegram?.WebApp;
-        if (!tg) return;
-  
-        tg.ready();
-        tg.expand();
-
-        const initData = tg.initData;
-        console.log("✅ initData:", initData);
-
-  
-        if (!tg.initData) {
-          console.warn("No initData - not in Telegram WebApp");
+        const session = initTelegramSession();
+        if (!session || !session.initData) {
+          console.warn("No Telegram session");
           return;
         }
   
-        setLoading(true);
-        
-        // First authenticate
-        const authData = await authenticateWithTelegram();
-        localStorage.setItem("auth_token", authData.token);
-        
-        // Then start session
-        const sessionData = await startSession();
-        console.log("Session initialized:", sessionData);
-        
+        if (!validateTelegramHash(session.initData, TELEGRAM_TOKEN)) {
+          throw new Error("Invalid Telegram hash");
+        }
+  
+        const auth = await authenticateWithTelegram(session.initData);
+        localStorage.setItem("auth_token", auth.token);
+  
+        const backendSession = await startBackendSession({
+          chat_id: auth.user.id,
+          init_data: session.initData,
+          token: auth.token
+        });
+  
+        console.log("✅ Authenticated & session started", backendSession);
       } catch (error) {
-        console.error("Initialization error:", error);
-      } finally {
-        setLoading(false);
+        console.error("Auth error:", error.message);
+        window.Telegram?.WebApp?.showAlert(`Auth failed: ${error.message}`);
       }
     };
   
@@ -215,27 +216,70 @@ const HomePage = ({ cart, setCart }) => {
         <div className="profile-pic"></div>
       </header>
       <div className="search-bar">
-        <input type="text" placeholder="Find Your Food..." />
-        <FaSearch className="search-icon" />
-      </div>
+  <input type="text" placeholder="Find Your Food..." />
+  <FaSearch className="search-icon" size={18} />
+</div>
       <div className="category-container">
         {categories.map((category) => (
           <button key={category} className={`category-button ${activeCategory === category ? "active" : ""}`} onClick={() => setActiveCategory(category)}>{category}</button>
         ))}
       </div>
       <div className="product-grid">
-        {products.filter(p => activeCategory === "All" || p.category === activeCategory).map((product) => (
-          <div key={product.id} className="product-card" onClick={() => navigate("/Detail", { state: { product } })}>
-            <img src={product.image} alt={product.name} className="product-image" />
-            <h3>{product.name}</h3>
-            <p>{product.description}</p>
-            <div className="product-footer">
-              <span>${product.price.toFixed(2)}</span>
-              <button className="add-to-cart" onClick={(e) => { e.stopPropagation(); openPopup(product); }}>+</button>
-            </div>
-          </div>
-        ))}
+  {products.filter(p => activeCategory === "All" || p.category === activeCategory).map((product) => (
+    <div 
+      key={product.id} 
+      className="product-card" 
+      onClick={() => {
+        if (!product) return;
+        navigate("/Detail", { 
+          state: { 
+            product: {
+              ...product,
+              addOns: product.addOns || [],
+              extras: product.extras || [],
+              modifications: product.modifications || [],
+              // Ensure all required fields have fallbacks
+              id: product.id || Date.now(),
+              name: product.name || 'Unnamed Product',
+              description: product.description || '',
+              price: product.price || 0,
+              image: product.image || 'default-food.jpg',
+              category: product.category || 'Uncategorized'
+            }
+          } 
+        });
+      }}
+    >
+      <img 
+        src={product.image || 'default-food.jpg'} 
+        alt={product.name || 'Food item'} 
+        className="product-image" 
+        onError={(e) => {
+          e.target.src = 'default-food.jpg';
+        }}
+      />
+      <h3>{product.name || 'Unnamed Product'}</h3>
+      <p>{product.description || ''}</p>
+      <div className="product-footer">
+        <span>${(product.price || 0).toFixed(2)}</span>
+        <button 
+          className="add-to-cart" 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            openPopup({
+              ...product,
+              addOns: product.addOns || [],
+              extras: product.extras || [],
+              modifications: product.modifications || []
+            }); 
+          }}
+        >
+          +
+        </button>
       </div>
+    </div>
+  ))}
+</div>
       {selectedProduct && (
   <div className="popup-overlay">
     <div className="popup-content popup-centered">
@@ -318,12 +362,16 @@ const HomePage = ({ cart, setCart }) => {
   </div>
 )}
 
-      <footer className="footer-nav">
-        <FaHome className="nav-icon" />
-        <FaShoppingCart onClick={() => navigate("/CartPage")} size={24} className="nav-icon" />
-        <FaHeart className="nav-icon" />
-        <FaBell className="nav-icon" />
-      </footer>
+<footer className="footer-nav">
+  <FaHome className="nav-icon" size={24} />
+  <FaShoppingCart 
+    className="nav-icon" 
+    size={24}
+    onClick={() => navigate("/CartPage")} 
+  />
+  <FaHeart className="nav-icon" size={24} />
+  <FaBell className="nav-icon" size={24} />
+</footer>
     </div>
   );
 };

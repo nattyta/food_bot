@@ -2371,3 +2371,36 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-22 02:52:55,052 - __main__ - INFO - Saved user 916638938 to database
 2025-07-22 02:52:55,091 - __main__ - INFO - User 916638938 initialized
 2025-07-22 03:41:12,263 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=888014782&timeout=20 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f40992606d0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-27 15:27:06,063 - __main__ - INFO - Starting FoodBot...
+2025-07-27 15:27:06,072 - __main__ - ERROR - Database connection failed: 'NoneType' object has no attribute 'encode'
+2025-07-27 15:27:06,072 - __main__ - CRITICAL - Bot crashed: 'NoneType' object has no attribute 'encode'
+2025-07-27 15:41:47,610 - __main__ - INFO - Starting FoodBot...
+2025-07-27 15:41:47,610 - __main__ - ERROR - Database connection failed: 'NoneType' object has no attribute 'encode'
+2025-07-27 15:41:47,611 - __main__ - CRITICAL - Bot crashed: 'NoneType' object has no attribute 'encode'
+2025-07-27 15:43:03,960 - __main__ - INFO - Starting FoodBot...
+2025-07-27 15:43:03,961 - __main__ - ERROR - Database connection failed: missing "=" after "pg_restore" in connection info string
+
+2025-07-27 15:43:03,961 - __main__ - CRITICAL - Bot crashed: missing "=" after "pg_restore" in connection info string
+
+2025-07-27 16:02:49,746 - __main__ - INFO - Starting FoodBot...
+2025-07-27 16:02:57,459 - __main__ - INFO - Database connection successful
+2025-07-27 16:03:03,676 - __main__ - INFO - Webhook removed
+2025-07-27 16:06:08,878 - __main__ - INFO - Saved user 916638938 to database
+2025-07-27 16:06:08,878 - __main__ - INFO - User 916638938 initialized
+2025-07-27 16:12:19,880 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-27 16:23:15,902 - __main__ - INFO - Starting FoodBot...
+2025-07-27 16:23:26,947 - __main__ - INFO - Database connection successful
+2025-07-27 16:23:45,028 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x741aa6b81bd0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-27 16:23:49,947 - __main__ - INFO - Starting FoodBot...
+2025-07-27 16:24:03,983 - __main__ - INFO - Database connection successful
+2025-07-27 16:24:20,917 - __main__ - INFO - Webhook removed
+2025-07-27 16:24:40,326 - __main__ - INFO - Saved user 916638938 to database
+2025-07-27 16:24:40,327 - __main__ - INFO - User 916638938 initialized
+2025-07-27 16:30:45,973 - __main__ - INFO - Starting FoodBot...
+2025-07-27 16:31:02,088 - __main__ - INFO - Database connection successful
+2025-07-27 16:31:03,591 - __main__ - INFO - Webhook removed
+2025-07-27 16:39:34,757 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-27 17:33:05,028 - __main__ - INFO - Starting FoodBot...
+2025-07-27 17:33:12,055 - __main__ - INFO - Database connection successful
+2025-07-27 17:33:15,795 - __main__ - INFO - Webhook removed
+2025-07-27 18:09:18,611 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
