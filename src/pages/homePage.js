@@ -11,7 +11,7 @@ import "./homePage.css";
 
 // At the top of your component, replace both with:
 const API_BASE = process.env.REACT_APP_API_URL || "https://food-bot-vulm.onrender.com";
-const TELEGRAM_TOKEN = process.env.Telegram_API;
+const TELEGRAM_TOKEN = process.env.REACT_APP_TELEGRAM_TOKEN;
 
 
 
