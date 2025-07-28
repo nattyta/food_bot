@@ -6,7 +6,6 @@ import { FaBell } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
 import { FaRegArrowAltCircleRight} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { initTelegramSession, startBackendSession,validateTelegramHash } from '../auth';
 import "./homePage.css";
 
 // At the top of your component, replace both with:
@@ -79,88 +78,92 @@ const HomePage = ({ cart, setCart }) => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const session = initTelegramSession();
-        if (!session || !session.initData) {
-          console.warn("No Telegram session");
+        const tg = window.Telegram?.WebApp;
+        if (!tg?.initData) {
+          console.warn("❌ Not running inside Telegram");
           return;
         }
   
-        if (!validateTelegramHash(session.initData, TELEGRAM_TOKEN)) {
+        const initData = tg.initData;
+  
+        // ✅ Validate hash (optional, but adds security)
+        const isHashValid = validateTelegramHash(initData, TELEGRAM_TOKEN);
+        if (!isHashValid) {
           throw new Error("Invalid Telegram hash");
         }
   
-        const auth = await authenticateWithTelegram(session.initData);
-        localStorage.setItem("auth_token", auth.token);
-  
-        const backendSession = await startBackendSession({
-          chat_id: auth.user.id,
-          init_data: session.initData,
-          token: auth.token
+        // 🔑 Authenticate with your backend
+        const authResponse = await fetch(`${API_BASE}/auth/telegram`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Telegram-Init-Data": initData,
+          },
         });
   
-        console.log("✅ Authenticated & session started", backendSession);
+        if (!authResponse.ok) {
+          const error = await authResponse.json();
+          throw new Error(error.detail || "Authentication failed");
+        }
+  
+        const auth = await authResponse.json();
+        localStorage.setItem("auth_token", auth.token);
+  
+        // 🧠 Start session
+        const sessionResponse = await fetch(`${API_BASE}/api/start-session`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Telegram-Init-Data": initData,
+            "Authorization": `Bearer ${auth.token}`,
+          },
+        });
+  
+        if (!sessionResponse.ok) {
+          throw new Error("Failed to start session");
+        }
+  
+        const sessionData = await sessionResponse.json();
+        console.log("✅ Session started:", sessionData);
       } catch (error) {
-        console.error("Auth error:", error.message);
-        window.Telegram?.WebApp?.showAlert(`Auth failed: ${error.message}`);
+        console.error("⚠️ Auth/session error:", error.message);
+        window.Telegram?.WebApp?.showAlert?.(`Auth failed: ${error.message}`);
       }
     };
   
     initialize();
   }, []);
-
-  
-
-
-  const authenticateWithTelegram = async () => {
-    try {
-      const tg = window.Telegram?.WebApp;
-      if (!tg?.initData) throw new Error("Telegram WebApp not available");
-
-      const response = await fetch(`${API_BASE}/auth/telegram`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": tg.initData
-        }
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Authentication failed");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("❌ Auth failed:", error);
-      window.Telegram?.WebApp?.showAlert?.(`Error: ${error.message}`);
-      throw error;
-    }
-  };
   
   
-  const startSession = async () => {
-    try {
-      const tg = window.Telegram?.WebApp;
-      const response = await fetch(`${API_BASE}/api/start-session`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": tg.initData,
-          "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
-        }
-      });
+  function validateTelegramHash(initData, botToken) {
+    if (!window.crypto || !botToken) return false;
   
-      if (!response.ok) throw new Error("Session start failed");
-      
-      const sessionData = await response.json();
-      console.log("Session initialized:", sessionData); // Now logging after we have the data
-      
-      return sessionData;
-    } catch (error) {
-      console.error("Session error:", error);
-      throw error;
-    }
-  };
+    const params = new URLSearchParams(initData);
+    const hash = params.get("hash");
+    params.delete("hash");
+  
+    const dataCheckString = [...params.entries()]
+      .map(([key, value]) => `${key}=${value}`)
+      .sort()
+      .join("\n");
+  
+    const secret = new TextEncoder().encode(botToken);
+    const algo = { name: "HMAC", hash: "SHA-256" };
+  
+    return window.crypto.subtle.importKey("raw", secret, algo, false, ["sign"])
+      .then((key) =>
+        window.crypto.subtle.sign(algo.name, key, new TextEncoder().encode(dataCheckString))
+      )
+      .then((signature) => {
+        const hashArray = Array.from(new Uint8Array(signature));
+        const hexHash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+        return hash === hexHash;
+      })
+      .catch(() => false);
+  }
+  
+
+  
 
   
   
