@@ -1,8 +1,6 @@
 
 from fastapi import Request, HTTPException, Depends,APIRouter
-=======
 from fastapi import Request, HTTPException, Depends
->>>>>>> 4fa0a819 (Initial commit)
 import logging
 from fastapi.security import HTTPBearer
 from .sessions import session_manager
@@ -24,10 +22,6 @@ load_dotenv()
 
 bot_token = os.getenv("Telegram_API")
 print("✅ Telegram_API:", repr(os.getenv("Telegram_API")))
-=======
-
-
->>>>>>> 4fa0a819 (Initial commit)
 
 logger = logging.getLogger("uvicorn.error")
 
