@@ -13,8 +13,11 @@ from .crud import create_user, update_user_contact
 from .auth import get_current_user, telegram_auth, validate_init_data, parse_telegram_user
 from .sessions import session_manager, generate_token,create_session
 from pydantic import BaseModel
+<<<<<<< HEAD
 from .jwt import create_jwt
 import datetime
+=======
+>>>>>>> 4fa0a819 (Initial commit)
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,7 @@ class TelegramAuthData(BaseModel):
 router = APIRouter()
 
 @router.post("/auth/telegram")
+<<<<<<< HEAD
 async def authenticate_user(
     request: Request,
     x_telegram_init_data: str = Header(None, alias="X-Telegram-Init-Data")
@@ -94,6 +98,43 @@ async def authenticate_user(
         }
     }
 
+=======
+async def auth_telegram(payload: dict):
+    init_data = payload.get("initData")
+    if not init_data:
+        raise HTTPException(status_code=400, detail="Missing initData")
+
+    validator = TelegramLoginValidator(bot_token)
+    try:
+        user_data = validator.parse(init_data)  # Validate full string
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Invalid Telegram init data")
+
+    # Extract user info from initData
+    user = user_data.get("user", {})
+    telegram_id = user.get("id")
+    username = user.get("username", "")
+    first_name = user.get("first_name", "")
+    last_name = user.get("last_name", "")
+
+    # Insert or update user in DB
+    conn = psycopg2.connect(...)  # Use your DB conn setup
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM users WHERE telegram_id = %s", (telegram_id,))
+    user_row = cur.fetchone()
+
+    if not user_row:
+        cur.execute("""
+            INSERT INTO users (telegram_id, username, first_name, last_name)
+            VALUES (%s, %s, %s, %s)
+        """, (telegram_id, username, first_name, last_name))
+        conn.commit()
+
+    # generate JWT token
+    token_data = {"sub": str(telegram_id)}
+    access_token = create_access_token(data=token_data)
+    return {"access_token": access_token}
+>>>>>>> 4fa0a819 (Initial commit)
 
 
 
@@ -176,6 +217,7 @@ def update_profile(
         return {"status": "success"}
     except Exception as e:
         logger.error(f"Profile update failed: {str(e)}")
+<<<<<<< HEAD
         raise HTTPException(500, "Profile update failed")
 
 
@@ -197,3 +239,6 @@ async def start_session(request: Request):
         "token": token,
         "user": user_data
     }
+=======
+        raise HTTPException(500, "Profile update failed")
+>>>>>>> 4fa0a819 (Initial commit)

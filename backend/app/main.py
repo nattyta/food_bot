@@ -37,16 +37,10 @@ app.include_router(routes.router)
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-     allow_origins=[
-        "https://food-bot-vulm.onrender.com",
-        "https://web.telegram.org",
-        "https://telegram.org",
-        "https://t.me/RE_foodBot/fbot"
-    ],
+    allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
 
 
@@ -60,51 +54,7 @@ logger = logging.getLogger(__name__)
 
 
 
-@app.middleware("http")
-async def strict_auth_middleware(request: Request, call_next):
-    """Strict authentication middleware with proper error handling"""
-    try:
-        # Skip auth for public endpoints
-        if request.url.path in ['/auth/telegram', '/health']:
-            return await call_next(request)
-            
-        # 1. Strict Telegram authentication
-        try:
-            tg_user = await telegram_auth(request)  # Should return full user object
-            if not tg_user:
-                raise HTTPException(403, "Telegram authentication required")
-            request.state.tg_user = tg_user
-        except Exception as auth_error:
-            logger.error(f"Telegram auth failed: {str(auth_error)}")
-            raise HTTPException(403, "Invalid Telegram authentication")
 
-        # 2. Session validation for all authenticated routes
-        auth_header = request.headers.get('Authorization')
-        if not auth_header or not auth_header.startswith('Bearer '):
-            raise HTTPException(401, "Missing auth token")
-            
-        token = auth_header[7:]
-        chat_id = session_manager.validate_session(token)
-        
-        if not chat_id:
-            raise HTTPException(401, "Invalid or expired session token")
-            
-        # 3. Cross-validate Telegram and session
-        if str(tg_user['id']) != str(chat_id):
-            logger.error(f"ID mismatch: TG:{tg_user['id']} vs Session:{chat_id}")
-            raise HTTPException(403, "Authentication mismatch")
-            
-        request.state.chat_id = chat_id
-        
-        # Proceed with request
-        return await call_next(request)
-        
-    except HTTPException as he:
-        logger.error(f"Auth blocked: {he.detail}")
-        raise
-    except Exception as e:
-        logger.error(f"Middleware crash: {str(e)}", exc_info=True)
-        raise HTTPException(500, "Internal authentication error")
 
 # ✅ Define a request model for correct data validation
 class PaymentRequest(BaseModel):
