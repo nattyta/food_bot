@@ -11,6 +11,7 @@ from .schemas import UserCreate, UserContactUpdate, ProfileUpdate
 from .crud import create_user, update_user_contact
 from .auth import validate_init_data
 import hashlib
+import hmac
 
 logger = logging.getLogger(__name__)
 
