@@ -30,7 +30,7 @@ if os.getenv("ENVIRONMENT") == "production":
     session_manager.init_redis()
 
 
-app.include_router(main_router)
+app.include_router(router)
 
 # CORS Configuration
 app.add_middleware(
