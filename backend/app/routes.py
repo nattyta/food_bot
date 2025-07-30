@@ -40,22 +40,47 @@ async def telegram_auth_dependency(request: Request):
         logger.error(f"Telegram auth validation failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
 
-# Public route to validate initData and get user info
 @router.post("/auth/telegram")
-async def telegram_auth_route(request: Request):
-    init_data = request.headers.get("x-telegram-init-data")
-    if not init_data:
-        raise HTTPException(status_code=400, detail="Missing initData")
+async def authenticate_via_telegram(request: Request, x_telegram_init_data: str = Header(None)):
+    BOT_TOKEN = os.getenv("Telegram_API")
+    if not BOT_TOKEN:
+        raise HTTPException(status_code=500, detail="Bot token not configured")
 
     try:
-        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
-        request.state.telegram_user = user_data  # if needed elsewhere
-        return {"ok": True, "user": user_data}
-    except Exception as e:
-        logger.error(f"Telegram auth error: {str(e)}")
-        raise HTTPException(status_code=401, detail="Invalid Telegram initData")
+        logging.info(f"📥 [Backend] Received initData: {x_telegram_init_data}")
 
-        
+        parsed_data = dict(parse_qsl(x_telegram_init_data, keep_blank_values=True))
+        hash_from_telegram = parsed_data.pop("hash", None)
+        logging.info(f"🔍 Parsed data (without hash): {parsed_data}")
+        logging.info(f"🔑 Hash from Telegram: {hash_from_telegram}")
+
+        sorted_data = sorted(f"{k}={v}" for k, v in parsed_data.items())
+        data_check_string = "\n".join(sorted_data)
+
+        secret_key = hashlib.sha256(BOT_TOKEN.encode()).digest()
+        computed_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
+        logging.info(f"🧮 Computed hash: {computed_hash}")
+
+        if computed_hash != hash_from_telegram:
+            logging.error("❌ [Auth] Hash mismatch! Invalid initData.")
+            raise HTTPException(status_code=401, detail="Invalid initData hash")
+
+        # Simulate user object for now
+        user = {
+            "id": parsed_data.get("user", {}).get("id"),
+            "first_name": parsed_data.get("user", {}).get("first_name"),
+            "last_name": parsed_data.get("user", {}).get("last_name"),
+            "username": parsed_data.get("user", {}).get("username"),
+        }
+
+        logging.info(f"✅ [Auth] Authenticated user: {user}")
+        return {"user": user}
+
+    except Exception as e:
+        logging.exception(f"💥 [Auth] Exception occurred: {str(e)}")
+        raise HTTPException(status_code=400, detail="Failed to validate Telegram initData")
+
 # Save user info route — requires Telegram auth header validation
 @router.post("/save_user")
 def save_user(

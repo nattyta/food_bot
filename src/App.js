@@ -24,6 +24,7 @@ function App() {
 
   const authenticateUser = async () => {
     const initData = window?.Telegram?.WebApp?.initData;
+    addDebugLog(`📤 Sending initData: ${initData}`);
 
     if (!initData) {
       throw new Error("Telegram initData not found");
@@ -42,7 +43,7 @@ function App() {
       throw new Error(data.detail || "Authentication failed");
     }
 
-    return data.user; // contains id, first_name, last_name, username, etc.
+    return data.user;
   };
 
   useEffect(() => {
@@ -63,6 +64,9 @@ function App() {
       return;
     }
 
+    addDebugLog(`📦 initData: ${initData}`);
+    addDebugLog(`👤 User info: ${JSON.stringify(initDataUnsafe.user)}`);
+
     setAuth({
       auth: initData,
       user: initDataUnsafe.user,
@@ -70,12 +74,13 @@ function App() {
 
     authenticateUser()
       .then((user) => {
-        addDebugLog(`🔐 Verified user: ${user.id}`);
+        addDebugLog(`✅ Auth success: ${user.first_name} (${user.id})`);
       })
       .catch((err) => {
         addDebugLog(`❌ Auth failed: ${err.message}`);
       });
   }, []);
+
 
   return (
     <Router>
