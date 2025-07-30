@@ -43,9 +43,12 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Parse WITHOUT unquoting to keep original encoding
-        parsed = dict(parse_qsl(init_data, keep_blank_values=True))
+        # Parse WITHOUT unquoting to preserve original encoding
+        pairs = parse_qsl(init_data, keep_blank_values=True)
+        parsed = {k: v for k, v in pairs}
+        
         logger.debug(f"🌐 Raw parsed initData: {parsed}")
+        logger.debug(f"🔐 Bot token used: {repr(bot_token)}")
 
         # Remove non-standard parameters
         parsed.pop("signature", None)
@@ -54,13 +57,11 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Keep the 'user' parameter AS-IS (don't parse/flatten for hashing)
-        # We'll parse it later after validation
         logger.warning("📦 Data for hashing (with original encoding):")
         for k, v in sorted(parsed.items()):
             logger.warning(f"{k}={v}")
 
-        # Build data-check-string with ORIGINAL values
+        # Build data-check-string with ORIGINAL URL-encoded values
         data_check_string = "\n".join(
             f"{k}={v}" for k, v in sorted(parsed.items())
         )
@@ -85,7 +86,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             raise HTTPException(status_code=401, detail="Invalid initData hash")
 
         # NOW parse the user object
-        user_json = parsed.get("user")
+        user_json = unquote(parsed.get("user", ""))
         if not user_json:
             raise HTTPException(status_code=400, detail="Missing user data in initData")
 
@@ -106,7 +107,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     except Exception as e:
         logger.exception("💥 [validate_init_data] Unexpected error:")
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
-
 
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
