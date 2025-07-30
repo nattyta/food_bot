@@ -43,9 +43,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def test():
-    return {"ok": True}
 
 # Configure logging
 logging.basicConfig(
