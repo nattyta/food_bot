@@ -4,8 +4,8 @@ import CartPage from "./pages/CartPage";
 import Detail from "./pages/Detail";
 import PaymentPage from "./pages/PaymentPage";
 import OrderHistory from "./pages/OrderHistory";
-import UserInfoForm from './pages/UserInfoForm';
-import DebugBanner from './components/DebugBanner';
+import UserInfoForm from "./pages/UserInfoForm";
+import DebugBanner from "./components/DebugBanner";
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
@@ -18,8 +18,31 @@ function App() {
   const [auth, setAuth] = useState(null);
 
   const addDebugLog = (message) => {
-    setDebugLogs(prev => [...prev, message]);
+    setDebugLogs((prev) => [...prev, message]);
     console.log(message);
+  };
+
+  const authenticateUser = async () => {
+    const initData = window?.Telegram?.WebApp?.initData;
+
+    if (!initData) {
+      throw new Error("Telegram initData not found");
+    }
+
+    const response = await fetch(`${API_URL}/auth/telegram`, {
+      method: "POST",
+      headers: {
+        "x-telegram-init-data": initData,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Authentication failed");
+    }
+
+    return data.user; // contains id, first_name, last_name, username, etc.
   };
 
   useEffect(() => {
@@ -27,55 +50,32 @@ function App() {
       addDebugLog("❌ Not in Telegram environment");
       return;
     }
-  
+
     const tg = window.Telegram.WebApp;
     tg.ready();
     addDebugLog("✅ Telegram WebApp initialized");
-  
+
     const initData = tg.initData;
     const initDataUnsafe = tg.initDataUnsafe;
-  
+
     if (!initData || !initDataUnsafe?.user) {
       addDebugLog("❌ Missing initData or user info");
       return;
     }
-  
-    const user = initDataUnsafe.user;
-  
+
     setAuth({
       auth: initData,
-      user: user
+      user: initDataUnsafe.user,
     });
-  
-    // ✅ Validate initData with backend
-    fetch(`${API_URL}/auth/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ initData }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Backend rejected initData");
-        return res.json();
+
+    authenticateUser()
+      .then((user) => {
+        addDebugLog(`🔐 Verified user: ${user.id}`);
       })
-      .then(data => {
-        addDebugLog(`🔐 Verified initData for user_id: ${user.id}`);
-      })
-      .catch(err => {
+      .catch((err) => {
         addDebugLog(`❌ Auth failed: ${err.message}`);
       });
-  
-    // 📥 Register user if new (optional)
-    fetch(`${API_URL}/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: user.id,
-        username: user.username || "",
-        first_name: user.first_name || ""
-      }),
-    });
   }, []);
-  
 
   return (
     <Router>

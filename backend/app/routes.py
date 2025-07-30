@@ -42,13 +42,20 @@ async def telegram_auth_dependency(request: Request):
 
 # Public route to validate initData and get user info
 @router.post("/auth/telegram")
-async def auth_telegram(payload: InitDataPayload):
-    if not BOT_TOKEN:
-        raise HTTPException(status_code=500, detail="Bot token not configured")
+async def telegram_auth_route(request: Request):
+    init_data = request.headers.get("x-telegram-init-data")
+    if not init_data:
+        raise HTTPException(status_code=400, detail="Missing initData")
 
-    user = validate_init_data(payload.initData, BOT_TOKEN)
-    return {"user": user}
+    try:
+        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
+        request.state.telegram_user = user_data  # if needed elsewhere
+        return {"ok": True, "user": user_data}
+    except Exception as e:
+        logger.error(f"Telegram auth error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Invalid Telegram initData")
 
+        
 # Save user info route — requires Telegram auth header validation
 @router.post("/save_user")
 def save_user(

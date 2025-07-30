@@ -24,14 +24,13 @@ CHAPA_SECRET_KEY = os.getenv("Chapa_API")
 CHAPA_BASE_URL = "https://api.chapa.co/v1/transaction"
 
 app = FastAPI()
-app.include_router(router)
 
 
 if os.getenv("ENVIRONMENT") == "production":
     session_manager.init_redis()
 
-app.include_router(routes.router)
 
+app.include_router(main_router)
 
 # CORS Configuration
 app.add_middleware(
