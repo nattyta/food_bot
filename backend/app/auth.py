@@ -37,7 +37,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
         init_data = unquote(init_data)
         parsed = dict(parse_qsl(init_data))
-         logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
+        logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
 
         received_hash = parsed.pop("hash", None)
         if not received_hash:
