@@ -45,50 +45,53 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
         init_data = unquote(init_data)
         parsed = dict(parse_qsl(init_data))
-        logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
+        logger.debug(f"🌐 Raw parsed initData: {parsed}")
+        logger.debug(f"🔐 Bot token used: {repr(bot_token)}")
 
         received_hash = parsed.pop("hash", None)
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Remove 'signature' if present (sometimes Telegram adds it)
-        parsed.pop("signature", None)
-
-        # Flatten user object
-        user_data = parsed.pop("user", None)
-        if user_data:
-            try:
-                user_dict = json.loads(user_data)
-                # Add user fields with prefix user.*
-                for k, v in user_dict.items():
-                    key = f"user.{k}"
-                    parsed[key] = str(v).lower() if isinstance(v, bool) else str(v)
-            except Exception:
-                raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
-        else:
+        # Flatten `user` object
+        user_json = parsed.pop("user", None)
+        if not user_json:
             raise HTTPException(status_code=400, detail="Missing user data in initData")
 
-        
+        try:
+            user_data = json.loads(user_json)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
+
+        for k, v in user_data.items():
+            parsed[f"user.{k}"] = str(v)
+
+        logger.warning("📦 Flattened and sorted data before hashing:")
+        for k, v in sorted(parsed.items()):
+            logger.warning(f"{k}={v}")
+
+        # Compute hash
         data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
-
         secret_key = hashlib.sha256(bot_token.encode()).digest()
-        calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        computed_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
-        if not hmac.compare_digest(calculated_hash, received_hash):
+        logger.info(f"🔑 Hash from Telegram: {received_hash}")
+        logger.info(f"🧮 Computed hash: {computed_hash}")
+
+        if not hmac.compare_digest(computed_hash, received_hash):
             raise HTTPException(status_code=401, detail="Invalid initData hash")
 
-        # Check auth_date freshness (max 24h)
-        auth_date = int(parsed.get("auth_date", 0))
+        # Check expiration
+        auth_date = int(parsed.get("auth_date", "0"))
         if time.time() - auth_date > 86400:
             raise HTTPException(status_code=403, detail="initData expired")
 
-        return user_dict
+        return user_data
 
     except HTTPException:
         raise
     except Exception as e:
+        logger.exception("💥 [validate_init_data] Unexpected error:")
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
-
 
 
 
