@@ -10,6 +10,7 @@ from .database import DatabaseManager
 from .schemas import UserCreate, UserContactUpdate, ProfileUpdate
 from .crud import create_user, update_user_contact
 from .auth import validate_init_data
+import hashlib
 
 logger = logging.getLogger(__name__)
 
