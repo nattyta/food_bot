@@ -13,7 +13,7 @@ import time
 
 
 
-logger = logging.getLogger("uvicorn.error")
+logger   = logging.getLogger("uvicorn.error")
 
 security_scheme = HTTPBearer()
 
@@ -91,8 +91,9 @@ async def telegram_auth(request: Request) -> Optional[int]:
         init_data = request.headers.get('x-telegram-init-data')
         if not init_data:
             return None
-        
-        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))  # <- should return user dict
+        logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
+
+        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
         request.state.telegram_user = user_data
         return user_data.get("id")
         
