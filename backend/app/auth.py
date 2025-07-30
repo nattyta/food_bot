@@ -43,45 +43,31 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Remove initial unquote - parse raw data first
+        # Parse WITHOUT unquoting to keep original encoding
         parsed = dict(parse_qsl(init_data, keep_blank_values=True))
         logger.debug(f"🌐 Raw parsed initData: {parsed}")
-        logger.debug(f"🔐 Bot token used: {repr(bot_token)}")
 
-        # Remove non-standard parameters before processing
-        parsed.pop("signature", None)  # CRITICAL FIX: Remove non-telegram parameter
+        # Remove non-standard parameters
+        parsed.pop("signature", None)
         
         received_hash = parsed.pop("hash", None)
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Flatten `user` object with boolean handling
-        user_json = parsed.pop("user", None)
-        if not user_json:
-            raise HTTPException(status_code=400, detail="Missing user data in initData")
-
-        try:
-            user_data = json.loads(user_json)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
-
-        for k, v in user_data.items():
-            # FIX: Convert booleans to lowercase strings
-            if isinstance(v, bool):
-                parsed[f"user.{k}"] = str(v).lower()  # true/false
-            else:
-                parsed[f"user.{k}"] = str(v)
-
-        logger.warning("📦 Flattened and sorted data before hashing:")
+        # Keep the 'user' parameter AS-IS (don't parse/flatten for hashing)
+        # We'll parse it later after validation
+        logger.warning("📦 Data for hashing (with original encoding):")
         for k, v in sorted(parsed.items()):
             logger.warning(f"{k}={v}")
 
-        # Compute hash with CORRECT HMAC key derivation
-        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
-        
-        # FIXED: Use Telegram's required HMAC-SHA256("WebAppData", bot_token)
+        # Build data-check-string with ORIGINAL values
+        data_check_string = "\n".join(
+            f"{k}={v}" for k, v in sorted(parsed.items())
+        )
+
+        # Compute HMAC key
         secret_key = hmac.new(
-            key=b"WebAppData",  # Fixed key
+            key=b"WebAppData",
             msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
@@ -98,6 +84,16 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         if not hmac.compare_digest(computed_hash, received_hash):
             raise HTTPException(status_code=401, detail="Invalid initData hash")
 
+        # NOW parse the user object
+        user_json = parsed.get("user")
+        if not user_json:
+            raise HTTPException(status_code=400, detail="Missing user data in initData")
+
+        try:
+            user_data = json.loads(user_json)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
+
         # Check expiration
         auth_date = int(parsed.get("auth_date", "0"))
         if time.time() - auth_date > 86400:
@@ -110,7 +106,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     except Exception as e:
         logger.exception("💥 [validate_init_data] Unexpected error:")
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
-
 
 
 async def telegram_auth(request: Request) -> Optional[int]:
