@@ -24,6 +24,7 @@ CHAPA_SECRET_KEY = os.getenv("Chapa_API")
 CHAPA_BASE_URL = "https://api.chapa.co/v1/transaction"
 
 app = FastAPI()
+app.include_router(router)
 
 
 if os.getenv("ENVIRONMENT") == "production":

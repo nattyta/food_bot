@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Load bot token once globally
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+BOT_TOKEN = os.getenv("Telegram_API")
 if not BOT_TOKEN:
-    logger.error("TELEGRAM_BOT_TOKEN env var is not set!")
+    logger.error("Telegram_API env var is not set!")
 
 # Pydantic model for the auth request body
 class InitDataPayload(BaseModel):
