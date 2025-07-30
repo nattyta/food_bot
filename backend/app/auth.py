@@ -10,11 +10,18 @@ import logging
 from typing import Optional
 from urllib.parse import parse_qsl
 import time
+from dotenv import load_dotenv
 
 
+load_dotenv()
 
-logger   = logging.getLogger("uvicorn.error")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
+if not logger.hasHandlers():
+    logging.basicConfig(level=logging.DEBUG)
+
+    
 security_scheme = HTTPBearer()
 
 def get_current_user(request: Request, credentials: HTTPBearer = Depends(security_scheme)):
