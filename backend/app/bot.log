@@ -37,3 +37,198 @@
 2025-07-30 10:14:45,751 - __main__ - INFO - Webhook removed
 2025-07-30 10:14:54,259 - __main__ - INFO - Saved user 916638938 to database
 2025-07-30 10:14:54,261 - __main__ - INFO - User 916638938 initialized
+2025-07-30 10:46:46,931 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by setWebhook request
+2025-07-30 10:46:46,934 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: terminated by setWebhook request
+
+2025-07-30 10:46:51,592 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:46:51,595 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:46:53,446 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:46:53,447 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:46:58,715 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:46:58,717 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:47:01,977 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:47:01,979 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:47:07,220 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:47:07,221 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:47:16,651 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:47:16,653 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:47:33,955 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:47:33,958 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:48:07,248 - TeleBot - ERROR - Threaded polling exception: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-07-30 10:48:07,249 - TeleBot - ERROR - Exception traceback:
+Traceback (most recent call last):
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 1214, in __threaded_polling
+    polling_thread.raise_exceptions()
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 111, in raise_exceptions
+    raise self.exception_info
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/util.py", line 93, in run
+    task(*args, **kwargs)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 676, in __retrieve_updates
+    updates = self.get_updates(offset=(self.last_update_id + 1),
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/__init__.py", line 648, in get_updates
+    json_updates = apihelper.get_updates(
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 330, in get_updates
+    return _make_request(token, method_url, params=payload)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 168, in _make_request
+    json_result = _check_result(method_name, result)
+  File "/home/natty/.local/lib/python3.10/site-packages/telebot/apihelper.py", line 195, in _check_result
+    raise ApiTelegramException(method_name, result, result_json)
+telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsuccessful. Error code: 409. Description: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+
+2025-07-30 10:48:14,349 - __main__ - INFO - Starting FoodBot...
+2025-07-30 10:48:17,177 - __main__ - INFO - Database connection successful
+2025-07-30 10:48:18,423 - __main__ - INFO - Webhook removed
+2025-07-30 10:49:28,645 - __main__ - INFO - Saved user 916638938 to database
+2025-07-30 10:49:28,651 - __main__ - INFO - User 916638938 initialized
+2025-07-30 10:58:23,243 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
