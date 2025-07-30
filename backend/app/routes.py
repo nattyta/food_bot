@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from .database import DatabaseManager
 from .schemas import UserCreate, UserContactUpdate, ProfileUpdate
 from .crud import create_user, update_user_contact
-from .auth import validate_init_data, parse_telegram_user
+from .auth import validate_init_data
 
 logger = logging.getLogger(__name__)
 
