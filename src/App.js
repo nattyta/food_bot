@@ -27,25 +27,27 @@ function App() {
       addDebugLog("❌ Not in Telegram environment");
       return;
     }
-
+  
     const tg = window.Telegram.WebApp;
     tg.ready();
     addDebugLog("✅ Telegram WebApp initialized");
-
+  
     const initData = tg.initData;
     const initDataUnsafe = tg.initDataUnsafe;
-
+  
     if (!initData || !initDataUnsafe?.user) {
       addDebugLog("❌ Missing initData or user info");
       return;
     }
-
+  
+    const user = initDataUnsafe.user;
+  
     setAuth({
       auth: initData,
-      user: initDataUnsafe.user
+      user: user
     });
-
-    // 🔐 Validate session with backend
+  
+    // ✅ Validate initData with backend
     fetch(`${API_URL}/auth/verify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -56,27 +58,24 @@ function App() {
         return res.json();
       })
       .then(data => {
-        addDebugLog(`🔑 Auth result: ${JSON.stringify(data)}`);
+        addDebugLog(`🔐 Verified initData for user_id: ${user.id}`);
       })
       .catch(err => {
         addDebugLog(`❌ Auth failed: ${err.message}`);
       });
-
-    // 👤 Register user (optional)
-    const user = initDataUnsafe.user;
-    if (user) {
-      addDebugLog(`👤 User detected: ${user.first_name}`);
-      fetch(`${API_URL}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: user.id,
-          username: user.username || "",
-          first_name: user.first_name || ""
-        }),
-      });
-    }
+  
+    // 📥 Register user if new (optional)
+    fetch(`${API_URL}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: user.id,
+        username: user.username || "",
+        first_name: user.first_name || ""
+      }),
+    });
   }, []);
+  
 
   return (
     <Router>

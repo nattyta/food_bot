@@ -10,7 +10,6 @@ from app.database import UserData, register_user
 import logging
 import hmac
 import hashlib
-from app.sessions import validate_session
 from typing import Optional
 import json
 from .sessions import session_manager,validate_session

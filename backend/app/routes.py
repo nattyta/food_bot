@@ -1,145 +1,119 @@
 import json
 import re
-import hmac
-import hashlib
 import os
 import logging
-from urllib.parse import parse_qs
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from fastapi.responses import JSONResponse
-from .database import DatabaseManager
-from .schemas import UserCreate, OrderCreate, UserContactUpdate, ProfileUpdate
-from .crud import create_user, update_user_contact
-from .auth import get_current_user, telegram_auth, validate_init_data, parse_telegram_user
-from .sessions import session_manager, generate_token,create_session
 from pydantic import BaseModel
-router = APIRouter()
+
+from .database import DatabaseManager
+from .schemas import UserCreate, UserContactUpdate, ProfileUpdate
+from .crud import create_user, update_user_contact
+from .auth import validate_init_data, parse_telegram_user
+
 logger = logging.getLogger(__name__)
 
-
-
-class TelegramAuthData(BaseModel):
-    initData: str
-
-
 router = APIRouter()
 
-@router.post("/auth/telegram")
-async def auth_telegram(payload: dict):
-    init_data = payload.get("initData")
+# Load bot token once globally
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    logger.error("TELEGRAM_BOT_TOKEN env var is not set!")
+
+# Pydantic model for the auth request body
+class InitDataPayload(BaseModel):
+    initData: str
+
+# Dependency that validates Telegram initData on protected routes
+async def telegram_auth_dependency(request: Request):
+    init_data = request.headers.get('x-telegram-init-data')
     if not init_data:
-        raise HTTPException(status_code=400, detail="Missing initData")
+        raise HTTPException(status_code=401, detail="Missing Telegram initData header")
 
-    validator = TelegramLoginValidator(bot_token)
     try:
-        user_data = validator.parse(init_data)  # Validate full string
-    except ValueError:
-        raise HTTPException(status_code=403, detail="Invalid Telegram init data")
+        user = validate_init_data(init_data, BOT_TOKEN)
+        request.state.telegram_user = user
+        return user.get("id")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Telegram auth validation failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid Telegram initData")
 
-    # Extract user info from initData
-    user = user_data.get("user", {})
-    telegram_id = user.get("id")
-    username = user.get("username", "")
-    first_name = user.get("first_name", "")
-    last_name = user.get("last_name", "")
+# Public route to validate initData and get user info
+@router.post("/auth/telegram")
+async def auth_telegram(payload: InitDataPayload):
+    if not BOT_TOKEN:
+        raise HTTPException(status_code=500, detail="Bot token not configured")
 
-    # Insert or update user in DB
-    conn = psycopg2.connect(...)  # Use your DB conn setup
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM users WHERE telegram_id = %s", (telegram_id,))
-    user_row = cur.fetchone()
+    user = validate_init_data(payload.initData, BOT_TOKEN)
+    return {"user": user}
 
-    if not user_row:
-        cur.execute("""
-            INSERT INTO users (telegram_id, username, first_name, last_name)
-            VALUES (%s, %s, %s, %s)
-        """, (telegram_id, username, first_name, last_name))
-        conn.commit()
-
-    # generate JWT token
-    token_data = {"sub": str(telegram_id)}
-    access_token = create_access_token(data=token_data)
-    return {"access_token": access_token}
-
-
-
+# Save user info route — requires Telegram auth header validation
 @router.post("/save_user")
 def save_user(
     user_data: UserCreate,
     x_telegram_init_data: str = Header(None)
 ):
-    """Save user data with Telegram validation"""
-    try:
-        if not x_telegram_init_data:
-            raise HTTPException(400, "Telegram auth required")
-            
-        if not validate_init_data(x_telegram_init_data, os.getenv("Telegram_API")):
-            raise HTTPException(403, "Invalid Telegram auth")
+    if not x_telegram_init_data:
+        raise HTTPException(status_code=401, detail="Telegram auth required")
 
-        tg_user = parse_telegram_user(x_telegram_init_data)
-        if str(tg_user.get('id')) != str(user_data.chat_id):
-            raise HTTPException(403, "User ID mismatch")
+    if not validate_init_data(x_telegram_init_data, BOT_TOKEN):
+        raise HTTPException(status_code=403, detail="Invalid Telegram auth")
 
-        user = create_user(user_data)
-        return JSONResponse({
-            "status": "success",
-            "user": user,
-            "message": "User saved successfully"
-        })
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to save user: {str(e)}")
-        raise HTTPException(500, "Failed to save user")
+    tg_user = parse_telegram_user(x_telegram_init_data)
+    if str(tg_user.get('id')) != str(user_data.chat_id):
+        raise HTTPException(status_code=403, detail="User ID mismatch")
 
+    user = create_user(user_data)
+    return JSONResponse({
+        "status": "success",
+        "user": user,
+        "message": "User saved successfully"
+    })
+
+# Protected route to update contact info
 @router.post("/update-contact")
 def update_contact(
     contact_data: UserContactUpdate,
-    request: Request,
-    chat_id: int = Depends(get_current_user)  # Requires valid session token
+    chat_id: int = Depends(telegram_auth_dependency)  # Use Telegram initData auth
 ):
-    """Update contact information (protected route)"""
+    if str(chat_id) != str(contact_data.chat_id):
+        raise HTTPException(status_code=403, detail="User ID mismatch")
+
+    # Validate Ethiopian phone format (if provided)
+    if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
+        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
+
     try:
-        # Validate chat_id matches the authenticated user
-        if str(chat_id) != str(contact_data.chat_id):
-            raise HTTPException(403, "User ID mismatch")
-
-        # Validate phone format
-        if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
-            raise HTTPException(400, "Invalid Ethiopian phone format")
-
-        # Update contact info
         with DatabaseManager() as db:
             success = update_user_contact(
                 chat_id=chat_id,
                 phone=contact_data.phone,
                 address=contact_data.address
             )
-        
         if not success:
-            raise HTTPException(500, "Failed to update contact")
-            
-        return {"status": "success", "updated": True}
-        
-    except HTTPException:
-        raise
+            raise HTTPException(status_code=500, detail="Failed to update contact")
     except Exception as e:
         logger.error(f"Contact update failed: {str(e)}")
-        raise HTTPException(500, "Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
+    return {"status": "success", "updated": True}
+
+# Protected route example: update profile
 @router.post("/api/update-profile")
 def update_profile(
     profile_data: ProfileUpdate,
-    chat_id: int = Depends(get_current_user)  # Protected route
+    chat_id: int = Depends(telegram_auth_dependency)  # Use Telegram initData auth
 ):
-    """Example protected endpoint"""
     try:
         with DatabaseManager() as db:
             db.execute(
                 "UPDATE users SET profile_data = %s WHERE chat_id = %s",
                 (json.dumps(profile_data.dict()), chat_id)
             )
-        return {"status": "success"}
     except Exception as e:
         logger.error(f"Profile update failed: {str(e)}")
-        raise HTTPException(500, "Profile update failed")
+        raise HTTPException(status_code=500, detail="Profile update failed")
+
+    return {"status": "success"}

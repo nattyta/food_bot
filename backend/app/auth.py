@@ -1,7 +1,6 @@
 from fastapi import Request, HTTPException, Depends
 import logging
 from fastapi.security import HTTPBearer
-from .sessions import session_manager
 import os
 import hmac
 import hashlib
@@ -10,6 +9,7 @@ import json
 import logging
 from typing import Optional
 from urllib.parse import parse_qsl
+import time
 
 
 
@@ -33,68 +33,70 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
     request.state.chat_id = chat_id
     return chat_id
 
-def validate_init_data(init_data: str, bot_token: str) -> bool:
+def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
         init_data = unquote(init_data)
         parsed = dict(parse_qsl(init_data))
 
-        received_hash = parsed.pop("hash", "")
+        received_hash = parsed.pop("hash", None)
+        if not received_hash:
+            raise HTTPException(status_code=400, detail="Missing hash in initData")
+
+        # Remove 'signature' if present (sometimes Telegram adds it)
         parsed.pop("signature", None)
 
-        # ✅ Flatten `user` field
+        # Flatten user object
         user_data = parsed.pop("user", None)
         if user_data:
             try:
                 user_dict = json.loads(user_data)
+                # Add user fields with prefix user.*
                 for k, v in user_dict.items():
                     key = f"user.{k}"
                     parsed[key] = str(v).lower() if isinstance(v, bool) else str(v)
-            except Exception as e:
-                print("❌ Failed to parse user JSON:", e)
-                return False
+            except Exception:
+                raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
+        else:
+            raise HTTPException(status_code=400, detail="Missing user data in initData")
 
-        # ✅ Sort the parameters and make the string
+        # Sort params and build data check string
         data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
 
         secret_key = hashlib.sha256(bot_token.encode()).digest()
         calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
-        print("📦 Data Check String:\n", data_check_string)
-        print("📦 Received Hash:", received_hash)
-        print("📦 Calculated Hash:", calculated_hash)
+        if not hmac.compare_digest(calculated_hash, received_hash):
+            raise HTTPException(status_code=401, detail="Invalid initData hash")
 
-        return hmac.compare_digest(calculated_hash, received_hash)
+        # Check auth_date freshness (max 24h)
+        auth_date = int(parsed.get("auth_date", 0))
+        if time.time() - auth_date > 86400:
+            raise HTTPException(status_code=403, detail="initData expired")
 
+        return user_dict
+
+    except HTTPException:
+        raise
     except Exception as e:
-        print("❌ validate_init_data error:", e)
-        return False
+        raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
 
 
 
 
 
-def parse_telegram_user(init_data: str) -> dict:
-    """Parse Telegram WebApp initData to get user info"""
-    try:
-        parsed = parse_qs(init_data)
-        user_json = parsed.get('user', ['{}'])[0]
-        return json.loads(user_json)
-    except Exception as e:
-        raise ValueError(f"Invalid initData: {str(e)}")
 
-async def telegram_auth(request: Request) -> Optional[int]:
-    """Handle Telegram WebApp authentication"""
+async def telegram_auth(request: Request) -> int:
     try:
         init_data = request.headers.get('x-telegram-init-data')
         if not init_data:
-            return None
-            
-        if not validate_init_data(init_data, os.getenv("Telegram_API")):
-            raise ValueError("Invalid Telegram auth")
+            raise HTTPException(status_code=401, detail="Missing Telegram init data")
 
-        user_data = parse_telegram_user(init_data)
+        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
         request.state.telegram_user = user_data
-        return user_data.get('id')
+        return user_data.get("id")
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Telegram auth error: {str(e)}")
-        return None
+        raise HTTPException(status_code=401, detail="Invalid Telegram auth")
