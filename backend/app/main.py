@@ -12,7 +12,6 @@ import hmac
 import hashlib
 from typing import Optional
 import json
-from .sessions import session_manager,validate_session
 from typing import List, Optional 
 from .auth import get_current_user, telegram_auth
 from app.routes import router
