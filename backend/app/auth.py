@@ -43,16 +43,19 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        init_data = unquote(init_data)
-        parsed = dict(parse_qsl(init_data))
+        # Remove initial unquote - parse raw data first
+        parsed = dict(parse_qsl(init_data, keep_blank_values=True))
         logger.debug(f"🌐 Raw parsed initData: {parsed}")
         logger.debug(f"🔐 Bot token used: {repr(bot_token)}")
 
+        # Remove non-standard parameters before processing
+        parsed.pop("signature", None)  # CRITICAL FIX: Remove non-telegram parameter
+        
         received_hash = parsed.pop("hash", None)
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Flatten `user` object
+        # Flatten `user` object with boolean handling
         user_json = parsed.pop("user", None)
         if not user_json:
             raise HTTPException(status_code=400, detail="Missing user data in initData")
@@ -63,16 +66,31 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
 
         for k, v in user_data.items():
-            parsed[f"user.{k}"] = str(v)
+            # FIX: Convert booleans to lowercase strings
+            if isinstance(v, bool):
+                parsed[f"user.{k}"] = str(v).lower()  # true/false
+            else:
+                parsed[f"user.{k}"] = str(v)
 
         logger.warning("📦 Flattened and sorted data before hashing:")
         for k, v in sorted(parsed.items()):
             logger.warning(f"{k}={v}")
 
-        # Compute hash
+        # Compute hash with CORRECT HMAC key derivation
         data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
-        secret_key = hashlib.sha256(bot_token.encode()).digest()
-        computed_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        
+        # FIXED: Use Telegram's required HMAC-SHA256("WebAppData", bot_token)
+        secret_key = hmac.new(
+            key=b"WebAppData",  # Fixed key
+            msg=bot_token.encode(),
+            digestmod=hashlib.sha256
+        ).digest()
+        
+        computed_hash = hmac.new(
+            secret_key, 
+            data_check_string.encode(), 
+            hashlib.sha256
+        ).hexdigest()
 
         logger.info(f"🔑 Hash from Telegram: {received_hash}")
         logger.info(f"🧮 Computed hash: {computed_hash}")
@@ -92,8 +110,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     except Exception as e:
         logger.exception("💥 [validate_init_data] Unexpected error:")
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
-
-
 
 
 
