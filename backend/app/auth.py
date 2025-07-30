@@ -1,5 +1,3 @@
-
-from fastapi import Request, HTTPException, Depends,APIRouter
 from fastapi import Request, HTTPException, Depends
 import logging
 from fastapi.security import HTTPBearer
@@ -12,16 +10,8 @@ import json
 import logging
 from typing import Optional
 from urllib.parse import parse_qsl
-import os
-from dotenv import load_dotenv
-import datetime
 
-router = APIRouter()
 
-load_dotenv()
-
-bot_token = os.getenv("Telegram_API")
-print("✅ Telegram_API:", repr(os.getenv("Telegram_API")))
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -45,52 +35,6 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> bool:
     try:
-        # Unquote first to handle URL-encoded characters
-        init_data = unquote(init_data)
-        
-        # Parse the init data
-        parsed = dict(parse_qsl(init_data))
-        received_hash = parsed.pop("hash", "")
-        
-        # Check auth_date freshness (within 1 hour)
-        auth_date = int(parsed.get("auth_date", 0))
-        if datetime.now().timestamp() - auth_date > 3600:
-            return False
-
-        # Prepare data check string
-        data_check_string = "\n".join(
-            f"{key}={value}"
-            for key, value in sorted(parsed.items())
-        )
-
-        # Compute secret key
-        secret_key = hmac.new(
-            key=b"WebAppData",
-            msg=bot_token.encode(),
-            digestmod=hashlib.sha256
-        ).digest()
-
-        # Compute HMAC
-        computed_hash = hmac.new(
-            key=secret_key,
-            msg=data_check_string.encode(),
-            digestmod=hashlib.sha256
-        ).hexdigest()
-
-        return hmac.compare_digest(computed_hash, received_hash)
-    except Exception as e:
-        print(f"Validation error: {str(e)}")
-        return False
-
-def parse_telegram_user(init_data: str) -> dict:
-    """Parse Telegram WebApp initData to get user info"""
-    try:
-        parsed = dict(parse_qsl(unquote(init_data)))
-        user_json = parsed.get('user', '{}')
-        return json.loads(user_json)
-    except Exception as e:
-        raise ValueError(f"Invalid initData: {str(e)}")
-    
         init_data = unquote(init_data)
         parsed = dict(parse_qsl(init_data))
 
@@ -147,10 +91,6 @@ async def telegram_auth(request: Request) -> Optional[int]:
             
         if not validate_init_data(init_data, os.getenv("Telegram_API")):
             raise ValueError("Invalid Telegram auth")
-
-        print("🧪 Telegram_API:", os.getenv("Telegram_API"))
-
-
 
         user_data = parse_telegram_user(init_data)
         request.state.telegram_user = user_data

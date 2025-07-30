@@ -2,3 +2,9 @@
 2025-07-28 09:53:52,272 - __main__ - INFO - Database connection successful
 2025-07-28 09:53:53,314 - __main__ - INFO - Webhook removed
 2025-07-28 10:56:04,985 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=1&timeout=20 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x70526f5c2bc0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-29 23:14:34,343 - __main__ - INFO - Starting FoodBot...
+2025-07-29 23:14:40,025 - __main__ - INFO - Database connection successful
+2025-07-29 23:14:42,292 - __main__ - INFO - Webhook removed
+2025-07-29 23:14:56,678 - __main__ - INFO - Saved user 916638938 to database
+2025-07-29 23:14:56,678 - __main__ - INFO - User 916638938 initialized
+2025-07-29 23:37:49,601 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
