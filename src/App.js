@@ -6,11 +6,10 @@ import PaymentPage from "./pages/PaymentPage";
 import OrderHistory from "./pages/OrderHistory";
 import UserInfoForm from './pages/UserInfoForm';
 import DebugBanner from './components/DebugBanner';
-import { initTelegramSession, startBackendSession } from './auth';
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-const API_URL = "https://food-bot-vulm.onrender.com"; 
+const API_URL = "https://food-bot-vulm.onrender.com";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -24,7 +23,6 @@ function App() {
   };
 
   useEffect(() => {
-    // 1. Check if we're inside Telegram
     if (!window.Telegram || !window.Telegram.WebApp) {
       addDebugLog("❌ Not in Telegram environment");
       return;
@@ -34,22 +32,38 @@ function App() {
     tg.ready();
     addDebugLog("✅ Telegram WebApp initialized");
 
-    // 2. Grab Telegram init data
-    const session = initTelegramSession();
-    if (session) {
-      setAuth(session);
-      
-      startBackendSession(session.auth)
-        .then(res => {
-          addDebugLog(`🔑 Auth result: ${JSON.stringify(res)}`);
-        })
-        .catch(err => {
-          addDebugLog(`❌ Auth failed: ${err.message}`);
-        });
+    const initData = tg.initData;
+    const initDataUnsafe = tg.initDataUnsafe;
+
+    if (!initData || !initDataUnsafe?.user) {
+      addDebugLog("❌ Missing initData or user info");
+      return;
     }
 
-    // 3. Register user to backend (optional)
-    const user = tg.initDataUnsafe?.user;
+    setAuth({
+      auth: initData,
+      user: initDataUnsafe.user
+    });
+
+    // 🔐 Validate session with backend
+    fetch(`${API_URL}/auth/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ initData }),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Backend rejected initData");
+        return res.json();
+      })
+      .then(data => {
+        addDebugLog(`🔑 Auth result: ${JSON.stringify(data)}`);
+      })
+      .catch(err => {
+        addDebugLog(`❌ Auth failed: ${err.message}`);
+      });
+
+    // 👤 Register user (optional)
+    const user = initDataUnsafe.user;
     if (user) {
       addDebugLog(`👤 User detected: ${user.first_name}`);
       fetch(`${API_URL}/register`, {
@@ -67,6 +81,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+        {/* <DebugBanner logs={debugLogs} /> */}
         <Routes>
           <Route path="/" element={<HomePage cart={cart} setCart={setCart} user={auth?.user} />} />
           <Route path="/detail" element={<Detail cart={cart} setCart={setCart} />} />

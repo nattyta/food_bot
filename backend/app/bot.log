@@ -8,3 +8,32 @@
 2025-07-29 23:14:56,678 - __main__ - INFO - Saved user 916638938 to database
 2025-07-29 23:14:56,678 - __main__ - INFO - User 916638938 initialized
 2025-07-29 23:37:49,601 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-07-30 09:41:38,130 - __main__ - INFO - Starting FoodBot...
+2025-07-30 09:41:38,133 - __main__ - ERROR - Database connection failed: 'NoneType' object has no attribute 'encode'
+2025-07-30 09:41:38,134 - __main__ - CRITICAL - Bot crashed: 'NoneType' object has no attribute 'encode'
+2025-07-30 09:42:33,648 - __main__ - INFO - Starting FoodBot...
+2025-07-30 09:42:33,648 - __main__ - ERROR - Database connection failed: 'NoneType' object has no attribute 'encode'
+2025-07-30 09:42:33,648 - __main__ - CRITICAL - Bot crashed: 'NoneType' object has no attribute 'encode'
+2025-07-30 09:46:15,114 - __main__ - INFO - Starting FoodBot...
+2025-07-30 09:46:15,114 - __main__ - ERROR - Database connection failed: 'NoneType' object has no attribute 'encode'
+2025-07-30 09:46:15,114 - __main__ - CRITICAL - Bot crashed: 'NoneType' object has no attribute 'encode'
+2025-07-30 10:03:47,931 - __main__ - INFO - Starting FoodBot...
+2025-07-30 10:03:47,932 - __main__ - ERROR - Database connection failed: 'NoneType' object has no attribute 'encode'
+2025-07-30 10:03:47,933 - __main__ - CRITICAL - Bot crashed: 'NoneType' object has no attribute 'encode'
+2025-07-30 10:07:37,460 - __main__ - INFO - Starting FoodBot...
+2025-07-30 10:07:45,138 - __main__ - INFO - Database connection successful
+2025-07-30 10:08:00,751 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7c32a5d6d990>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-30 10:08:18,924 - __main__ - INFO - Starting FoodBot...
+2025-07-30 10:08:26,274 - __main__ - INFO - Database connection successful
+2025-07-30 10:08:41,328 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7ca404e8d990>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-30 10:13:39,015 - __main__ - INFO - Starting FoodBot...
+2025-07-30 10:13:40,852 - __main__ - INFO - Database connection successful
+2025-07-30 10:13:42,185 - __main__ - INFO - Webhook removed
+2025-07-30 10:14:12,033 - __main__ - INFO - Saved user 916638938 to database
+2025-07-30 10:14:12,035 - __main__ - INFO - User 916638938 initialized
+2025-07-30 10:14:27,065 - __main__ - ERROR - Start failed for 916638938: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/sendMessage?chat_id=916638938&text=Welcome+natnael%21+Click+below+to+start+ordering.&reply_markup=%7B%22inline_keyboard%22%3A+%5B%5B%7B%22text%22%3A+%22%5Cud83c%5Cudf54+Order+Food%22%2C+%22web_app%22%3A+%7B%22url%22%3A+%22https%3A%2F%2Ffood-bot-vulm.onrender.com%22%7D%7D%5D%5D%7D (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7e1ac4a67940>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-30 10:14:42,965 - __main__ - INFO - Starting FoodBot...
+2025-07-30 10:14:45,195 - __main__ - INFO - Database connection successful
+2025-07-30 10:14:45,751 - __main__ - INFO - Webhook removed
+2025-07-30 10:14:54,259 - __main__ - INFO - Saved user 916638938 to database
+2025-07-30 10:14:54,261 - __main__ - INFO - User 916638938 initialized

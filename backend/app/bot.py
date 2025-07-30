@@ -10,7 +10,8 @@ from telebot import TeleBot
     # ======================
     # INITIALIZATION
     # ======================
-load_dotenv(dotenv_path="/home/natty/food_bot/.env")
+load_dotenv(dotenv_path="/home/natty/food-bot/food_bot/.env")
+
 
     # Configure logging
 logging.basicConfig(
