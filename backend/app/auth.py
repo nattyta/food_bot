@@ -59,7 +59,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         else:
             raise HTTPException(status_code=400, detail="Missing user data in initData")
 
-        # Sort params and build data check string
+        
         data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
 
         secret_key = hashlib.sha256(bot_token.encode()).digest()
