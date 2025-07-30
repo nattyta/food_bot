@@ -46,22 +46,24 @@ async def telegram_auth_dependency(request: Request):
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
 
 @router.post("/auth/telegram")
-async def telegram_auth(request: Request):
-    body = await request.json()
-    init_data = body.get("initData")
+async def authenticate_via_telegram(request: Request, x_telegram_init_data: str = Header(None)):
+    BOT_TOKEN = os.getenv("Telegram_API")
+    if not BOT_TOKEN:
+        raise HTTPException(status_code=500, detail="Bot token not configured")
 
-    bot_token = os.getenv("Telegram_API")  # ✅ .env key must match
-    if not bot_token:
-        raise HTTPException(status_code=500, detail="Bot token not configured.")
+    try:
+        logger.info(f"📥 [Backend] Received initData: {x_telegram_init_data}")
 
-    validated_data = validate_init_data(init_data, bot_token)
-    if not validated_data:
-        raise HTTPException(status_code=401, detail="Invalid initData")
+        user = validate_init_data(x_telegram_init_data, BOT_TOKEN)
+        logger.info(f"✅ [Auth] Authenticated user: {user}")
+        return {"user": user}
 
-    # Optional: Return the user
-    user = {k.replace("user.", ""): v for k, v in validated_data.items() if k.startswith("user.")}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"💥 [Auth] Exception occurred: {str(e)}")
+        raise HTTPException(status_code=400, detail="Failed to validate Telegram initData")
 
-    return {"status": "ok", "user": user}
 # Save user info route — requires Telegram auth header validation
 @router.post("/save_user")
 def save_user(

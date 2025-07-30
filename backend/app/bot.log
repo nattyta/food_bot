@@ -250,3 +250,18 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-07-30 22:59:29,341 - __main__ - INFO - Database connection successful
 2025-07-30 22:59:30,623 - __main__ - INFO - Webhook removed
 2025-07-31 00:01:28,487 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=1&timeout=20 (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x740a399d66e0>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-31 00:29:01,781 - __main__ - INFO - Starting FoodBot...
+2025-07-31 00:29:03,981 - __main__ - INFO - Database connection successful
+2025-07-31 00:29:19,120 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x705b70361990>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-31 00:29:22,496 - __main__ - INFO - Starting FoodBot...
+2025-07-31 00:29:25,070 - __main__ - INFO - Database connection successful
+2025-07-31 00:29:40,232 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x795d3e561990>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-31 00:29:45,914 - __main__ - INFO - Starting FoodBot...
+2025-07-31 00:29:47,549 - __main__ - INFO - Database connection successful
+2025-07-31 00:30:02,568 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x738c90865990>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-31 00:30:06,863 - __main__ - INFO - Starting FoodBot...
+2025-07-31 00:30:08,635 - __main__ - INFO - Database connection successful
+2025-07-31 00:30:23,654 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/setWebhook?url= (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7fa731485990>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+2025-07-31 00:30:27,154 - __main__ - INFO - Starting FoodBot...
+2025-07-31 00:30:29,012 - __main__ - INFO - Database connection successful
+2025-07-31 00:30:29,737 - __main__ - INFO - Webhook removed

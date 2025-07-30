@@ -41,51 +41,58 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
     request.state.chat_id = chat_id
     return chat_id
 
-def validate_init_data(init_data_raw: str, bot_token: str) -> dict | None:
+def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        parsed = parse_qs(init_data_raw, strict_parsing=True)
-        init_data = {k: v[0] for k, v in parsed.items()}
-        logger.debug(f"🌐 Raw parsed initData: {init_data}")
+        init_data = unquote(init_data)
+        parsed = dict(parse_qsl(init_data))
+        logger.debug(f"🌐 Raw parsed initData: {parsed}")
+        logger.debug(f"🔐 Bot token used: {repr(bot_token)}")
 
-        received_hash = init_data.pop("hash", None)
+        received_hash = parsed.pop("hash", None)
         if not received_hash:
-            logger.warning("❌ Missing hash in initData.")
-            return None
+            raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Flatten user JSON if present
-        if "user" in init_data:
-            user_data = json.loads(init_data["user"])
-            for k, v in user_data.items():
-                init_data[f"user.{k}"] = str(v)
-            del init_data["user"]
+        # Flatten `user` object
+        user_json = parsed.pop("user", None)
+        if not user_json:
+            raise HTTPException(status_code=400, detail="Missing user data in initData")
 
-        # ✅ Remove `signature` and sort keys
-        data_check_string = "\n".join(
-            f"{k}={init_data[k]}" for k in sorted(init_data)
-        )
+        try:
+            user_data = json.loads(user_json)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
+
+        for k, v in user_data.items():
+            parsed[f"user.{k}"] = str(v)
 
         logger.warning("📦 Flattened and sorted data before hashing:")
-        for line in data_check_string.splitlines():
-            logger.warning(line)
+        for k, v in sorted(parsed.items()):
+            logger.warning(f"{k}={v}")
 
-        # 🔐 Hashing using HMAC SHA256
+        # Compute hash
+        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
         secret_key = hashlib.sha256(bot_token.encode()).digest()
-        computed_hash = hmac.new(
-            secret_key, data_check_string.encode(), hashlib.sha256
-        ).hexdigest()
+        computed_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
         logger.info(f"🔑 Hash from Telegram: {received_hash}")
         logger.info(f"🧮 Computed hash: {computed_hash}")
 
-        if computed_hash != received_hash:
-            logger.error("❌ Hash mismatch! Invalid initData.")
-            return None
+        if not hmac.compare_digest(computed_hash, received_hash):
+            raise HTTPException(status_code=401, detail="Invalid initData hash")
 
-        return init_data  # or the user dict if you want to extract that directly
+        # Check expiration
+        auth_date = int(parsed.get("auth_date", "0"))
+        if time.time() - auth_date > 86400:
+            raise HTTPException(status_code=403, detail="initData expired")
 
+        return user_data
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.exception(f"🔥 Exception during initData validation: {e}")
-        return None
+        logger.exception("💥 [validate_init_data] Unexpected error:")
+        raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
+
 
 
 
