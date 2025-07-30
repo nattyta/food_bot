@@ -85,18 +85,17 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
 
 
 
-async def telegram_auth(request: Request) -> int:
+async def telegram_auth(request: Request) -> Optional[int]:
+    """Handle Telegram WebApp authentication"""
     try:
         init_data = request.headers.get('x-telegram-init-data')
         if not init_data:
-            raise HTTPException(status_code=401, detail="Missing Telegram init data")
-
-        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
+            return None
+        
+        user_data = validate_init_data(init_data, os.getenv("Telegram_API"))  # <- should return user dict
         request.state.telegram_user = user_data
         return user_data.get("id")
-
-    except HTTPException:
-        raise
+        
     except Exception as e:
         logger.error(f"Telegram auth error: {str(e)}")
-        raise HTTPException(status_code=401, detail="Invalid Telegram auth")
+        return None
