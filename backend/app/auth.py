@@ -11,6 +11,7 @@ from typing import Optional
 from urllib.parse import parse_qsl
 import time
 from dotenv import load_dotenv
+from urllib.parse import parse_qsl
 
 
 load_dotenv()
@@ -21,7 +22,7 @@ logger.setLevel(logging.DEBUG)
 if not logger.hasHandlers():
     logging.basicConfig(level=logging.DEBUG)
 
-    
+
 security_scheme = HTTPBearer()
 
 def get_current_user(request: Request, credentials: HTTPBearer = Depends(security_scheme)):

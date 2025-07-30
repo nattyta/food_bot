@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Request, Header, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-
+from urllib.parse import parse_qsl
 from .database import DatabaseManager
 from .schemas import UserCreate, UserContactUpdate, ProfileUpdate
 from .crud import create_user, update_user_contact
@@ -32,6 +32,7 @@ async def telegram_auth_dependency(request: Request):
 
     try:
         user = validate_init_data(init_data, BOT_TOKEN)
+        logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
         request.state.telegram_user = user
         return user.get("id")
     except HTTPException:
