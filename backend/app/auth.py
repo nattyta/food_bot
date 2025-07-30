@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer
 import os
 import hmac
 import hashlib
-from urllib.parse import parse_qs,unquote
+from urllib.parse import parse_qsl
 import json
 import logging
 from typing import Optional
