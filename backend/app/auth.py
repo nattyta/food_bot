@@ -43,33 +43,44 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # MANUAL PARSING with double encoding
+        # Add raw input logging
+        logger.debug(f"🔥 RAW initData input: {repr(init_data)}")
+        
+        # MANUAL PARSING - Preserve original encoding
         parsed = {}
         for pair in init_data.split('&'):
             key_value = pair.split('=', 1)
             if len(key_value) == 2:
                 key, value = key_value
-                parsed[key] = quote(value, safe='')  # Double encoding
-        
-        logger.debug(f"🌐 Manually parsed initData: {parsed}")
+                parsed[key] = value  # Preserve original encoding
+
+        # Add parsed data logging
+        logger.debug(f"🌐 Parsed keys: {list(parsed.keys())}")
         
         # Remove non-standard parameters
-        parsed.pop("signature", None)
+        if 'signature' in parsed:
+            logger.debug(f"🚮 Removing signature: {parsed.pop('signature', None)}")
         
         received_hash = parsed.pop("hash", None)
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        logger.warning("📦 Data for hashing (with double encoding):")
+        # Log each parameter separately
+        logger.warning("📦 Data for hashing:")
         for k, v in sorted(parsed.items()):
-            logger.warning(f"{k}={v}")
+            logger.warning(f"  {k}: {repr(v)}")
+            logger.warning(f"  Length: {len(v)} bytes")
+            logger.warning(f"  Hex: {v.encode('utf-8').hex()}")
 
         # Build data-check-string
         data_check_string = "\n".join(
             f"{k}={v}" for k, v in sorted(parsed.items())
         )
         
+        # Add detailed data-check-string logging
         logger.debug(f"🔥 Data-check-string: {repr(data_check_string)}")
+        logger.debug(f"📏 Data-check-string length: {len(data_check_string)}")
+        logger.debug(f"🔢 Data-check-string SHA256: {hashlib.sha256(data_check_string.encode()).hexdigest()}")
 
         # Compute HMAC key
         secret_key = hmac.new(
@@ -77,6 +88,9 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
+        
+        # Log secret key
+        logger.debug(f"🔐 Secret key: {secret_key.hex()}")
         
         computed_hash = hmac.new(
             secret_key, 
@@ -87,32 +101,17 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.info(f"🔑 Hash from Telegram: {received_hash}")
         logger.info(f"🧮 Computed hash: {computed_hash}")
 
+        # Add critical comparison
+        if computed_hash == received_hash:
+            logger.info("✅ HASH MATCH SUCCESSFUL!")
+        else:
+            logger.error("❌ HASH MISMATCH!")
+            logger.error(f"Difference: {set(computed_hash) - set(received_hash)}")
+
         if not hmac.compare_digest(computed_hash, received_hash):
             raise HTTPException(status_code=401, detail="Invalid initData hash")
 
-        # NOW parse the user object
-        user_json = unquote(unquote(parsed.get("user", "")))  # Double decode
-        if not user_json:
-            raise HTTPException(status_code=400, detail="Missing user data in initData")
-
-        try:
-            user_data = json.loads(user_json)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid user JSON in initData")
-
-        # Check expiration
-        auth_date = int(parsed.get("auth_date", "0"))
-        if time.time() - auth_date > 86400:
-            raise HTTPException(status_code=403, detail="initData expired")
-
-        return user_data
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("💥 [validate_init_data] Unexpected error:")
-        raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
-
+        
 
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
