@@ -43,13 +43,17 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Parse WITHOUT unquoting to preserve original encoding
-        pairs = parse_qsl(init_data, keep_blank_values=True)
-        parsed = {k: v for k, v in pairs}
-        
-        logger.debug(f"🌐 Raw parsed initData: {parsed}")
-        logger.debug(f"🔐 Bot token used: {repr(bot_token)}")
+        # MANUAL PARSING - Preserve original encoding
+        parsed = {}
+        for pair in init_data.split('&'):
+            key_value = pair.split('=', 1)
+            if len(key_value) == 2:
+                key, value = key_value
+                # Preserve original encoding
+                parsed[key] = value
 
+        logger.debug(f"🌐 Manually parsed initData: {parsed}")
+        
         # Remove non-standard parameters
         parsed.pop("signature", None)
         
@@ -61,10 +65,13 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         for k, v in sorted(parsed.items()):
             logger.warning(f"{k}={v}")
 
-        # Build data-check-string with ORIGINAL URL-encoded values
+        # Build data-check-string with ORIGINAL values
         data_check_string = "\n".join(
             f"{k}={v}" for k, v in sorted(parsed.items())
         )
+        
+        # DEBUG: Log exact string being hashed
+        logger.debug(f"🔥 Data-check-string: {repr(data_check_string)}")
 
         # Compute HMAC key
         secret_key = hmac.new(
@@ -108,6 +115,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.exception("💥 [validate_init_data] Unexpected error:")
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
 
+        
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
     try:
