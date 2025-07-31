@@ -23,28 +23,78 @@ function App() {
   };
 
   const authenticateUser = async () => {
-    const initData = window?.Telegram?.WebApp?.initData;
-    addDebugLog(`📤 Sending initData: ${initData}`);
-
+    const tg = window?.Telegram?.WebApp;
+    
+    if (!tg) {
+      addDebugLog("❌ Not in Telegram environment");
+      throw new Error("Telegram WebApp not available");
+    }
+  
+    // Get init data safely
+    const initData = tg.initData || '';
+    const initDataUnsafe = tg.initDataUnsafe || {};
+    
+    // Debug info
+    addDebugLog(`🌐 Telegram Environment: 
+      Platform: ${tg.platform}, 
+      Version: ${tg.version},
+      InitData: ${initData ? `${initData.substring(0, 30)}...` : 'empty'}
+    `);
+    
+    addDebugLog(`👤 Unsafe User Data: ${JSON.stringify(initDataUnsafe.user || {})}`);
+    
     if (!initData) {
+      addDebugLog("❌ initData is empty");
       throw new Error("Telegram initData not found");
     }
-
-    const response = await fetch(`${API_URL}/auth/telegram`, {
-      method: "POST",
-      headers: {
-        "x-telegram-init-data": initData,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.detail || "Authentication failed");
+  
+    try {
+      const response = await fetch(`${API_URL}/auth/telegram`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": initData
+        }
+      });
+  
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.detail || `Auth failed with status ${response.status}`);
+      }
+  
+      addDebugLog(`✅ Auth success: ${data.user?.user?.first_name || 'Unknown'}`);
+      return data.user;
+      
+    } catch (err) {
+      addDebugLog(`❌ Auth failed: ${err.message}`);
+      throw err;
     }
-
-    return data.user;
   };
+  
+  // Usage in useEffect
+  useEffect(() => {
+    if (!window.Telegram?.WebApp) return;
+    
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    addDebugLog("✅ Telegram WebApp initialized");
+  
+    // Add expanded debug info
+    addDebugLog(`📦 Full initData: ${tg.initData}`);
+    addDebugLog(`👤 Full user info: ${JSON.stringify(tg.initDataUnsafe?.user || {})}`);
+    
+    authenticateUser()
+      .then(user => {
+        setAuth({
+          auth: tg.initData,
+          user: user || tg.initDataUnsafe?.user
+        });
+      })
+      .catch(err => {
+        addDebugLog(`🔒 Auth error: ${err.message}`);
+      });
+  }, []);
 
   useEffect(() => {
     if (!window.Telegram || !window.Telegram.WebApp) {

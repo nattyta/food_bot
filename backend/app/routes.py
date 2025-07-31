@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Load bot token once globally
-BOT_TOKEN = os.getenv("Telegram_API")
+BOT_TOKEN = os.getenv("Telegram_API", "").strip()
 
 if not BOT_TOKEN:
     logger.error("Telegram_API env var is not set!")
@@ -47,23 +47,35 @@ async def telegram_auth_dependency(request: Request):
 
 @router.post("/auth/telegram")
 async def authenticate_via_telegram(request: Request, x_telegram_init_data: str = Header(None)):
-    BOT_TOKEN = os.getenv("Telegram_API")
+    
+    # Token validation
     if not BOT_TOKEN:
+        logger.critical("❌ BOT TOKEN NOT CONFIGURED!")
         raise HTTPException(status_code=500, detail="Bot token not configured")
+    
+    # Log token info (partial for security)
+    logger.debug(f"🔑 Using Bot Token: {BOT_TOKEN[:3]}...{BOT_TOKEN[-3]}")
+    logger.debug(f"🔑 Token Length: {len(BOT_TOKEN)}")
+
+    if not x_telegram_init_data:
+        logger.warning("⚠️ Missing Telegram initData header")
+        raise HTTPException(status_code=401, detail="Missing Telegram initData")
 
     try:
-        logger.info(f"📥 [Backend] Received initData: {x_telegram_init_data}")
-
+        logger.info(f"📥 [Backend] Received initData header (truncated): {x_telegram_init_data[:50]}...")
+        
+        # Validate and get user data
         user = validate_init_data(x_telegram_init_data, BOT_TOKEN)
-        logger.info(f"✅ [Auth] Authenticated user: {user}")
-        return {"user": user}
+        logger.info(f"✅ [Auth] Authenticated user: {user.get('user', {}).get('id')}")
+        
+        return {"status": "success", "user": user}
 
-    except HTTPException:
+    except HTTPException as he:
+        logger.error(f"🔒 Auth failed: {he.detail}")
         raise
     except Exception as e:
-        logger.exception(f"💥 [Auth] Exception occurred: {str(e)}")
-        raise HTTPException(status_code=400, detail="Failed to validate Telegram initData")
-
+        logger.exception(f"💥 Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 # Save user info route — requires Telegram auth header validation
 @router.post("/save_user")
 def save_user(

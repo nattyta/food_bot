@@ -43,55 +43,58 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Add raw input logging
+        # Step 1: Log raw input
         logger.debug(f"🔥 RAW initData input: {repr(init_data)}")
         
-        # MANUAL PARSING - Preserve original encoding
+        # Step 2: URL-decode the entire init_data string
+        decoded_data = unquote(init_data)
+        logger.debug(f"🔥 DECODED initData: {decoded_data}")
+        
+        # Step 3: Parse parameters while preserving original format
         parsed = {}
-        for pair in init_data.split('&'):
+        for pair in decoded_data.split('&'):
             key_value = pair.split('=', 1)
             if len(key_value) == 2:
                 key, value = key_value
-                parsed[key] = value  # Preserve original encoding
+                # Special handling for user parameter
+                if key == "user":
+                    # Decode user JSON only once
+                    try:
+                        user_json = unquote(value)
+                        parsed["user"] = json.loads(user_json)
+                    except Exception as e:
+                        logger.error(f"Failed to parse user JSON: {str(e)}")
+                        parsed[key] = value
+                else:
+                    parsed[key] = value
 
-        # Add parsed data logging
-        logger.debug(f"🌐 Parsed keys: {list(parsed.keys())}")
-        
-        # Remove non-standard parameters
-        if 'signature' in parsed:
-            logger.debug(f"🚮 Removing signature: {parsed.pop('signature', None)}")
-        
+        # Step 4: Remove verification parameters
+        signature = parsed.pop('signature', None)
         received_hash = parsed.pop("hash", None)
+        
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Log each parameter separately
-        logger.warning("📦 Data for hashing:")
-        for k, v in sorted(parsed.items()):
-            logger.warning(f"  {k}: {repr(v)}")
-            logger.warning(f"  Length: {len(v)} bytes")
-            logger.warning(f"  Hex: {v.encode('utf-8').hex()}")
-
-        # Build data-check-string
+        # Step 5: Build data-check-string with sorted parameters
         data_check_string = "\n".join(
-            f"{k}={v}" for k, v in sorted(parsed.items())
+            f"{k}={v if k != 'user' else json.dumps(parsed['user'])}" 
+            for k, v in sorted(parsed.items())
         )
         
-        # Add detailed data-check-string logging
         logger.debug(f"🔥 Data-check-string: {repr(data_check_string)}")
         logger.debug(f"📏 Data-check-string length: {len(data_check_string)}")
         logger.debug(f"🔢 Data-check-string SHA256: {hashlib.sha256(data_check_string.encode()).hexdigest()}")
 
-        # Compute HMAC key
+        # Step 6: Compute HMAC key
         secret_key = hmac.new(
             key=b"WebAppData",
             msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
         
-        # Log secret key
         logger.debug(f"🔐 Secret key: {secret_key.hex()}")
         
+        # Step 7: Compute hash
         computed_hash = hmac.new(
             secret_key, 
             data_check_string.encode(), 
@@ -101,16 +104,17 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.info(f"🔑 Hash from Telegram: {received_hash}")
         logger.info(f"🧮 Computed hash: {computed_hash}")
 
-        # Add critical comparison
-        if computed_hash == received_hash:
+        # Step 8: Constant-time comparison
+        if hmac.compare_digest(computed_hash, received_hash):
             logger.info("✅ HASH MATCH SUCCESSFUL!")
+            return parsed
         else:
             logger.error("❌ HASH MISMATCH!")
-            logger.error(f"Difference: {set(computed_hash) - set(received_hash)}")
-
-        if not hmac.compare_digest(computed_hash, received_hash):
             raise HTTPException(status_code=401, detail="Invalid initData hash")
-
+            
+    except Exception as e:
+        logger.exception("🔥 Validation failed")
+        raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
         
 
 async def telegram_auth(request: Request) -> Optional[int]:
