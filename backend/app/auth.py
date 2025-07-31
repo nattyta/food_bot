@@ -61,6 +61,10 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
+        # CRITICAL FIX: Remove backslash escaping from user JSON
+        if 'user' in parsed:
+            parsed['user'] = parsed['user'].replace('\\"', '"').replace('\\\\', '\\')
+        
         logger.warning("📦 Data for hashing (with original encoding):")
         for k, v in sorted(parsed.items()):
             logger.warning(f"{k}={v}")
@@ -116,6 +120,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
 
         
+
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
     try:
