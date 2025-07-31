@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer
 import os
 import hmac
 import hashlib
-from urllib.parse import parse_qsl,unquote
+from urllib.parse import parse_qsl,quote,unquote
 import json
 import logging
 from typing import Optional
@@ -43,15 +43,14 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # MANUAL PARSING - Preserve original encoding
+        # MANUAL PARSING with double encoding
         parsed = {}
         for pair in init_data.split('&'):
             key_value = pair.split('=', 1)
             if len(key_value) == 2:
                 key, value = key_value
-                # Preserve original encoding
-                parsed[key] = value
-
+                parsed[key] = quote(value, safe='')  # Double encoding
+        
         logger.debug(f"🌐 Manually parsed initData: {parsed}")
         
         # Remove non-standard parameters
@@ -61,20 +60,15 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # CRITICAL FIX: Remove backslash escaping from user JSON
-        if 'user' in parsed:
-            parsed['user'] = parsed['user'].replace('\\"', '"').replace('\\\\', '\\')
-        
-        logger.warning("📦 Data for hashing (with original encoding):")
+        logger.warning("📦 Data for hashing (with double encoding):")
         for k, v in sorted(parsed.items()):
             logger.warning(f"{k}={v}")
 
-        # Build data-check-string with ORIGINAL values
+        # Build data-check-string
         data_check_string = "\n".join(
             f"{k}={v}" for k, v in sorted(parsed.items())
         )
         
-        # DEBUG: Log exact string being hashed
         logger.debug(f"🔥 Data-check-string: {repr(data_check_string)}")
 
         # Compute HMAC key
@@ -97,7 +91,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             raise HTTPException(status_code=401, detail="Invalid initData hash")
 
         # NOW parse the user object
-        user_json = unquote(parsed.get("user", ""))
+        user_json = unquote(unquote(parsed.get("user", "")))  # Double decode
         if not user_json:
             raise HTTPException(status_code=400, detail="Missing user data in initData")
 
@@ -119,7 +113,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.exception("💥 [validate_init_data] Unexpected error:")
         raise HTTPException(status_code=400, detail=f"initData validation error: {str(e)}")
 
-        
 
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
