@@ -43,58 +43,59 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Step 1: Log raw input
-        logger.debug(f"🔥 RAW initData input: {repr(init_data)}")
+        # 🔥 DEBUG 1: Log raw input
+        logger.debug(f"🔥 [DEBUG 1] RAW initData input: {repr(init_data)}")
         
-        # Step 2: URL-decode the entire init_data string
+        # 🔥 DEBUG 2: Log bot token info
+        logger.debug(f"🔥 [DEBUG 2] Bot token: {bot_token[:3]}...{bot_token[-3:]} ({len(bot_token)} chars)")
+        
+        # Step 1: URL-decode the entire init_data string
         decoded_data = unquote(init_data)
-        logger.debug(f"🔥 DECODED initData: {decoded_data}")
+        logger.debug(f"🔥 [DEBUG 3] DECODED initData: {decoded_data}")
         
-        # Step 3: Parse parameters while preserving original format
+        # Step 2: Parse parameters without modifying values
         parsed = {}
         for pair in decoded_data.split('&'):
-            key_value = pair.split('=', 1)
-            if len(key_value) == 2:
-                key, value = key_value
-                # Special handling for user parameter
-                if key == "user":
-                    # Decode user JSON only once
-                    try:
-                        user_json = unquote(value)
-                        parsed["user"] = json.loads(user_json)
-                    except Exception as e:
-                        logger.error(f"Failed to parse user JSON: {str(e)}")
-                        parsed[key] = value
-                else:
-                    parsed[key] = value
+            key, _, value = pair.partition('=')
+            if key and value:
+                parsed[key] = value
+                logger.debug(f"🔥 [DEBUG 4] Parsed: {key}={value[:20]}{'...' if len(value) > 20 else ''}")
 
-        # Step 4: Remove verification parameters
+        # 🔥 DEBUG 5: Show all parsed keys
+        logger.debug(f"🔥 [DEBUG 5] Parsed keys: {list(parsed.keys())}")
+        
+        # Step 3: Remove verification parameters
         signature = parsed.pop('signature', None)
         received_hash = parsed.pop("hash", None)
         
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
 
-        # Step 5: Build data-check-string with sorted parameters
+        # 🔥 DEBUG 6: Show parameters before building data-check-string
+        logger.debug("🔥 [DEBUG 6] Parameters for data-check-string:")
+        for k, v in parsed.items():
+            logger.debug(f"  {k}: {repr(v)}")
+
+        # Step 4: Build data-check-string with EXACT original values
         data_check_string = "\n".join(
-            f"{k}={v if k != 'user' else json.dumps(parsed['user'])}" 
-            for k, v in sorted(parsed.items())
+            f"{k}={v}" for k, v in sorted(parsed.items())
         )
         
-        logger.debug(f"🔥 Data-check-string: {repr(data_check_string)}")
-        logger.debug(f"📏 Data-check-string length: {len(data_check_string)}")
-        logger.debug(f"🔢 Data-check-string SHA256: {hashlib.sha256(data_check_string.encode()).hexdigest()}")
+        # 🔥 DEBUG 7: Show exact data-check-string
+        logger.debug(f"🔥 [DEBUG 7] Data-check-string: {repr(data_check_string)}")
+        logger.debug(f"🔥 [DEBUG 8] Data-check-string length: {len(data_check_string)}")
+        logger.debug(f"🔥 [DEBUG 9] Data-check-string SHA256: {hashlib.sha256(data_check_string.encode()).hexdigest()}")
 
-        # Step 6: Compute HMAC key
+        # Step 5: Compute HMAC key
         secret_key = hmac.new(
             key=b"WebAppData",
             msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
         
-        logger.debug(f"🔐 Secret key: {secret_key.hex()}")
+        logger.debug(f"🔥 [DEBUG 10] Secret key: {secret_key.hex()}")
         
-        # Step 7: Compute hash
+        # Step 6: Compute hash
         computed_hash = hmac.new(
             secret_key, 
             data_check_string.encode(), 
@@ -104,14 +105,36 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.info(f"🔑 Hash from Telegram: {received_hash}")
         logger.info(f"🧮 Computed hash: {computed_hash}")
 
-        # Step 8: Constant-time comparison
+        # 🔥 DEBUG 11: Show comparison
+        logger.debug(f"🔥 [DEBUG 11] Compare: {computed_hash == received_hash}")
+        logger.debug(f"🔥 [DEBUG 12] Compare (length): {len(computed_hash)} vs {len(received_hash)}")
+        
+        # Step 7: Constant-time comparison
         if hmac.compare_digest(computed_hash, received_hash):
             logger.info("✅ HASH MATCH SUCCESSFUL!")
+            # Now parse user JSON
+            if 'user' in parsed:
+                try:
+                    parsed['user'] = json.loads(parsed['user'])
+                    logger.debug(f"🔥 [DEBUG 13] Parsed user: {parsed['user']}")
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse user JSON: {str(e)}")
             return parsed
         else:
             logger.error("❌ HASH MISMATCH!")
+            # 🔥 DEBUG 14: Show difference
+            diff = [f"{i}: Telegram:'{received_hash[i]}' vs Computed:'{computed_hash[i]}'" 
+                   for i in range(min(len(received_hash), len(computed_hash))) 
+                   if received_hash[i] != computed_hash[i]]
+            logger.debug(f"🔥 [DEBUG 14] First difference at position {diff[0] if diff else 'none'}")
             raise HTTPException(status_code=401, detail="Invalid initData hash")
             
+    except Exception as e:
+        logger.exception("🔥 Validation failed")
+        raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
+
+
+        
     except Exception as e:
         logger.exception("🔥 Validation failed")
         raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")

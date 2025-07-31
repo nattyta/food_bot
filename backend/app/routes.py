@@ -144,3 +144,17 @@ def update_profile(
         raise HTTPException(status_code=500, detail="Profile update failed")
 
     return {"status": "success"}
+
+
+
+
+    # Add to routes.py
+@router.get("/debug/token")
+async def debug_token():
+    token = os.getenv("Telegram_API", "").strip()
+    return {
+        "token_exists": bool(token),
+        "token_length": len(token),
+        "token_prefix": token[:5] + "..." + token[-5:] if token else None,
+        "token_match": token == "YOUR_ACTUAL_TOKEN"  # Replace with your actual token
+    }
