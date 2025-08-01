@@ -111,17 +111,7 @@ const CartPage = ({ cart, setCart }) => {
     }
   };
 
- // 1. First, update the Telegram WebApp detection function
-const isTelegramWebApp = () => {
-  try {
-    return (
-      typeof window !== 'undefined' &&
-      window?.Telegram?.WebApp?.initDataUnsafe?.user?.id !== undefined
-    );
-  } catch (e) {
-    return false;
-  }
-};
+
 
 const handleConfirmOrder = async () => {
   try {

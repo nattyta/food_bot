@@ -52,8 +52,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         
         # Remove verification parameters
         received_hash = parsed.pop("hash", None)
-        signature = parsed.pop("signature", None)
-        
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
         
@@ -82,21 +80,26 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             # Now decode and parse user data
             decoded = {}
             for k, v in parsed.items():
+                # Handle backslash escape sequences properly
+                unquoted = unquote(v.replace('%5C', '%255C').replace('\\', '%5C'))
                 if k == "user":
                     try:
-                        decoded[k] = json.loads(unquote(v))
+                        decoded[k] = json.loads(unquoted)
                     except json.JSONDecodeError:
-                        decoded[k] = unquote(v)
+                        decoded[k] = unquoted
                 else:
-                    decoded[k] = unquote(v)
+                    decoded[k] = unquoted
             return decoded
         else:
+            # Add detailed mismatch info to logs
+            logger.error(f"Hash mismatch! Received: {received_hash}, Computed: {computed_hash}")
+            logger.debug(f"Data check string: {data_check_string}")
             raise HTTPException(status_code=401, detail="Invalid initData hash")
             
     except Exception as e:
+        logger.exception("Validation error")
         raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
-        
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
     try:
