@@ -175,3 +175,32 @@ async def debug_telegram_example():
         "computed_hash": computed_hash,
         "match": computed_hash == example_hash
     }
+
+
+
+    @router.get("/debug/telegram-example")
+async def debug_telegram_example():
+    """Returns the exact string Telegram hashes for comparison"""
+    # Example from Telegram docs: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
+    example_data = "query_id=AAHdF6IQAAAAAN0XohD2&user=%7B%22id%22%3A279058397%2C%22first_name%22%3A%22Vasya%22%2C%22last_name%22%3A%22Pupkin%22%2C%22username%22%3A%22vaspupkin%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1662771648"
+    example_hash = "b6685bda9a825e1f0cce1a6f5d4ad0d40a8bb0b0c0f7c0a0a0a0a0a0a0a0a0a"  # Fake hash for illustration
+    
+    # Compute what Telegram would expect
+    secret_key = hmac.new(
+        key=b"WebAppData",
+        msg=os.getenv("Telegram_API").encode(),
+        digestmod=hashlib.sha256
+    ).digest()
+    
+    computed_hash = hmac.new(
+        secret_key, 
+        example_data.encode(), 
+        hashlib.sha256
+    ).hexdigest()
+    
+    return {
+        "telegram_example_data": example_data,
+        "expected_hash": example_hash,
+        "computed_hash": computed_hash,
+        "match": computed_hash == example_hash
+    }
