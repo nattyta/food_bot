@@ -278,7 +278,7 @@ async def test_valid_hash():
             "error": str(e),
             "test_data": TEST_INIT_DATA,
             "bot_token": TEST_BOT_TOKEN,
-            "recommendation": "Verify parameter order in data check string"
+            "recommendation": "Contact Telegram API support"
         }
 
 
