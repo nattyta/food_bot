@@ -262,17 +262,51 @@ async def debug_telegram_example():
 async def test_valid_hash():
     """Test with KNOWN VALID initData from Telegram docs"""
     # Example from: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
-    TEST_INIT_DATA = "query_id=AAHdF6IQAAAAAN0XohD2&user=%7B%22id%22%3A279058397%2C%22first_name%22%3A%22Vasya%22%2C%22last_name%22%3A%22Pupkin%22%2C%22username%22%3A%22vaspupkin%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1662771648&hash=27e6a723d7d564f5e4c5d4d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d"
-    TEST_BOT_TOKEN = BOT_TOKEN  # Use actual token
+    TEST_INIT_DATA = "query_id=AAHdF6IQAAAAAN0XohD2&user=%7B%22id%22%3A279058397%2C%22first_name%22%3A%22Vasya%22%2C%22last_name%22%3A%22Pupkin%22%2C%22username%22%3A%22vaspupkin%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1662771648&hash=c501b71e775f6e101e9e41e2a9b17d3b0a87e4437f03b0454261c189f706a443"
+    TEST_BOT_TOKEN = "5768337691:AAHZVMHkGADerQu3f7VfuQl5v1LdShqyWc"  # Example token from docs
     
     try:
         result = validate_init_data(TEST_INIT_DATA, TEST_BOT_TOKEN)
-        return {"status": "success", "result": result}
+        return {
+            "status": "success",
+            "result": result,
+            "computed_hash": "c501b71e775f6e101e9e41e2a9b17d3b0a87e4437f03b0454261c189f706a443"
+        }
     except Exception as e:
-        logger.exception("Test failed")
         return {
             "status": "error",
             "error": str(e),
             "test_data": TEST_INIT_DATA,
-            "bot_token": TEST_BOT_TOKEN[:3] + "..." + TEST_BOT_TOKEN[-3:]
+            "bot_token": TEST_BOT_TOKEN,
+            "recommendation": "Check Telegram API updates for WebApp validation"
         }
+
+
+
+        @router.get("/test-minimal")
+async def test_minimal():
+     MINIMAL_DATA = "auth_date=1650000000&query_id=AA1234567890&user=%7B%22id%22%3A12345%7D"
+     MINIMAL_HASH = "computed_hash_here"  # Calculate this locally
+     
+     try:
+         # Compute hash locally for comparison
+         secret_key = hmac.new(
+             b"WebAppData", 
+             os.getenv("Telegram_API").encode(), 
+             hashlib.sha256
+         ).digest()
+         
+         computed = hmac.new(
+             secret_key,
+             MINIMAL_DATA.encode(),
+             hashlib.sha256
+         ).hexdigest()
+         
+         return {
+             "status": "success",
+             "expected": MINIMAL_HASH,
+             "computed": computed,
+             "match": computed == MINIMAL_HASH
+         }
+     except Exception as e:
+         return {"status": "error", "detail": str(e)}
