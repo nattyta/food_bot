@@ -70,36 +70,10 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.debug(f"🔥 [KEYS POST] After removal: {list(parsed.keys())}")
         logger.debug(f"🔥 [HASH] Received: {received_hash}")
 
-        # 🔥 CORRECTED BACKSLASH HANDLING
-        if 'user' in parsed:
-            try:
-                # Step 1: Decode the user JSON string
-                user_str = unquote(parsed['user'])
-                logger.debug(f"🔥 [USER DECODED] {user_str[:100]}...")
-                
-                # Step 2: Parse JSON to access photo_url directly
-                user_json = json.loads(user_str)
-                
-                if 'photo_url' in user_json:
-                    original_url = user_json['photo_url']
-                    logger.debug(f"🔥 [PHOTO_URL ORIG] {original_url}")
-                    
-                    # Step 3: Replace double-escaped backslashes with singles
-                    corrected_url = original_url.replace('\\\\', '\\')
-                    
-                    # Only update if changes were made
-                    if corrected_url != original_url:
-                        logger.debug("🔥 Applying photo_url backslash correction")
-                        user_json['photo_url'] = corrected_url
-                        
-                        # Step 4: Re-encode the JSON with corrected URL
-                        new_user_str = json.dumps(user_json)
-                        parsed['user'] = quote(new_user_str)
-                        logger.debug(f"🔥 [USER CORRECTED] {parsed['user'][:100]}...")
-            except json.JSONDecodeError as e:
-                logger.warning(f"Couldn't parse user JSON: {str(e)}")
-            except Exception as e:
-                logger.error(f"Backslash correction failed: {str(e)}")
+        # 🔥 CRITICAL FIX: Token as raw bytes
+        token_bytes = bot_token.encode('utf-8')
+        logger.debug(f"🔥 [TOKEN BYTES] Hex: {token_bytes.hex()}")
+        logger.debug(f"🔥 [TOKEN BYTES] Length: {len(token_bytes)}")
 
         # 🔍 Verify parameter order
         expected_order = sorted(parsed.keys())
@@ -111,14 +85,15 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         )
         
         # 🔍 HEX DUMP for binary comparison
+        data_bytes = data_check_string.encode('utf-8')
+        logger.debug(f"🔥 [DATA BYTES] Hex: {data_bytes.hex()}")
         logger.debug(f"🔥 [CHECK STRING] Length: {len(data_check_string)}")
-        logger.debug(f"🔥 [CHECK STRING] Hex: {data_check_string.encode('utf-8').hex()}")
         logger.debug(f"🔥 [CHECK STRING] Full: {repr(data_check_string)}")
 
         # Compute HMAC key
         secret_key = hmac.new(
             key=b"WebAppData",
-            msg=bot_token.encode('utf-8'),
+            msg=token_bytes,
             digestmod=hashlib.sha256
         ).digest()
         logger.debug(f"🔥 [SECRET] Key hex: {secret_key.hex()}")
@@ -126,7 +101,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         # Compute hash
         computed_hash = hmac.new(
             secret_key,
-            data_check_string.encode('utf-8'),
+            data_bytes,
             hashlib.sha256
         ).hexdigest()
         logger.debug(f"🔥 [HASH] Computed: {computed_hash}")
@@ -173,6 +148,19 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
                 logger.debug(f"🔥 [TEST] Double-unquoted user: {test_value[:50]}...")
             
             raise HTTPException(status_code=401, detail="Invalid initData hash")
+            
+    except Exception as e:
+        logger.exception("💥 VALIDATION FAILED")
+        # 🧪 TEST: Return computed values for analysis
+        test_debug = {
+            "error": str(e),
+            "received_hash": received_hash if 'received_hash' in locals() else None,
+            "computed_hash": computed_hash if 'computed_hash' in locals() else None,
+            "data_check_string": data_check_string if 'data_check_string' in locals() else None,
+            "secret_key_hex": secret_key.hex() if 'secret_key' in locals() else None
+        }
+        logger.debug(f"🔥 [DEBUG DUMP] {json.dumps(test_debug)}")
+        raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
             
     except Exception as e:
         logger.exception("💥 VALIDATION FAILED")
