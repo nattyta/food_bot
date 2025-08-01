@@ -50,24 +50,34 @@ async def authenticate_via_telegram(request: Request):
     """Endpoint to authenticate Telegram WebApp users"""
     # Get raw header value directly
     raw_header = request.headers.get('x-telegram-init-data', '')
-    logger.debug(f"🔥 [RAW HEADER] Type: {type(raw_header)}, Length: {len(raw_header)}")
-    
-    # 🔍 Critical check - ensure header exists
+    if not raw_header:
+        # Try getting from body as fallback
+        try:
+            body = await request.json()
+            raw_header = body.get('init_data', '')
+        except:
+            pass
+            
+    # Critical check - ensure header exists
     if not raw_header:
         logger.error("❌ Missing Telegram initData header")
         return JSONResponse(
             status_code=401,
             content={
                 "status": "error",
-                "detail": "Missing Telegram initData header",
+                "detail": "Missing Telegram initData",
                 "diagnostic": {
-                    "received_headers": dict(request.headers),
-                    "recommendation": "Ensure you're sending 'x-telegram-init-data' header"
+                    "received_headers": list(request.headers.keys()),
+                    "possible_solutions": [
+                        "Ensure you're using Telegram WebApp SDK v6.7+",
+                        "Check if 'x-telegram-init-data' header is being sent",
+                        "Verify WebApp is launched via Telegram"
+                    ]
                 }
             }
         )
     
-    # 🔍 Get bot token with safety checks
+    # Get bot token with safety checks
     BOT_TOKEN = os.getenv("Telegram_API", "").strip()
     if not BOT_TOKEN:
         logger.critical("❌ BOT TOKEN NOT CONFIGURED IN ENVIRONMENT!")
@@ -79,24 +89,36 @@ async def authenticate_via_telegram(request: Request):
             }
         )
 
-    # 🔍 Request forensics for debugging
-    logger.debug("🔥 [HEADER DIAGNOSTICS]")
+    # Request forensics for debugging
+    logger.debug("🔍 [AUTH DIAGNOSTICS]")
     logger.debug(f"  Header length: {len(raw_header)}")
-    logger.debug(f"  First 20 chars: {repr(raw_header[:20])}")
-    logger.debug(f"  Last 20 chars: {repr(raw_header[-20:])}")
-    logger.debug(f"  Contains %7B: {'%7B' in raw_header}")  # Check for { encoding
-    logger.debug(f"  Contains %22: {'%22' in raw_header}")  # Check for " encoding
-    logger.debug(f"  Contains %5C: {'%5C' in raw_header}")  # Check for backslash encoding
-
+    logger.debug(f"  First 50 chars: {raw_header[:50]}")
+    logger.debug(f"  Last 50 chars: {raw_header[-50:]}")
+    logger.debug(f"  Contains hash: {'hash=' in raw_header}")
+    logger.debug(f"  Bot token: {BOT_TOKEN[:3]}...{BOT_TOKEN[-3:]}")
+    
     try:
         # Use the raw header directly for validation
         user = validate_init_data(raw_header, BOT_TOKEN)
         logger.info(f"✅ Authentication successful for user: {user.get('user', {}).get('id')}")
         
+        # Generate session token
+        session_token = str(uuid.uuid4())
+        chat_id = user.get('user', {}).get('id')
+        
+        # Store session in database
+        if chat_id:
+            with DatabaseManager() as db:
+                db.execute(
+                    "INSERT INTO sessions (chat_id, session_token) VALUES (%s, %s) "
+                    "ON CONFLICT (chat_id) DO UPDATE SET session_token = EXCLUDED.session_token",
+                    (chat_id, session_token)
+                )
+        
         return {
             "status": "success",
             "user": user,
-            "auth_token": "generated_token_here"  # Add your token generation logic
+            "session_token": session_token
         }
     
     except HTTPException as he:
@@ -109,23 +131,8 @@ async def authenticate_via_telegram(request: Request):
                 "detail": he.detail,
                 "diagnostic": {
                     "bot_token_length": len(BOT_TOKEN),
-                    "header_sample": f"{raw_header[:50]}...{raw_header[-50:]}" if len(raw_header) > 100 else raw_header,
+                    "header_sample": f"{raw_header[:50]}...{raw_header[-50:]}",
                     "validation_step": "hash_comparison"
-                }
-            }
-        )
-    
-    except json.JSONDecodeError as je:
-        # Handle JSON parsing issues
-        logger.error(f"❌ JSON decode error: {str(je)}")
-        return JSONResponse(
-            status_code=400,
-            content={
-                "status": "error",
-                "detail": "Invalid user data format",
-                "diagnostic": {
-                    "offending_value": raw_header,
-                    "json_error": str(je)
                 }
             }
         )

@@ -50,8 +50,11 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
                 key, value = pair.split('=', 1)
                 parsed[key] = value
         
-        # Remove verification parameters
+        # Remove verification parameters and any non-standard fields
         received_hash = parsed.pop("hash", None)
+        # Remove non-standard parameters that might cause validation issues
+        parsed.pop("signature", None)  # Telegram seems to be adding this unexpectedly
+        
         if not received_hash:
             raise HTTPException(status_code=400, detail="Missing hash in initData")
         
@@ -94,6 +97,8 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             # Add detailed mismatch info to logs
             logger.error(f"Hash mismatch! Received: {received_hash}, Computed: {computed_hash}")
             logger.debug(f"Data check string: {data_check_string}")
+            logger.debug(f"Secret key hex: {secret_key.hex()}")
+            logger.debug(f"Parsed items: {parsed}")
             raise HTTPException(status_code=401, detail="Invalid initData hash")
             
     except Exception as e:
