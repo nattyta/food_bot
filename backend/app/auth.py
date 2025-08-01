@@ -70,6 +70,15 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.debug(f"🔥 [KEYS POST] After removal: {list(parsed.keys())}")
         logger.debug(f"🔥 [HASH] Received: {received_hash}")
 
+        # 🔥 BACKSLASH CORRECTION FOR PHOTO_URL
+        if 'user' in parsed:
+            original_user = parsed['user']
+            # Replace encoded backslashes with actual backslashes
+            corrected_user = original_user.replace('%5C', '\\')
+            if original_user != corrected_user:
+                logger.debug("🔥 Applying photo_url backslash correction")
+                parsed['user'] = corrected_user
+        
         # 🔍 Verify parameter order
         expected_order = sorted(parsed.keys())
         logger.debug(f"🔥 [ORDER] Sorted keys: {expected_order}")
@@ -156,6 +165,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.debug(f"🔥 [DEBUG DUMP] {json.dumps(test_debug)}")
         raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
+        
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
     try:
