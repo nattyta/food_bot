@@ -263,7 +263,7 @@ async def test_valid_hash():
     """Test with KNOWN VALID initData from Telegram docs"""
     # Example from: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
     TEST_INIT_DATA = "query_id=AAHdF6IQAAAAAN0XohD2&user=%7B%22id%22%3A279058397%2C%22first_name%22%3A%22Vasya%22%2C%22last_name%22%3A%22Pupkin%22%2C%22username%22%3A%22vaspupkin%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1662771648&hash=27e6a723d7d564f5e4c5d4d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d7d"
-    TEST_BOT_TOKEN = "BOT_TOKEN"  # Use actual token
+    TEST_BOT_TOKEN = BOT_TOKEN  # Use actual token
     
     try:
         result = validate_init_data(TEST_INIT_DATA, TEST_BOT_TOKEN)
