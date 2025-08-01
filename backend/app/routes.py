@@ -283,30 +283,59 @@ async def test_valid_hash():
 
 
 
-        @router.get("/test-minimal")
+@router.get("/test-minimal")
 async def test_minimal():
-     MINIMAL_DATA = "auth_date=1650000000&query_id=AA1234567890&user=%7B%22id%22%3A12345%7D"
-     MINIMAL_HASH = "computed_hash_here"  # Calculate this locally
-     
-     try:
-         # Compute hash locally for comparison
-         secret_key = hmac.new(
-             b"WebAppData", 
-             os.getenv("Telegram_API").encode(), 
-             hashlib.sha256
-         ).digest()
-         
-         computed = hmac.new(
-             secret_key,
-             MINIMAL_DATA.encode(),
-             hashlib.sha256
-         ).hexdigest()
-         
-         return {
-             "status": "success",
-             "expected": MINIMAL_HASH,
-             "computed": computed,
-             "match": computed == MINIMAL_HASH
-         }
-     except Exception as e:
-         return {"status": "error", "detail": str(e)}
+    """Test minimal validation example"""
+    # Minimal example data from your logs
+    auth_date = "1754078747"
+    query_id = "AAHazKI2AAAAANrMojY7cHL_"
+    user_data = "%7B%22id%22%3A916638938%2C%22first_name%22%3A%22natnael%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22meh9061%22%2C%22language_code%22%3A%22en%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FKaGQ_KQd52BoxblXpxbwbV8NjBRHvT8P_U4kXdlysCs.svg%22%7D"
+    
+    # Build initData string without hash
+    init_data = f"auth_date={auth_date}&query_id={query_id}&user={user_data}"
+    
+    # Get bot token
+    bot_token = os.getenv("Telegram_API", "").strip()
+    if not bot_token:
+        return {"status": "error", "detail": "Bot token not set"}
+    
+    # Build data check string (sorted by key)
+    data_check_string = "\n".join([
+        f"auth_date={auth_date}",
+        f"query_id={query_id}",
+        f"user={user_data}"
+    ])
+    
+    # Compute secret key
+    secret_key = hmac.new(
+        key=b"WebAppData",
+        msg=bot_token.encode(),
+        digestmod=hashlib.sha256
+    ).digest()
+    
+    # Compute hash
+    computed_hash = hmac.new(
+        secret_key,
+        data_check_string.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    # Now validate
+    try:
+        # Create full initData with hash
+        full_init_data = f"{init_data}&hash={computed_hash}"
+        result = validate_init_data(full_init_data, bot_token)
+        return {
+            "status": "success",
+            "computed_hash": computed_hash,
+            "full_init_data": full_init_data,
+            "result": result
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "computed_hash": computed_hash,
+            "data_check_string": data_check_string,
+            "secret_key_hex": secret_key.hex()
+        }
