@@ -194,7 +194,7 @@ async def debug_telegram_example():
 
 
 
-    @router.get("/test-valid-hash")
+@router.get("/test-valid-hash")
 async def test_valid_hash():
     """Test with KNOWN VALID initData from Telegram docs"""
     # Example from: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
