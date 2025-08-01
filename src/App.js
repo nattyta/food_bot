@@ -23,51 +23,45 @@ function App() {
   };
 
   const authenticateUser = async () => {
-    const tg = window?.Telegram?.WebApp;
-    
-    if (!tg) {
-      addDebugLog("❌ Not in Telegram environment");
-      throw new Error("Telegram WebApp not available");
-    }
-  
-    // Get init data safely
-    const initData = tg.initData || '';
-    const initDataUnsafe = tg.initDataUnsafe || {};
-    
-    // Debug info
-    addDebugLog(`🌐 Telegram Environment: 
-      Platform: ${tg.platform}, 
-      Version: ${tg.version},
-      InitData: ${initData ? `${initData.substring(0, 30)}...` : 'empty'}
-    `);
-    
-    addDebugLog(`👤 Unsafe User Data: ${JSON.stringify(initDataUnsafe.user || {})}`);
-    
-    if (!initData) {
-      addDebugLog("❌ initData is empty");
-      throw new Error("Telegram initData not found");
-    }
-  
     try {
+      const tg = window.Telegram?.WebApp;
+      if (!tg) {
+        addDebugLog("❌ Telegram WebApp not available");
+        throw new Error("Telegram environment missing");
+      }
+  
+      // 🔍 FRONTEND DIAGNOSTICS
+      const initData = tg.initData;
+      const initDataUnsafe = tg.initDataUnsafe || {};
+      
+      // Critical checks
+      addDebugLog(`🌐 WebApp version: ${tg.version}`);
+      addDebugLog(`📦 initData length: ${initData.length}`);
+      addDebugLog(`🔑 User ID: ${initDataUnsafe.user?.id || 'missing'}`);
+      
+      // 🔍 Check for encoding issues
+      const containsPercent = initData.includes('%');
+      const containsQuote = initData.includes('"');
+      addDebugLog(`🔍 Contains %: ${containsPercent}`);
+      addDebugLog(`🔍 Contains ": ${containsQuote}`);
+      
+      // 🔍 Sample critical segments
+      addDebugLog(`🔍 Sample: ${initData.substring(0, 50)}`);
+      addDebugLog(`🔍 Sample: ${initData.substring(initData.length - 50)}`);
+      
+      // 🧪 TEST: Send both encoded and raw versions
       const response = await fetch(`${API_URL}/auth/telegram`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "x-telegram-init-data": initData
-        }
+          "x-telegram-init-data": initData,
+          "x-debug-original": encodeURIComponent(initData)
+        },
       });
   
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.detail || `Auth failed with status ${response.status}`);
-      }
-  
-      addDebugLog(`✅ Auth success: ${data.user?.user?.first_name || 'Unknown'}`);
-      return data.user;
-      
+      // ... rest of handling ...
     } catch (err) {
-      addDebugLog(`❌ Auth failed: ${err.message}`);
+      // 🔍 Capture stack trace
+      addDebugLog(`💥 ERROR: ${err.message} ${err.stack || ''}`);
       throw err;
     }
   };
