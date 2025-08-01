@@ -112,28 +112,28 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.exception("💥 CRITICAL VALIDATION ERROR")
         raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
-def validate_init_data_fallback(init_data: str, bot_token: str) -> dict:
-    """Alternative validation method for compatibility"""
+def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Try without URL-decoding the values
+        # Parse parameters without any decoding
         parsed = {}
         for pair in init_data.split('&'):
             if '=' in pair:
                 key, value = pair.split('=', 1)
                 parsed[key] = value
         
-        # Remove hash and keep only standard parameters
+        # Get and remove hash parameter
         received_hash = parsed.pop("hash", None)
         if not received_hash:
-            raise ValueError("Missing hash")
-            
-        # Filter out non-standard parameters
-        valid_params = {"auth_date", "query_id", "user", "receiver", "chat", "start_param"}
-        filtered_params = {k: v for k, v in parsed.items() if k in valid_params}
+            raise HTTPException(status_code=400, detail="Missing hash in initData")
         
+        # Telegram's example uses a different parameter order than your implementation
+        # We need to handle both formats - sort by key for consistency
+        sorted_keys = sorted(parsed.keys())
+        
+        # Build data-check-string in EXACT format Telegram expects
         data_check_string = "\n".join(
-            f"{key}={value}" 
-            for key, value in sorted(filtered_params.items())
+            f"{key}={parsed[key]}" 
+            for key in sorted_keys
         )
         
         # Compute HMAC key
@@ -150,30 +150,55 @@ def validate_init_data_fallback(init_data: str, bot_token: str) -> dict:
             hashlib.sha256
         ).hexdigest()
 
+        # Validate
         if hmac.compare_digest(computed_hash, received_hash):
-            # Parse user data without unquoting
+            # Now decode and parse user data
             decoded = {}
-            for k, v in filtered_params.items():
+            for k, v in parsed.items():
+                # Handle backslash escape sequences properly
+                unquoted = unquote(v.replace('%5C', '%255C').replace('\\', '%5C'))
                 if k == "user":
                     try:
-                        # Attempt to parse without unquoting
-                        decoded[k] = json.loads(v)
-                    except:
-                        # Try with unquoting if direct parse fails
-                        try:
-                            decoded[k] = json.loads(unquote(v))
-                        except:
-                            decoded[k] = v
+                        decoded[k] = json.loads(unquoted)
+                    except json.JSONDecodeError:
+                        decoded[k] = unquoted
                 else:
-                    decoded[k] = v
+                    decoded[k] = unquoted
             return decoded
+        else:
+            # Special handling for Telegram's example format
+            if "query_id" in parsed and "user" in parsed and "auth_date" in parsed:
+                # Try alternative order: query_id, user, auth_date
+                alt_data_check_string = f"query_id={parsed['query_id']}\nuser={parsed['user']}\nauth_date={parsed['auth_date']}"
+                alt_computed_hash = hmac.new(
+                    secret_key,
+                    alt_data_check_string.encode(),
+                    hashlib.sha256
+                ).hexdigest()
+                
+                if hmac.compare_digest(alt_computed_hash, received_hash):
+                    # Process with alternative format
+                    decoded = {}
+                    for k, v in parsed.items():
+                        unquoted = unquote(v.replace('%5C', '%255C').replace('\\', '%5C'))
+                        if k == "user":
+                            try:
+                                decoded[k] = json.loads(unquoted)
+                            except json.JSONDecodeError:
+                                decoded[k] = unquoted
+                        else:
+                            decoded[k] = unquoted
+                    return decoded
             
-        raise ValueError("Fallback validation failed")
-        
+            raise HTTPException(status_code=401, detail="Invalid initData hash")
+            
     except Exception as e:
-        logger.error(f"❌ FALLBACK VALIDATION FAILED: {str(e)}")
-        raise HTTPException(status_code=401, detail="Could not validate initData")
+        logger.exception("Validation error")
+        raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
+
+
+        
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
     try:

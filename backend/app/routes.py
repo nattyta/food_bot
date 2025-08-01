@@ -268,9 +268,9 @@ async def test_valid_hash():
     try:
         result = validate_init_data(TEST_INIT_DATA, TEST_BOT_TOKEN)
         return {
-            "status": "success",
+            "status": "success", 
             "result": result,
-            "computed_hash": "c501b71e775f6e101e9e41e2a9b17d3b0a87e4437f03b0454261c189f706a443"
+            "message": "Successfully validated Telegram's example data"
         }
     except Exception as e:
         return {
@@ -278,7 +278,7 @@ async def test_valid_hash():
             "error": str(e),
             "test_data": TEST_INIT_DATA,
             "bot_token": TEST_BOT_TOKEN,
-            "recommendation": "Check Telegram API updates for WebApp validation"
+            "recommendation": "Verify parameter order in data check string"
         }
 
 
