@@ -43,6 +43,19 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
 
 SECRET_KEY_CACHE = {}
 
+import hmac
+import hashlib
+import json
+import logging
+import time
+from urllib.parse import unquote, parse_qsl
+from fastapi import HTTPException
+
+logger = logging.getLogger(__name__)
+
+# Cache for secret keys
+SECRET_KEY_CACHE = {}
+
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     """
     Validates Telegram WebApp initData per official security requirements
@@ -58,15 +71,19 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         HTTPException: For any validation failure
     """
     try:
-        # ===== [1] PARSE AND SANITIZE INPUT =====
+        # ===== [1] PARSE WHILE PRESERVING ORDER =====
+        # Parse as ordered list of key-value pairs
+        params = parse_qsl(init_data, keep_blank_values=True)
+        
+        # Extract parameters
         parsed = {}
-        for pair in init_data.split('&'):
-            if '=' in pair:
-                key, value = pair.split('=', 1)
+        received_hash = None
+        for key, value in params:
+            if key == "hash":
+                received_hash = value
+            else:
                 parsed[key] = value
         
-        # Critical security: Remove non-standard parameters
-        received_hash = parsed.pop("hash", None)
         if not received_hash:
             logger.error("❌ Missing hash parameter in initData")
             raise HTTPException(400, "Missing hash parameter")
@@ -76,10 +93,12 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         filtered = {k: v for k, v in parsed.items() if k in valid_params}
         
         # ===== [3] BUILD DATA CHECK STRING =====
-        # CRITICAL FIX: Sort keys alphabetically as per Telegram docs
-        sorted_keys = sorted(filtered.keys())
+        # Create sorted list of key-value pairs
+        sorted_items = sorted(filtered.items(), key=lambda x: x[0])
+        
+        # Format as "key=value" with newline separator
         data_check_string = "\n".join(
-            f"{k}={filtered[k]}" for k in sorted_keys
+            f"{key}={value}" for key, value in sorted_items
         )
         
         logger.debug(f"🔐 Data check string: {data_check_string}")
@@ -110,7 +129,23 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             logger.error(f"❌ HASH MISMATCH! Received: {received_hash}, Computed: {computed_hash}")
             logger.debug(f"  Secret key: {secret_key.hex()}")
             logger.debug(f"  Data bytes: {data_check_string.encode()}")
-            raise HTTPException(401, "Invalid initData hash")
+            
+            # Final fallback: Try without any filtering
+            all_items = sorted(parsed.items(), key=lambda x: x[0])
+            fallback_string = "\n".join(f"{k}={v}" for k, v in all_items)
+            fallback_hash = hmac.new(
+                secret_key,
+                fallback_string.encode(),
+                hashlib.sha256
+            ).hexdigest()
+            
+            logger.debug(f"🛟 Fallback hash: {fallback_hash}")
+            
+            if hmac.compare_digest(fallback_hash, received_hash):
+                logger.warning("⚠️ Validation passed only when including ALL parameters")
+                # Proceed with fallback validation
+            else:
+                raise HTTPException(401, "Invalid initData hash")
         
         # ===== [6] PARSE VERIFIED DATA =====
         result = {}
@@ -135,10 +170,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             if age > 86400:  # 24*60*60
                 logger.warning(f"⚠️ Expired auth data: {age} seconds old")
                 raise HTTPException(401, "Expired authentication data")
-                
-            # Recommend refresh after 1 hour
-            if age > 3600:
-                logger.info(f"ℹ️ Stale auth data: {age//60} minutes old")
         except (TypeError, ValueError):
             logger.error("⚠️ Invalid auth_date format")
             raise HTTPException(400, "Invalid auth_date")
@@ -167,7 +198,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     except Exception as e:
         logger.exception(f"💥 CRITICAL: Unhandled validation error: {str(e)}")
         raise HTTPException(500, "Internal validation error")
-
+        
 
         
 async def telegram_auth(request: Request) -> Optional[int]:
