@@ -92,9 +92,10 @@ async def verify_telegram_connection():
         
     except requests.exceptions.Timeout:
         logger.critical("❌ Telegram API timeout - check your network connection")
+    except requests.exceptions.ConnectionError:
+        logger.critical("❌ Network error - cannot connect to Telegram API")
     except Exception as e:
         logger.exception(f"💥 Startup verification failed: {str(e)}")
-
 
 # ✅ Define a request model for correct data validation
 class PaymentRequest(BaseModel):
