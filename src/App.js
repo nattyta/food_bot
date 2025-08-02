@@ -23,96 +23,77 @@ function App() {
   };
 
   const authenticateUser = async () => {
+    let tg; // Define tg here so it's accessible in catch block
+    
     try {
-      const tg = window.Telegram?.WebApp;
+      tg = window.Telegram?.WebApp;
+      
+      // 1. Verify WebApp environment
       if (!tg) {
-        addDebugLog("❌ Telegram WebApp not available");
-        throw new Error("Telegram environment missing");
+        throw new Error("Telegram WebApp not detected");
       }
-  
-      // 🔒 CRITICAL: Verify initData contains hash parameter
-      if (!tg.initData.includes('hash=')) {
-        addDebugLog('❌ initData missing hash parameter!');
-        addDebugLog(`Full initData: ${tg.initData}`);
-        throw new Error('Invalid initData from Telegram (missing hash)');
-      }
-  
-      // 🔍 FRONTEND DIAGNOSTICS
-      const initData = tg.initData;
-      const initDataUnsafe = tg.initDataUnsafe || {};
       
-      // Critical checks
-      addDebugLog(`🌐 WebApp version: ${tg.version}`);
-      addDebugLog(`📦 initData length: ${initData.length}`);
-      addDebugLog(`🔑 User ID: ${initDataUnsafe.user?.id || 'missing'}`);
-      
-      // 🔍 Check for encoding issues
-      const containsPercent = initData.includes('%');
-      const containsQuote = initData.includes('"');
-      const containsBackslash = initData.includes('\\');
-      addDebugLog(`🔍 Contains %: ${containsPercent}`);
-      addDebugLog(`🔍 Contains ": ${containsQuote}`);
-      addDebugLog(`🔍 Contains \\: ${containsBackslash}`);
-      
-      // 🔍 Sample critical segments
-      addDebugLog(`🔍 First 50 chars: ${initData.substring(0, 50)}`);
-      addDebugLog(`🔍 Last 50 chars: ${initData.substring(initData.length - 50)}`);
-      
-      // 🧪 Send to backend for validation
-      try {
-        const response = await fetch(`${API_URL}/auth/telegram`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-telegram-init-data": initData
-          }
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          addDebugLog(`❌ Backend error: ${response.status} - ${errorData.detail || 'Unknown error'}`);
-          
-          // Special handling for hash mismatch
-          if (response.status === 401) {
-            addDebugLog('💡 TROUBLESHOOTING:');
-            addDebugLog('1. Compare backend/frontend initData strings');
-            addDebugLog('2. Verify BOT_TOKEN matches @BotFather value');
-            addDebugLog('3. Check timestamp freshness (auth_date)');
-          }
-          
-          throw new Error(`Auth failed: ${response.status}`);
+      // 2. Critical parameter check
+      const requiredParams = ["hash", "user", "auth_date"];
+      requiredParams.forEach(param => {
+        if (!tg.initData.includes(`${param}=`)) {
+          throw new Error(`Missing required parameter: ${param}`);
         }
-  
-        const data = await response.json();
-        addDebugLog(`✅ Auth success! User: ${data.user?.first_name || 'unknown'}`);
-        return data.user;
-      } catch (err) {
-        addDebugLog(`🚨 Network error: ${err.message}`);
-        throw err;
+      });
+      
+      // 3. Validate initData format
+      if (!tg.initData.match(/hash=[a-f0-9]{64}/)) {
+        throw new Error("Invalid hash format in initData");
       }
+      
+      // 4. Send to backend for authentication
+      const response = await fetch(`${API_URL}/auth/telegram`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": tg.initData
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Backend error: ${errorData.detail || response.status}`);
+      }
+
+      const data = await response.json();
+      addDebugLog(`✅ Auth success! User: ${data.user?.first_name || 'unknown'}`);
+      return data.user;
       
     } catch (err) {
-      // 🔍 Capture stack trace
-      addDebugLog(`💥 CRITICAL ERROR: ${err.message}`);
-      if (err.stack) {
-        addDebugLog(`🔧 Stack trace: ${err.stack.split('\n').slice(0, 3).join(' ')}`);
+      // Handle error - tg is now accessible
+      const errorMessage = `🔒 Auth error: ${err.message}`;
+      
+      if (process.env.NODE_ENV === "production") {
+        // Safely use optional chaining
+        tg?.showAlert?.(`Authentication failed. Please reopen from Telegram.`);
+        tg?.close?.();
+      } else {
+        console.error(err);
       }
+      
+      addDebugLog(errorMessage);
       throw err;
     }
   };
   
-  // Usage in useEffect
+  // Single useEffect to handle Telegram initialization
   useEffect(() => {
-    if (!window.Telegram?.WebApp) return;
-    
+    if (!window.Telegram?.WebApp) {
+      addDebugLog("⚠️ Not in Telegram environment - running in browser mode");
+      return;
+    }
+
     const tg = window.Telegram.WebApp;
     tg.ready();
     addDebugLog("✅ Telegram WebApp initialized");
-  
-    // Add expanded debug info
     addDebugLog(`📦 Full initData: ${tg.initData}`);
-    addDebugLog(`👤 Full user info: ${JSON.stringify(tg.initDataUnsafe?.user || {})}`);
-    
+    addDebugLog(`👤 Raw user info: ${JSON.stringify(tg.initDataUnsafe?.user || {})}`);
+
     authenticateUser()
       .then(user => {
         setAuth({
@@ -121,45 +102,15 @@ function App() {
         });
       })
       .catch(err => {
-        addDebugLog(`🔒 Auth error: ${err.message}`);
+        addDebugLog(`🔒 Final auth failure: ${err.message}`);
+        // Show user-friendly alert
+        tg.showPopup({
+          title: "Authentication Error",
+          message: "Failed to verify your session. Please reopen the app.",
+          buttons: [{ type: "ok" }]
+        });
       });
   }, []);
-
-  useEffect(() => {
-    if (!window.Telegram || !window.Telegram.WebApp) {
-      addDebugLog("❌ Not in Telegram environment");
-      return;
-    }
-
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    addDebugLog("✅ Telegram WebApp initialized");
-
-    const initData = tg.initData;
-    const initDataUnsafe = tg.initDataUnsafe;
-
-    if (!initData || !initDataUnsafe?.user) {
-      addDebugLog("❌ Missing initData or user info");
-      return;
-    }
-
-    addDebugLog(`📦 initData: ${initData}`);
-    addDebugLog(`👤 User info: ${JSON.stringify(initDataUnsafe.user)}`);
-
-    setAuth({
-      auth: initData,
-      user: initDataUnsafe.user,
-    });
-
-    authenticateUser()
-      .then((user) => {
-        addDebugLog(`✅ Auth success: ${user.first_name} (${user.id})`);
-      })
-      .catch((err) => {
-        addDebugLog(`❌ Auth failed: ${err.message}`);
-      });
-  }, []);
-
 
   return (
     <Router>

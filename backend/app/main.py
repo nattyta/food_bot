@@ -50,7 +50,50 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-
+@app.on_event("startup")
+async def verify_telegram_connection():
+    """Verify Telegram API connection and token validity on startup"""
+    try:
+        logger.info("🚀 Starting Telegram API verification...")
+        
+        # 1. Check token exists
+        token = os.getenv("Telegram_API")
+        if not token:
+            logger.critical("❌ CRITICAL: Telegram_API environment variable not set!")
+            return
+            
+        # 2. Validate token format
+        if ":" not in token or not token.split(":")[0].isdigit():
+            logger.critical("❌ INVALID TOKEN FORMAT! Should be '123456789:ABCdefGHIJKlmnoPQRSTuvwxyz'")
+            return
+            
+        # 3. Test API connection
+        start_time = time.time()
+        response = requests.get(
+            f"https://api.telegram.org/bot{token}/getMe",
+            timeout=5
+        )
+        response_time = int((time.time() - start_time) * 1000)
+        
+        if response.status_code != 200:
+            logger.error(f"❌ Telegram API unreachable (HTTP {response.status_code})")
+            return
+            
+        data = response.json()
+        if not data.get("ok"):
+            logger.critical(f"❌ INVALID BOT TOKEN! Telegram response: {data.get('description')}")
+            return
+            
+        # 4. Log success
+        bot_info = data["result"]
+        logger.info(f"✅ Verified Telegram connection in {response_time}ms")
+        logger.info(f"🤖 Bot: @{bot_info['username']} ({bot_info['first_name']})")
+        logger.info(f"🆔 Bot ID: {bot_info['id']}")
+        
+    except requests.exceptions.Timeout:
+        logger.critical("❌ Telegram API timeout - check your network connection")
+    except Exception as e:
+        logger.exception(f"💥 Startup verification failed: {str(e)}")
 
 
 # ✅ Define a request model for correct data validation

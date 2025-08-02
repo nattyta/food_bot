@@ -46,35 +46,20 @@ async def telegram_auth_dependency(request: Request):
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
 
 @router.post("/auth/telegram")
-async def authenticate_via_telegram(request: Request):
-    """Endpoint to authenticate Telegram WebApp users"""
-    # Get raw header value directly
-    raw_header = request.headers.get('x-telegram-init-data', '')
-    if not raw_header:
-        # Try getting from body as fallback
-        try:
-            body = await request.json()
-            raw_header = body.get('init_data', '')
-        except:
-            pass
-            
-    # Critical check - ensure header exists
-    if not raw_header:
-        logger.error("❌ Missing Telegram initData header")
+async def auth_endpoint(request: Request):
+    init_data = request.headers.get("x-telegram-init-data")
+    bot_token = os.getenv("Telegram_API")
+    
+    if not init_data:
+        raise HTTPException(400, "Missing initData")
+    
+    try:
+        user_data = validate_init_data(init_data, bot_token)
+        return {"status": "success", "user": user_data}
+    except HTTPException as e:
         return JSONResponse(
-            status_code=401,
-            content={
-                "status": "error",
-                "detail": "Missing Telegram initData",
-                "diagnostic": {
-                    "received_headers": list(request.headers.keys()),
-                    "possible_solutions": [
-                        "Ensure you're using Telegram WebApp SDK v6.7+",
-                        "Check if 'x-telegram-init-data' header is being sent",
-                        "Verify WebApp is launched via Telegram"
-                    ]
-                }
-            }
+            status_code=e.status_code,
+            content={"detail": e.detail}
         )
     
     # Get bot token with safety checks
@@ -224,7 +209,13 @@ def update_profile(
     return {"status": "success"}
 
 
-
+@router.get("/health")
+async def health_check():
+    return {
+        "status": "ok",
+        "telegram_verified": has_valid_token,  # Set during startup
+        "timestamp": int(time.time())
+    }
 
 
 
@@ -282,7 +273,7 @@ async def test_real_data(request: Request):
             "error": str(e),
             "debug": debug_info,
             "init_data": REAL_INIT_DATA,
-            "bot_token": REAL_BOT_TOKEN,
+            "bot_axtoken": REAL_BOT_TOKEN,
             "recommendation": "Compare debug info with working minimal test"
         }
 
