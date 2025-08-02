@@ -277,20 +277,29 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         logger.exception("Validation error")
         raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
-def validate_init_data_fallback(init_data: str, bot_token: str) -> dict:
-    """Alternative validation method for compatibility"""
+def validate_init_data(init_data: str, bot_token: str) -> dict:
     try:
-        # Use the raw init_data string without splitting
-        if "hash=" not in init_data:
-            raise ValueError("Missing hash parameter")
+        # Parse parameters while preserving original encoding
+        parsed = {}
+        for pair in init_data.split('&'):
+            if '=' in pair:
+                key, value = pair.split('=', 1)
+                parsed[key] = value
         
-        # Extract the hash value
-        hash_part = init_data.split("hash=")[1]
-        received_hash = hash_part.split("&")[0] if "&" in hash_part else hash_part
+        # Remove hash and non-standard parameters
+        received_hash = parsed.pop("hash", None)
+        if not received_hash:
+            raise HTTPException(status_code=400, detail="Missing hash in initData")
         
-        # Rebuild the data string without the hash parameter
-        data_parts = [part for part in init_data.split("&") if not part.startswith("hash=")]
-        data_check_string = "\n".join(data_parts)  # Keep original order
+        # CRITICAL FIX: Only keep Telegram's standard parameters
+        valid_params = {"auth_date", "query_id", "user", "receiver", "chat"}
+        filtered_params = {k: v for k, v in parsed.items() if k in valid_params}
+        
+        # Build data-check-string with original values (no decoding)
+        data_check_string = "\n".join(
+            f"{key}={value}" 
+            for key, value in sorted(filtered_params.items())
+        )
         
         # Compute HMAC key
         secret_key = hmac.new(
@@ -306,34 +315,29 @@ def validate_init_data_fallback(init_data: str, bot_token: str) -> dict:
             hashlib.sha256
         ).hexdigest()
 
+        # Validate
         if hmac.compare_digest(computed_hash, received_hash):
-            # Parse user data
-            user_part = next((p for p in data_parts if p.startswith("user=")), "")
-            if user_part:
-                user_data = unquote(user_part.replace("user=", ""))
-                try:
-                    user_json = json.loads(user_data)
-                except json.JSONDecodeError:
-                    user_json = user_data
-            else:
-                user_json = {}
-            
-            # Get other parameters
-            auth_date = next((p.replace("auth_date=", "") for p in data_parts if p.startswith("auth_date=")), "")
-            query_id = next((p.replace("query_id=", "") for p in data_parts if p.startswith("query_id=")), "")
-            
-            return {
-                "user": user_json,
-                "auth_date": auth_date,
-                "query_id": query_id
-            }
+            # Now safely decode parameters
+            decoded = {}
+            for k, v in filtered_params.items():
+                unquoted = unquote(v)
+                if k == "user":
+                    try:
+                        decoded[k] = json.loads(unquoted)
+                    except json.JSONDecodeError:
+                        decoded[k] = unquoted
+                else:
+                    decoded[k] = unquoted
+            return decoded
         else:
-            raise ValueError("Fallback validation failed")
-        
+            logger.error(f"Hash mismatch! Received: {received_hash}, Computed: {computed_hash}")
+            logger.debug(f"Data check string: {data_check_string}")
+            logger.debug(f"Secret key: {secret_key.hex()}")
+            raise HTTPException(status_code=401, detail="Invalid initData hash")
+            
     except Exception as e:
-        logger.error(f"❌ FALLBACK VALIDATION FAILED: {str(e)}")
-        raise HTTPException(status_code=401, detail="Could not validate initData")
-
+        logger.exception("Validation error")
+        raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""

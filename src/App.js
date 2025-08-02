@@ -30,6 +30,13 @@ function App() {
         throw new Error("Telegram environment missing");
       }
   
+      // 🔒 CRITICAL: Verify initData contains hash parameter
+      if (!tg.initData.includes('hash=')) {
+        addDebugLog('❌ initData missing hash parameter!');
+        addDebugLog(`Full initData: ${tg.initData}`);
+        throw new Error('Invalid initData from Telegram (missing hash)');
+      }
+  
       // 🔍 FRONTEND DIAGNOSTICS
       const initData = tg.initData;
       const initDataUnsafe = tg.initDataUnsafe || {};
@@ -42,26 +49,54 @@ function App() {
       // 🔍 Check for encoding issues
       const containsPercent = initData.includes('%');
       const containsQuote = initData.includes('"');
+      const containsBackslash = initData.includes('\\');
       addDebugLog(`🔍 Contains %: ${containsPercent}`);
       addDebugLog(`🔍 Contains ": ${containsQuote}`);
+      addDebugLog(`🔍 Contains \\: ${containsBackslash}`);
       
       // 🔍 Sample critical segments
-      addDebugLog(`🔍 Sample: ${initData.substring(0, 50)}`);
-      addDebugLog(`🔍 Sample: ${initData.substring(initData.length - 50)}`);
+      addDebugLog(`🔍 First 50 chars: ${initData.substring(0, 50)}`);
+      addDebugLog(`🔍 Last 50 chars: ${initData.substring(initData.length - 50)}`);
       
-      // 🧪 TEST: Send both encoded and raw versions
-      const response = await fetch(`${API_URL}/auth/telegram`, {
-        method: "POST",
-        headers: {
-          "x-telegram-init-data": initData,
-          "x-debug-original": encodeURIComponent(initData)
-        },
-      });
+      // 🧪 Send to backend for validation
+      try {
+        const response = await fetch(`${API_URL}/auth/telegram`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-telegram-init-data": initData
+          }
+        });
   
-      // ... rest of handling ...
+        if (!response.ok) {
+          const errorData = await response.json();
+          addDebugLog(`❌ Backend error: ${response.status} - ${errorData.detail || 'Unknown error'}`);
+          
+          // Special handling for hash mismatch
+          if (response.status === 401) {
+            addDebugLog('💡 TROUBLESHOOTING:');
+            addDebugLog('1. Compare backend/frontend initData strings');
+            addDebugLog('2. Verify BOT_TOKEN matches @BotFather value');
+            addDebugLog('3. Check timestamp freshness (auth_date)');
+          }
+          
+          throw new Error(`Auth failed: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        addDebugLog(`✅ Auth success! User: ${data.user?.first_name || 'unknown'}`);
+        return data.user;
+      } catch (err) {
+        addDebugLog(`🚨 Network error: ${err.message}`);
+        throw err;
+      }
+      
     } catch (err) {
       // 🔍 Capture stack trace
-      addDebugLog(`💥 ERROR: ${err.message} ${err.stack || ''}`);
+      addDebugLog(`💥 CRITICAL ERROR: ${err.message}`);
+      if (err.stack) {
+        addDebugLog(`🔧 Stack trace: ${err.stack.split('\n').slice(0, 3).join(' ')}`);
+      }
       throw err;
     }
   };
