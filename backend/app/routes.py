@@ -258,27 +258,32 @@ async def debug_telegram_example():
 
 
 
-@router.get("/test-valid-hash")
-async def test_valid_hash():
-    """Test with KNOWN VALID initData from Telegram docs"""
-    # Example from: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
-    TEST_INIT_DATA = "query_id=AAHdF6IQAAAAAN0XohD2&user=%7B%22id%22%3A279058397%2C%22first_name%22%3A%22Vasya%22%2C%22last_name%22%3A%22Pupkin%22%2C%22username%22%3A%22vaspupkin%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1662771648&hash=c501b71e775f6e101e9e41e2a9b17d3b0a87e4437f03b0454261c189f706a443"
-    TEST_BOT_TOKEN = os.getenv("Telegram_API", "").strip()
+@router.get("/test-real-data")
+async def test_real_data(request: Request):
+    """Test with real initData from your production environment"""
+    # Get a real initData string from your logs
+    REAL_INIT_DATA = "query_id=AAHazKI2AAAAANrMojYa1a9c&user=%7B%22id%22%3A916638938%2C%22first_name%22%3A%22natnael%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22meh9061%22%2C%22language_code%22%3A%22en%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FKaGQ_KQd52BoxblXpxbwbV8NjBRHvT8P_U4kXdlysCs.svg%22%7D&auth_date=1754083434&signature=BU0ygn_fENOTnVzIXkl6YYALuZTM5pibH7fYv5Zi67KcVMqeYDAHNe6YH3Kze2uL3h21NZFvLpaALZOf_78oBQ&hash=078d785fe3c62c3c8aae4a1e05e27fd3ed2ad91ba0090830f2ba2262a8fef5d5"
+    REAL_BOT_TOKEN = os.getenv("Telegram_API", "").strip()
     
     try:
-        result = validate_init_data(TEST_INIT_DATA, TEST_BOT_TOKEN)
+        result = validate_init_data(REAL_INIT_DATA, REAL_BOT_TOKEN)
         return {
             "status": "success", 
             "result": result,
-            "message": "Successfully validated Telegram's example data"
+            "message": "Successfully validated real production data"
         }
     except Exception as e:
+        # Add detailed diagnostics
+        from .auth import validate_init_data_debug
+        debug_info = validate_init_data_debug(REAL_INIT_DATA, REAL_BOT_TOKEN)
+        
         return {
             "status": "error",
             "error": str(e),
-            "test_data": TEST_INIT_DATA,
-            "bot_token": TEST_BOT_TOKEN,
-            "recommendation": "Contact Telegram API support"
+            "debug": debug_info,
+            "init_data": REAL_INIT_DATA,
+            "bot_token": REAL_BOT_TOKEN,
+            "recommendation": "Compare debug info with working minimal test"
         }
 
 
