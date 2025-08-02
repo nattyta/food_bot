@@ -278,19 +278,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         raise HTTPException(status_code=500, detail=f"Validation error: {str(e)}")
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
-    """
-    Validates Telegram WebApp initData per official security requirements
-    
-    Args:
-        init_data: Raw initData string from Telegram WebApp
-        bot_token: Your bot's secret token from @BotFather
-        
-    Returns:
-        Verified and parsed user data
-        
-    Raises:
-        HTTPException: For any validation failure
-    """
     try:
         # ===== [1] PARSE AND SANITIZE INPUT =====
         parsed = {}
@@ -312,8 +299,10 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         filtered = {k: v for k, v in parsed.items() if k in valid_params}
         
         # ===== [3] BUILD DATA CHECK STRING =====
+        # CORRECTED LINE: Fixed parentheses mismatch
         data_check_string = "\n".join(
             f"{k}={v}" for k, v in sorted(filtered.items())
+        )
         
         logger.debug(f"🔐 Data check string: {data_check_string}")
         
@@ -400,7 +389,6 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     except Exception as e:
         logger.exception(f"💥 CRITICAL: Unhandled validation error: {str(e)}")
         raise HTTPException(500, "Internal validation error")
-
 
 async def telegram_auth(request: Request) -> Optional[int]:
     """Handle Telegram WebApp authentication"""
