@@ -34,7 +34,7 @@ class UserContactUpdate(BaseModel):
     chat_id: int
     phone: str
     address: Optional[str] = None
-    location: Optional[Location] = None
+    location: Optional[Dict[str, Any]] = None
 
 class PaymentRequest(BaseModel):
     order_id: str

@@ -117,6 +117,8 @@ const CartPage = ({ cart, setCart }) => {
     setIsSubmitting(true);
     
     try {
+      console.log("Starting order confirmation...");
+      
       // Validate phone number
       if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
         throw new Error("Please enter a valid Ethiopian phone number");
@@ -136,6 +138,7 @@ const CartPage = ({ cart, setCart }) => {
 
       if (!chat_id) {
         const alertMsg = "❌ Failed to detect Telegram user. Please reopen the app.";
+        console.error(alertMsg);
         if (isTelegram) {
           tgWebApp.showAlert(alertMsg);
         } else {
@@ -146,11 +149,13 @@ const CartPage = ({ cart, setCart }) => {
 
       // Prepare request data
       const requestData = {
-        chat_id: parseInt(chat_id), // Ensure it's a number
+        chat_id: parseInt(chat_id),
         phone: orderDetails.phone,
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
         location: orderType === 'delivery' ? orderDetails.delivery.location : null
       };
+
+      console.log("Request data:", requestData);
 
       const headers = {
         'Content-Type': 'application/json'
@@ -160,41 +165,64 @@ const CartPage = ({ cart, setCart }) => {
       const authToken = localStorage.getItem('auth_token');
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
+        console.log("Using auth token from localStorage");
       }
       else if (isTelegram && tgWebApp.initData) {
         headers['x-telegram-init-data'] = tgWebApp.initData;
+        console.log("Using Telegram initData for auth");
+      } else {
+        console.log("No auth token found");
       }
 
+      const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
+      console.log("API URL:", apiUrl);
+      console.log("Headers:", headers);
+
       // Make the request
-      const response = await fetch(`${process.env.REACT_APP_API_BASE}/update-contact`, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(requestData)
       });
 
+      console.log("Response status:", response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.detail || `Request failed (status ${response.status})`;
+        let errorDetail = `HTTP ${response.status}`;
+        let responseBody = null;
         
-        if (response.status === 401) {
-          // Handle auth error
-        } else if (response.status === 400) {
-          // Handle validation errors
-          throw new Error(`Validation error: ${errorMessage}`);
+        try {
+          responseBody = await response.text();
+          console.log("Raw response:", responseBody);
+          
+          // Try to parse as JSON
+          try {
+            const errorData = JSON.parse(responseBody);
+            errorDetail = errorData.detail || errorDetail;
+            console.error("Error response body:", errorData);
+          } catch (e) {
+            errorDetail = responseBody || errorDetail;
+          }
+        } catch (e) {
+          console.error("Failed to parse error response:", e);
         }
         
-        throw new Error(errorMessage);
+        throw new Error(`Backend error: ${errorDetail}`);
       }
 
       const result = await response.json();
+      console.log("API response:", result);
       
       if (result.status === "success") {
+        console.log("Contact update successful, navigating to payment");
         navigate('/payment', { 
           state: { 
             contactInfo: requestData,
             cartTotal: totalPrice 
           }
         });
+      } else {
+        throw new Error("Unexpected response from server: " + JSON.stringify(result));
       }
       
     } catch (error) {
@@ -210,6 +238,7 @@ const CartPage = ({ cart, setCart }) => {
       setIsSubmitting(false);
     }
   };
+
 
 
   return (

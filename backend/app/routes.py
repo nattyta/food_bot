@@ -163,28 +163,39 @@ def save_user(
     })
 
 @router.post("/update-contact")
-def update_contact(
+async def update_contact(
     contact_data: UserContactUpdate,
     chat_id: int = Depends(telegram_auth_dependency)
 ):
+    # Log incoming request
+    logger.info(f"Update contact request for chat_id: {chat_id}")
+    logger.debug(f"Request data: {contact_data.dict()}")
+
     # Validate chat_id matches
-    if str(chat_id) != str(contact_data.chat_id):
-        raise HTTPException(status_code=403, detail="User ID mismatch")
+    if chat_id != contact_data.chat_id:
+        error_msg = f"User ID mismatch: {chat_id} vs {contact_data.chat_id}"
+        logger.warning(error_msg)
+        raise HTTPException(status_code=403, detail=error_msg)
     
     # Validate Ethiopian phone format
     if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
-        )
+        error_msg = "Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
+        logger.warning(error_msg)
+        raise HTTPException(status_code=400, detail=error_msg)
     
     try:
         # Prepare location data for database
         location_json = None
         if contact_data.location:
+            # Validate location structure
+            if not isinstance(contact_data.location, dict) or 'lat' not in contact_data.location or 'lng' not in contact_data.location:
+                error_msg = "Invalid location format"
+                logger.error(error_msg)
+                raise HTTPException(status_code=400, detail=error_msg)
+                
             location_json = json.dumps({
-                "lat": contact_data.location.lat,
-                "lng": contact_data.location.lng
+                "lat": contact_data.location['lat'],
+                "lng": contact_data.location['lng']
             })
         
         with DatabaseManager() as db:
@@ -208,6 +219,7 @@ def update_contact(
             
             if db.rowcount == 0:
                 # If no user exists, create a new one
+                logger.info(f"Creating new user for chat_id: {chat_id}")
                 db.execute(
                     """
                     INSERT INTO users (chat_id, phone, address, location)
@@ -221,16 +233,20 @@ def update_contact(
                     )
                 )
         
+        logger.info(f"Contact updated successfully for chat_id: {chat_id}")
         return {"status": "success", "updated": True}
         
+    except HTTPException as he:
+        # Re-raise HTTP exceptions
+        raise he
     except Exception as e:
-        logger.error(f"Contact update failed: {str(e)}")
+        logger.error(f"Contact update failed: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail="Internal server error"
         )
 
-        
+
 # Protected route example: update profile
 @router.post("/api/update-profile")
 def update_profile(
