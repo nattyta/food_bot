@@ -26,35 +26,24 @@ function App() {
     const tg = window.Telegram?.WebApp;
     
     try {
-      // 1. Verify we're in Telegram environment
-      if (!tg) {
-        throw new Error("Telegram WebApp not detected");
-      }
-      
-      // 2. Prevent WebApp from closing during auth process
+      if (!tg) throw new Error("Telegram WebApp not detected");
       tg.enableClosingConfirmation();
-      
-      // 3. Critical parameter checks
-      if (!tg.initData) {
-        throw new Error("initData is missing from Telegram WebApp");
-      }
-      
+      if (!tg.initData) throw new Error("initData is missing from Telegram WebApp");
+
       const requiredParams = ["hash", "user", "auth_date"];
       requiredParams.forEach(param => {
         if (!tg.initData.includes(`${param}=`)) {
           throw new Error(`Missing required parameter: ${param}`);
         }
       });
-      
-      // 4. Log critical information for debugging
+
       console.group("Telegram Authentication Debug");
       console.log("🌐 WebApp version:", tg.version);
       console.log("📦 Full initData:", tg.initData);
       console.log("👤 User info:", tg.initDataUnsafe?.user);
       console.log("🕒 Auth date:", tg.initDataUnsafe?.auth_date);
       console.groupEnd();
-      
-      // 5. Send to backend for validation
+
       const response = await fetch(`${API_URL}/auth/telegram`, {
         method: "POST",
         headers: {
@@ -62,45 +51,54 @@ function App() {
           "x-telegram-init-data": tg.initData
         }
       });
-  
+
       if (!response.ok) {
         let errorDetail = `HTTP ${response.status}`;
         try {
           const errorData = await response.json();
           errorDetail = errorData.detail || errorDetail;
-        } catch (e) {
-          // Couldn't parse JSON error
-        }
+        } catch (e) {}
         throw new Error(`Backend error: ${errorDetail}`);
       }
-  
+
       const data = await response.json();
-      
-      // 6. Store session token if available
       if (data.session_token) {
         localStorage.setItem("auth_token", data.session_token);
       }
-      
-      // 7. Return user data
+
       return data.user;
       
     } catch (err) {
-      // Log detailed error
       console.error("🔒 Authentication failed:", err);
-      
-      // Show user-friendly alert in production
       if (process.env.NODE_ENV === "production") {
         tg?.showAlert?.(`Authentication failed: ${err.message || "Please reopen the app"}`);
       }
-      
       throw err;
     } finally {
-      // 8. Always disable closing confirmation
       tg?.disableClosingConfirmation?.();
     }
   };
-  
-  // Single useEffect to handle Telegram initialization
+
+  // Restore cart from localStorage on load
+  useEffect(() => {
+    const storedCart = localStorage.getItem("cart");
+    if (storedCart) {
+      try {
+        setCart(JSON.parse(storedCart));
+        addDebugLog("🛒 Cart restored from localStorage");
+      } catch (e) {
+        console.error("❌ Failed to parse stored cart:", e);
+      }
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+    addDebugLog("💾 Cart saved to localStorage");
+  }, [cart]);
+
+  // Telegram WebApp initialization
   useEffect(() => {
     if (!window.Telegram?.WebApp) {
       addDebugLog("⚠️ Not in Telegram environment - running in browser mode");
@@ -122,7 +120,6 @@ function App() {
       })
       .catch(err => {
         addDebugLog(`🔒 Final auth failure: ${err.message}`);
-        // Show user-friendly alert
         tg.showPopup({
           title: "Authentication Error",
           message: "Failed to verify your session. Please reopen the app.",

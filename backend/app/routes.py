@@ -220,118 +220,53 @@ async def health_check():
 
 
 
-@router.get("/debug/telegram-example")
-async def debug_telegram_example():
-    """Returns the exact string Telegram hashes for comparison"""
-    # Example from Telegram docs: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
-    example_data = "query_id=AAHdF6IQAAAAAN0XohD2&user=%7B%22id%22%3A279058397%2C%22first_name%22%3A%22Vasya%22%2C%22last_name%22%3A%22Pupkin%22%2C%22username%22%3A%22vaspupkin%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1662771648"
-    example_hash = "b6685bda9a825e1f0cce1a6f5d4ad0d40a8bb0b0c0f7c0a0a0a0a0a0a0a0a0a"  # Fake hash for illustration
-    
-    # Compute what Telegram would expect
-    secret_key = hmac.new(
-        key=b"WebAppData",
-        msg=os.getenv("Telegram_API").encode(),
-        digestmod=hashlib.sha256
-    ).digest()
-    
-    computed_hash = hmac.new(
-        secret_key, 
-        example_data.encode(), 
-        hashlib.sha256
-    ).hexdigest()
-    
-    return {
-        "telegram_example_data": example_data,
-        "expected_hash": example_hash,
-        "computed_hash": computed_hash,
-        "match": computed_hash == example_hash
-    }
+@router.post("/orders")
+async def create_order(order: OrderCreate, request: Request):
+    init_data = request.headers.get("x-telegram-init-data")
+    if not init_data:
+        raise HTTPException(status_code=401, detail="Missing Telegram initData")
 
+    user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
+    user_id = user_data["user"]["id"]
 
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-@router.get("/test-real-data")
-async def test_real_data(request: Request):
-    """Test with real initData from your production environment"""
-    # Get a real initData string from your logs
-    REAL_INIT_DATA = "query_id=AAHazKI2AAAAANrMojYa1a9c&user=%7B%22id%22%3A916638938%2C%22first_name%22%3A%22natnael%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22meh9061%22%2C%22language_code%22%3A%22en%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FKaGQ_KQd52BoxblXpxbwbV8NjBRHvT8P_U4kXdlysCs.svg%22%7D&auth_date=1754083434&signature=BU0ygn_fENOTnVzIXkl6YYALuZTM5pibH7fYv5Zi67KcVMqeYDAHNe6YH3Kze2uL3h21NZFvLpaALZOf_78oBQ&hash=078d785fe3c62c3c8aae4a1e05e27fd3ed2ad91ba0090830f2ba2262a8fef5d5"
-    REAL_BOT_TOKEN = os.getenv("Telegram_API", "").strip()
-    
     try:
-        result = validate_init_data(REAL_INIT_DATA, REAL_BOT_TOKEN)
-        return {
-            "status": "success", 
-            "result": result,
-            "message": "Successfully validated real production data"
-        }
+        # Save to `orders` table
+        cursor.execute("""
+            INSERT INTO orders (user_id, items, total_price, order_status, delivery_info, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING order_id;
+        """, (
+            user_id,
+            json.dumps([item.dict() for item in order.items]),  # Store raw item info
+            order.total_price,
+            'pending',  # default status
+            json.dumps({"address": order.address, "phone": order.phone, "type": order.order_type}),
+            datetime.utcnow()
+        ))
+        order_id = cursor.fetchone()[0]
+
+        # Save to `order_items` table (normalized view)
+        for item in order.items:
+            cursor.execute("""
+                INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+                VALUES (%s, %s, %s, %s);
+            """, (
+                order_id,
+                item.id,
+                item.quantity,
+                item.price
+            ))
+
+        conn.commit()
+        return {"status": "success", "order_id": order_id}
+
     except Exception as e:
-        # Add detailed diagnostics
-        from .auth import validate_init_data_debug
-        debug_info = validate_init_data_debug(REAL_INIT_DATA, REAL_BOT_TOKEN)
-        
-        return {
-            "status": "error",
-            "error": str(e),
-            "debug": debug_info,
-            "init_data": REAL_INIT_DATA,
-            "bot_axtoken": REAL_BOT_TOKEN,
-            "recommendation": "Compare debug info with working minimal test"
-        }
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cursor.close()
+        conn.close()
 
-
-
-@router.get("/test-minimal")
-async def test_minimal():
-    """Test minimal validation example"""
-    # Minimal example data from your logs
-    auth_date = "1754078747"
-    query_id = "AAHazKI2AAAAANrMojY7cHL_"
-    user_data = "%7B%22id%22%3A916638938%2C%22first_name%22%3A%22natnael%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22meh9061%22%2C%22language_code%22%3A%22en%22%2C%22allows_write_to_pm%22%3Atrue%2C%22photo_url%22%3A%22https%3A%5C%2F%5C%2Ft.me%5C%2Fi%5C%2Fuserpic%5C%2F320%5C%2FKaGQ_KQd52BoxblXpxbwbV8NjBRHvT8P_U4kXdlysCs.svg%22%7D"
-    
-    # Build initData string without hash
-    init_data = f"auth_date={auth_date}&query_id={query_id}&user={user_data}"
-    
-    # Get bot token
-    bot_token = os.getenv("Telegram_API", "").strip()
-    if not bot_token:
-        return {"status": "error", "detail": "Bot token not set"}
-    
-    # Build data check string (sorted by key)
-    data_check_string = "\n".join([
-        f"auth_date={auth_date}",
-        f"query_id={query_id}",
-        f"user={user_data}"
-    ])
-    
-    # Compute secret key
-    secret_key = hmac.new(
-        key=b"WebAppData",
-        msg=bot_token.encode(),
-        digestmod=hashlib.sha256
-    ).digest()
-    
-    # Compute hash
-    computed_hash = hmac.new(
-        secret_key,
-        data_check_string.encode(),
-        hashlib.sha256
-    ).hexdigest()
-    
-    # Now validate
-    try:
-        # Create full initData with hash
-        full_init_data = f"{init_data}&hash={computed_hash}"
-        result = validate_init_data(full_init_data, bot_token)
-        return {
-            "status": "success",
-            "computed_hash": computed_hash,
-            "full_init_data": full_init_data,
-            "result": result
-        }
-    except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e),
-            "computed_hash": computed_hash,
-            "data_check_string": data_check_string,
-            "secret_key_hex": secret_key.hex()
-        }
