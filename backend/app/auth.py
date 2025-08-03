@@ -58,7 +58,7 @@ SECRET_KEY_CACHE = {}
 
 def validate_init_data(init_data: str, bot_token: str) -> dict:
     """
-    Validates Telegram WebApp initData per official security requirements
+    Validates Telegram WebApp initData per actual implementation requirements
     
     Args:
         init_data: Raw initData string from Telegram WebApp
@@ -88,13 +88,9 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             logger.error("❌ Missing hash parameter in initData")
             raise HTTPException(400, "Missing hash parameter")
         
-        # ===== [2] FILTER VALID PARAMETERS =====
-        valid_params = {"auth_date", "query_id", "user", "receiver", "chat"}
-        filtered = {k: v for k, v in parsed.items() if k in valid_params}
-        
-        # ===== [3] BUILD DATA CHECK STRING =====
-        # Create sorted list of key-value pairs
-        sorted_items = sorted(filtered.items(), key=lambda x: x[0])
+        # ===== [2] BUILD DATA CHECK STRING =====
+        # Create sorted list of key-value pairs (ALPHABETICALLY by key)
+        sorted_items = sorted(parsed.items(), key=lambda x: x[0])
         
         # Format as "key=value" with newline separator
         data_check_string = "\n".join(
@@ -103,7 +99,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         
         logger.debug(f"🔐 Data check string: {data_check_string}")
         
-        # ===== [4] COMPUTE SECRET KEY =====
+        # ===== [3] COMPUTE SECRET KEY =====
         # Use cached version if available
         if bot_token not in SECRET_KEY_CACHE:
             SECRET_KEY_CACHE[bot_token] = hmac.new(
@@ -114,7 +110,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
         
         secret_key = SECRET_KEY_CACHE[bot_token]
         
-        # ===== [5] COMPUTE AND VALIDATE HASH =====
+        # ===== [4] COMPUTE AND VALIDATE HASH =====
         computed_hash = hmac.new(
             secret_key,
             data_check_string.encode(),
@@ -129,38 +125,25 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             logger.error(f"❌ HASH MISMATCH! Received: {received_hash}, Computed: {computed_hash}")
             logger.debug(f"  Secret key: {secret_key.hex()}")
             logger.debug(f"  Data bytes: {data_check_string.encode()}")
-            
-            # Final fallback: Try without any filtering
-            all_items = sorted(parsed.items(), key=lambda x: x[0])
-            fallback_string = "\n".join(f"{k}={v}" for k, v in all_items)
-            fallback_hash = hmac.new(
-                secret_key,
-                fallback_string.encode(),
-                hashlib.sha256
-            ).hexdigest()
-            
-            logger.debug(f"🛟 Fallback hash: {fallback_hash}")
-            
-            if hmac.compare_digest(fallback_hash, received_hash):
-                logger.warning("⚠️ Validation passed only when including ALL parameters")
-                # Proceed with fallback validation
-            else:
-                raise HTTPException(401, "Invalid initData hash")
+            raise HTTPException(401, "Invalid initData hash")
         
-        # ===== [6] PARSE VERIFIED DATA =====
+        # ===== [5] PARSE VERIFIED DATA =====
         result = {}
-        for key, value in filtered.items():
-            unquoted = unquote(value)
+        for key, value in parsed.items():
+            # URL-decode the value
+            unquoted_value = unquote(value)
+            
             if key == "user":
                 try:
-                    result[key] = json.loads(unquoted)
+                    # Parse JSON user data
+                    result[key] = json.loads(unquoted_value)
                 except json.JSONDecodeError:
-                    logger.warning(f"⚠️ Failed to parse user JSON: {unquoted}")
-                    result[key] = unquoted
+                    logger.warning(f"⚠️ Failed to parse user JSON: {unquoted_value}")
+                    result[key] = unquoted_value
             else:
-                result[key] = unquoted
+                result[key] = unquoted_value
         
-        # ===== [7] VALIDATE TIMESTAMP =====
+        # ===== [6] VALIDATE TIMESTAMP =====
         try:
             auth_timestamp = int(result.get("auth_date", 0))
             current_time = int(time.time())
@@ -170,11 +153,15 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             if age > 86400:  # 24*60*60
                 logger.warning(f"⚠️ Expired auth data: {age} seconds old")
                 raise HTTPException(401, "Expired authentication data")
+                
+            # Log if data is older than 1 hour
+            if age > 3600:
+                logger.info(f"ℹ️ Stale auth data: {age//60} minutes old")
         except (TypeError, ValueError):
             logger.error("⚠️ Invalid auth_date format")
             raise HTTPException(400, "Invalid auth_date")
         
-        # ===== [8] VALIDATE USER STRUCTURE =====
+        # ===== [7] VALIDATE USER STRUCTURE =====
         user = result.get("user")
         if not user or not isinstance(user, dict):
             logger.error("❌ Missing or invalid user data")
@@ -184,8 +171,15 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
             logger.error("❌ Missing user ID")
             raise HTTPException(400, "Missing user ID")
         
-        # ===== [9] RETURN TRUSTED DATA =====
+        # ===== [8] RETURN TRUSTED DATA =====
         logger.info(f"✅ Validated initData for user {user.get('id')}")
+        
+        # Log if we found unexpected parameters
+        expected_params = {"auth_date", "query_id", "user"}
+        unexpected_params = set(parsed.keys()) - expected_params
+        if unexpected_params:
+            logger.info(f"ℹ️ Unexpected parameters in initData: {', '.join(unexpected_params)}")
+        
         return {
             "auth_date": auth_timestamp,
             "query_id": result.get("query_id"),
@@ -198,7 +192,7 @@ def validate_init_data(init_data: str, bot_token: str) -> dict:
     except Exception as e:
         logger.exception(f"💥 CRITICAL: Unhandled validation error: {str(e)}")
         raise HTTPException(500, "Internal validation error")
-        
+
 
         
 async def telegram_auth(request: Request) -> Optional[int]:
