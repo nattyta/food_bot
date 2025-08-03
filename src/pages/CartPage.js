@@ -7,6 +7,7 @@ const CartPage = ({ cart, setCart }) => {
   const [expandedItems, setExpandedItems] = useState({});
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [orderType, setOrderType] = useState("pickup");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderDetails, setOrderDetails] = useState({
     phone: "", 
     delivery: {
@@ -112,8 +113,20 @@ const CartPage = ({ cart, setCart }) => {
   };
 
   const handleConfirmOrder = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
     try {
-      // 1. Get Telegram WebApp data
+      // Validate phone number
+      if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
+        throw new Error("Please enter a valid Ethiopian phone number");
+      }
+      
+      // Validate delivery address if needed
+      if (orderType === "delivery" && !orderDetails.delivery.address.trim()) {
+        throw new Error("Please enter a delivery address");
+      }
+
       const isTelegram = isTelegramWebApp();
       const tgWebApp = window.Telegram?.WebApp;
       
@@ -122,7 +135,7 @@ const CartPage = ({ cart, setCart }) => {
         : null;
 
       if (!chat_id) {
-        const alertMsg = "❌ Failed to detect Telegram user. Please restart this WebApp via the Telegram bot.";
+        const alertMsg = "❌ Failed to detect Telegram user. Please reopen the app.";
         if (isTelegram) {
           tgWebApp.showAlert(alertMsg);
         } else {
@@ -131,50 +144,43 @@ const CartPage = ({ cart, setCart }) => {
         return;
       }
 
-      // 2. Prepare headers
+      // Prepare request data
+      const requestData = {
+        chat_id: parseInt(chat_id), // Ensure it's a number
+        phone: orderDetails.phone,
+        address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
+        location: orderType === 'delivery' ? orderDetails.delivery.location : null
+      };
+
       const headers = {
         'Content-Type': 'application/json'
       };
 
-      // 3. Add auth token if available
+      // Add auth token if available
       const authToken = localStorage.getItem('auth_token');
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
       }
-      // Still include Telegram initData if available
       else if (isTelegram && tgWebApp.initData) {
         headers['x-telegram-init-data'] = tgWebApp.initData;
       }
 
-      // 4. Prepare request data
-      const requestData = {
-        chat_id: chat_id,
-        phone: orderDetails.phone,
-        address: orderType === 'delivery' 
-          ? `${orderDetails.delivery.address} (Location: ${orderDetails.delivery.location?.lat},${orderDetails.delivery.location?.lng})`
-          : 'Pickup'
-      };
-
-      // 5. Make the request
+      // Make the request
       const response = await fetch(`${process.env.REACT_APP_API_BASE}/update-contact`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(requestData)
       });
 
-      // 6. Handle response
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.detail || `Request failed (status ${response.status})`;
         
-        // Special handling for auth errors
         if (response.status === 401) {
-          if (isTelegram) {
-            window.Telegram.WebApp.showAlert("Session expired. Please refresh the page.");
-          } else {
-            alert("Session expired. Please refresh.");
-          }
-          return;
+          // Handle auth error
+        } else if (response.status === 400) {
+          // Handle validation errors
+          throw new Error(`Validation error: ${errorMessage}`);
         }
         
         throw new Error(errorMessage);
@@ -182,24 +188,29 @@ const CartPage = ({ cart, setCart }) => {
 
       const result = await response.json();
       
-      // Continue with order creation after successful contact update
       if (result.status === "success") {
-        navigate('/payment', { state: { 
-          contactInfo: requestData,
-          cartTotal: totalPrice 
-        }});
+        navigate('/payment', { 
+          state: { 
+            contactInfo: requestData,
+            cartTotal: totalPrice 
+          }
+        });
       }
       
     } catch (error) {
       console.error('Order confirmation failed:', error);
       const errorMessage = `Error: ${error.message}`;
+      
       if (isTelegramWebApp()) {
         window.Telegram.WebApp.showAlert(errorMessage);
       } else {
         alert(errorMessage);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="cart-page">
@@ -306,27 +317,8 @@ const CartPage = ({ cart, setCart }) => {
           <div className="popup-content">
             <h2>Select Order Type</h2>
             
-            <label>
-              <input 
-                type="radio" 
-                value="pickup" 
-                checked={orderType === "pickup"} 
-                onChange={() => setOrderType("pickup")} 
-              />
-              Pickup
-            </label>
+            {/* ... order type selection ... */}
             
-            <label>
-              <input 
-                type="radio" 
-                value="delivery" 
-                checked={orderType === "delivery"} 
-                onChange={() => setOrderType("delivery")} 
-              />
-              Delivery
-            </label>
-
-            {/* Universal Phone Input */}
             <div className="phone-section">
               <label>
                 Contact Phone:
@@ -336,14 +328,13 @@ const CartPage = ({ cart, setCart }) => {
                   className="formbox"
                   value={orderDetails.phone}
                   onChange={(e) => {
-                    // Remove any non-digit characters first
                     let phone = e.target.value.replace(/\D/g, '');
                     // Format as Ethiopian number
                     if (phone.startsWith('251')) {
                       phone = `+${phone}`;
                     } else if (phone.startsWith('0')) {
                       phone = `+251${phone.substring(1)}`;
-                    } else if (phone.length > 0) {
+                    } else if (phone.length > 0 && !phone.startsWith('+')) {
                       phone = `+251${phone}`;
                     }
                     setOrderDetails({
@@ -358,7 +349,6 @@ const CartPage = ({ cart, setCart }) => {
               <p className="hint-text">For order updates and payment verification</p>
             </div>
 
-            {/* Delivery-Specific Fields */}
             {orderType === "delivery" && (
               <div className="delivery-form">
                 <label>
@@ -390,14 +380,16 @@ const CartPage = ({ cart, setCart }) => {
               <button 
                 className="cancel-button" 
                 onClick={() => setShowOrderPopup(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button 
                 className="confirm-button" 
                 onClick={handleConfirmOrder}
+                disabled={isSubmitting}
               >
-                Confirm
+                {isSubmitting ? "Processing..." : "Confirm"}
               </button>
             </div>
           </div>

@@ -162,34 +162,75 @@ def save_user(
         "message": "User saved successfully"
     })
 
-# Protected route to update contact info
 @router.post("/update-contact")
 def update_contact(
     contact_data: UserContactUpdate,
-    chat_id: int = Depends(telegram_auth_dependency)  # Use Telegram initData auth
+    chat_id: int = Depends(telegram_auth_dependency)
 ):
+    # Validate chat_id matches
     if str(chat_id) != str(contact_data.chat_id):
         raise HTTPException(status_code=403, detail="User ID mismatch")
-
-    # Validate Ethiopian phone format (if provided)
+    
+    # Validate Ethiopian phone format
     if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
-        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
-
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
+        )
+    
     try:
+        # Prepare location data for database
+        location_json = None
+        if contact_data.location:
+            location_json = json.dumps({
+                "lat": contact_data.location.lat,
+                "lng": contact_data.location.lng
+            })
+        
         with DatabaseManager() as db:
-            success = update_user_contact(
-                chat_id=chat_id,
-                phone=contact_data.phone,
-                address=contact_data.address
+            # Update user contact information
+            db.execute(
+                """
+                UPDATE users 
+                SET phone = %s, 
+                    address = %s, 
+                    location = %s,
+                    last_updated = NOW()
+                WHERE chat_id = %s
+                """,
+                (
+                    contact_data.phone,
+                    contact_data.address,
+                    location_json,
+                    chat_id
+                )
             )
-        if not success:
-            raise HTTPException(status_code=500, detail="Failed to update contact")
+            
+            if db.rowcount == 0:
+                # If no user exists, create a new one
+                db.execute(
+                    """
+                    INSERT INTO users (chat_id, phone, address, location)
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    (
+                        chat_id,
+                        contact_data.phone,
+                        contact_data.address,
+                        location_json
+                    )
+                )
+        
+        return {"status": "success", "updated": True}
+        
     except Exception as e:
         logger.error(f"Contact update failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error"
+        )
 
-    return {"status": "success", "updated": True}
-
+        
 # Protected route example: update profile
 @router.post("/api/update-profile")
 def update_profile(
