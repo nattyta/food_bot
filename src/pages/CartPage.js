@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./cart.css";
-const baseURL = process.env.REACT_APP_API_BASE;
 
 const CartPage = ({ cart, setCart }) => {
   const navigate = useNavigate();
@@ -28,20 +27,16 @@ const CartPage = ({ cart, setCart }) => {
     }
   };
 
-  const totalPrice = useMemo(
-    () =>
-      cart.reduce((acc, item) => {
-        const extrasTotal = item.extras
-          ? item.extras.reduce(
-              (sum, extra) =>
-                sum + (parseFloat(extra.price) || 0) * (parseFloat(extra.quantity) || 1),
-              0
-            )
-          : 0;
-        return acc + ((parseFloat(item.price) || 0) + extrasTotal) * (parseFloat(item.quantity) || 1);
-      }, 0),
-    [cart]
-  );
+  // FIXED: Correct price calculation (no double counting)
+  const totalPrice = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      // Item price already includes add-ons and extras
+      const itemPrice = parseFloat(item.price) || 0;
+      const quantity = parseFloat(item.quantity) || 1;
+      
+      return acc + (itemPrice * quantity);
+    }, 0);
+  }, [cart]);
 
   const handleOrderClick = () => {
     if (cart.length === 0) {
@@ -51,30 +46,35 @@ const CartPage = ({ cart, setCart }) => {
     setShowOrderPopup(true);
   };
 
+  // FIXED: Safer quantity updates
   const handleIncrease = (id) => {
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === id ? { ...item, quantity: (parseFloat(item.quantity) || 0) + 1 } : item
+    setCart(prevCart => 
+      prevCart.map(item => 
+        item.id === id 
+          ? { ...item, quantity: (parseInt(item.quantity) || 0) + 1 } 
+          : item
       )
     );
   };
 
   const handleDecrease = (id) => {
-    setCart((prevCart) =>
+    setCart(prevCart => 
       prevCart
-        .map((item) =>
-          item.id === id ? { ...item, quantity: Math.max((parseFloat(item.quantity) || 1) - 1, 1) } : item
+        .map(item => 
+          item.id === id 
+            ? { ...item, quantity: Math.max((parseInt(item.quantity) || 1) - 1, 1) } 
+            : item
         )
-        .filter((item) => item.quantity > 0)
+        .filter(item => item.quantity > 0)
     );
   };
     
   const handleRemove = (id) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    setCart(prevCart => prevCart.filter(item => item.id !== id));
   };
 
   const toggleItem = (id) => {
-    setExpandedItems((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedItems(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleShareLocation = () => {
@@ -156,7 +156,7 @@ const CartPage = ({ cart, setCart }) => {
       };
 
       // 5. Make the request
-      const response = await fetch(`${baseURL}/update-contact`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE}/update-contact`, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(requestData)
@@ -217,10 +217,14 @@ const CartPage = ({ cart, setCart }) => {
         <div className="cart-items">
           {cart.map((item) => (
             <div key={item.id} className="cart-item">
-              <img src={item.image} alt={item.name} />
+              {item.image ? (
+                <img src={item.image} alt={item.name} />
+              ) : (
+                <div className="image-placeholder">No Image</div>
+              )}
               <div className="item-details">
                 <h3>{item.name} (x{item.quantity})</h3>
-                <p>Price: ${parseFloat(item.price).toFixed(2)}</p>
+                <p>Price: ${(parseFloat(item.price) || 0).toFixed(2)}</p>
 
                 <button className="toggle-btn" onClick={() => toggleItem(item.id)}>
                   {expandedItems[item.id] ? "▲ Hide" : "▼ Show Details"}
@@ -228,18 +232,45 @@ const CartPage = ({ cart, setCart }) => {
 
                 {expandedItems[item.id] && (
                   <>
-                    {item.extras?.length > 0 && (
+                    {item.addOns?.length > 0 && (
                       <div className="extras-list">
-                        <p>Extras:</p>
+                        <p>Add-ons:</p>
                         <ul>
-                          {item.extras.map((extra, index) => (
-                            <li key={index}>
-                              {extra.name} (+${extra.price})
+                          {item.addOns.map((addOn, index) => (
+                            <li key={`addon-${index}`}>
+                              {addOn.name} (+${addOn.price.toFixed(2)})
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
+                    
+                    {item.extras?.length > 0 && (
+                      <div className="extras-list">
+                        <p>Extras:</p>
+                        <ul>
+                          {item.extras.map((extra, index) => (
+                            <li key={`extra-${index}`}>
+                              {extra.name} (+${extra.price.toFixed(2)})
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {item.modifications?.length > 0 && (
+                      <div className="modifications-list">
+                        <p>Modifications:</p>
+                        <ul>
+                          {item.modifications.map((mod, index) => (
+                            <li key={`mod-${index}`}>
+                              {mod.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
                     {item.specialInstruction && (
                       <p className="Cspecial-instruction">
                         <strong>Note:</strong> {item.specialInstruction}
@@ -277,7 +308,7 @@ const CartPage = ({ cart, setCart }) => {
             
             <label>
               <input 
-                  type="radio" 
+                type="radio" 
                 value="pickup" 
                 checked={orderType === "pickup"} 
                 onChange={() => setOrderType("pickup")} 
@@ -300,28 +331,29 @@ const CartPage = ({ cart, setCart }) => {
               <label>
                 Contact Phone:
                 <input
-  type="tel"
-  placeholder="+251912345678"
-  className="formbox"
-  value={orderDetails.phone}
-  onChange={(e) => {
-    // Remove any non-digit characters first
-    let phone = e.target.value.replace(/\D/g, '');
-    // Format as Ethiopian number if starting with 251
-    if (phone.startsWith('251')) {
-      phone = `+${phone}`;
-    } else if (phone.startsWith('0')) {
-      // Convert local format to international
-      phone = `+251${phone.substring(1)}`;
-    }
-    setOrderDetails({
-      ...orderDetails, 
-      phone: phone
-    });
-  }}
-  required
-  pattern="(\+251|0)[79]\d{8}"
-/>
+                  type="tel"
+                  placeholder="+251912345678"
+                  className="formbox"
+                  value={orderDetails.phone}
+                  onChange={(e) => {
+                    // Remove any non-digit characters first
+                    let phone = e.target.value.replace(/\D/g, '');
+                    // Format as Ethiopian number
+                    if (phone.startsWith('251')) {
+                      phone = `+${phone}`;
+                    } else if (phone.startsWith('0')) {
+                      phone = `+251${phone.substring(1)}`;
+                    } else if (phone.length > 0) {
+                      phone = `+251${phone}`;
+                    }
+                    setOrderDetails({
+                      ...orderDetails, 
+                      phone: phone
+                    });
+                  }}
+                  required
+                  pattern="(\+251|0)[79]\d{8}"
+                />
               </label>
               <p className="hint-text">For order updates and payment verification</p>
             </div>

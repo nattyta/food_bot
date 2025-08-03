@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegFrownOpen, FaRegArrowAltCircleLeft, FaRegArrowAltCircleRight } from "react-icons/fa";
+import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./homePage.css";
-
-const baseURL = "https://food-bot-vulm.onrender.com"; 
-
-
 
 const HomePage = ({ cart, setCart }) => {
   const [categories, setCategories] = useState([]);
@@ -18,8 +14,6 @@ const HomePage = ({ cart, setCart }) => {
   const [specialInstruction, setSpecialInstruction] = useState("");  
   const navigate = useNavigate();
   const [selectedModifications, setSelectedModifications] = useState([]);
-
-  
 
   useEffect(() => {
     const fetchedCategories = ["All", "Popular", "Pizza", "Burger", "Pasta", "Drinks", "Desserts"];
@@ -34,89 +28,79 @@ const HomePage = ({ cart, setCart }) => {
 
   const openPopup = (product) => {
     setSelectedProduct(product);
+    setSelectedAddOns([]);
     setSelectedExtras([]);
+    setSelectedModifications([]);
     setSpecialInstruction("");
+    setShowSpecialInstruction(false);
   };
 
   const closePopup = () => {
     setSelectedProduct(null);
+    setSelectedAddOns([]);
     setSelectedExtras([]);
+    setSelectedModifications([]);
     setSpecialInstruction("");
-  
+    setShowSpecialInstruction(false);
   };
-
 
   const handleAddOnChange = (addOn) => {
-    setSelectedAddOns((prev) =>
-      prev.some((a) => a.name === addOn.name)
-        ? prev.filter((a) => a.name !== addOn.name)
-        : [...prev, { ...addOn, quantity: 1 }]
-    );
+    setSelectedAddOns(prev => {
+      const isSelected = prev.some(a => a.name === addOn.name);
+      if (isSelected) {
+        return prev.filter(a => a.name !== addOn.name);
+      } else {
+        return [...prev, { ...addOn, price: Number(addOn.price) || 0 }];
+      }
+    });
   };
-  
 
   const handleExtraChange = (extra) => {
-    setSelectedExtras((prev) => {
-      const isSelected = prev.some((e) => e.name === extra.name);
+    setSelectedExtras(prev => {
+      const isSelected = prev.some(e => e.name === extra.name);
       if (isSelected) {
-        return prev.filter((e) => e.name !== extra.name);
+        return prev.filter(e => e.name !== extra.name);
       } else {
-        console.log("Extra being added:", extra);  // 🔍 Check if price exists
-        return [...prev, { ...extra, price: Number(extra.price) || 0 }]; 
+        return [...prev, { ...extra, price: Number(extra.price) || 0 }];
       }
     });
   };
-  
 
-  
-  
-  
-  
-  
-  
-  
-  
   const handleModificationChange = (mod) => {
-    setSelectedModifications((prev) => {
-      const isSelected = prev.some((m) => m.name === mod.name);
+    setSelectedModifications(prev => {
+      const isSelected = prev.some(m => m.name === mod.name);
       if (isSelected) {
-        return prev.filter((m) => m.name !== mod.name);
+        return prev.filter(m => m.name !== mod.name);
       } else {
-        return [...prev, mod]; // ✅ Store full object
+        return [...prev, mod];
       }
     });
   };
-  
   
   const addToCart = () => {
     if (!selectedProduct) return;
-  
-    console.log("Selected Extras Before Adding:", selectedExtras);  // 🔍 Debugging log
-  
+    
+    // Calculate total price including add-ons and extras
+    const basePrice = Number(selectedProduct.price) || 0;
+    const addOnsTotal = selectedAddOns.reduce((sum, addOn) => sum + (Number(addOn.price) || 0), 0);
+    const extrasTotal = selectedExtras.reduce((sum, extra) => sum + (Number(extra.price) || 0), 0);
+    const totalPrice = basePrice + addOnsTotal + extrasTotal;
+    
     const newItem = {
       id: `${selectedProduct.id}-${Date.now()}`,
       name: selectedProduct.name,
-      price: Number(selectedProduct.price) || 0,  
+      price: totalPrice,  // THIS IS THE FIX: Include add-ons/extras in price
+      image: selectedProduct.image,
       quantity: 1,
-      addOns: selectedAddOns.map(a => ({ ...a, price: Number(a.price) || 0 })),  
-      extras: selectedExtras.map(e => ({ 
-        ...e, 
-        price: Number(e.price) || 0 // 🔥 Converting price to number
-      })),  
-      modifications: selectedModifications || [],
-      specialInstruction: specialInstruction?.trim() || null,
+      addOns: [...selectedAddOns],
+      extras: [...selectedExtras],
+      modifications: [...selectedModifications],
+      specialInstruction: specialInstruction.trim() || null,
     };
-  
-    console.log("New Item Being Added to Cart:", newItem); // 🔍 Debugging log
-  
-    setCart((prevCart) => [...prevCart, newItem]); 
+    
+    setCart(prevCart => [...prevCart, newItem]); 
     closePopup();
   };
-  
-  
-  
-  
-  
 
   return (
     <div className="homepage">
@@ -147,86 +131,81 @@ const HomePage = ({ cart, setCart }) => {
         ))}
       </div>
       {selectedProduct && (
-  <div className="popup-overlay">
-    <div className="popup-content popup-centered">
-      <h2>{selectedProduct.name}</h2>
+        <div className="popup-overlay">
+          <div className="popup-content popup-centered">
+            <h2>{selectedProduct.name}</h2>
 
-      {/* Add-ons Section */}
-<h4>Add-ons</h4>
-{selectedProduct.addOns?.map((addOn) => (
-  <div key={addOn.name} className="extra-option">
-    <input
-      type="checkbox"
-      id={addOn.name}
-      onChange={() => handleAddOnChange(addOn)}
-    />
-    <label htmlFor={addOn.name}>
-      {addOn.name} (+${addOn.price.toFixed(2)})
-    </label>
-  </div>
-))}
+            {/* Add-ons Section */}
+            <h4>Add-ons</h4>
+            {selectedProduct.addOns?.map((addOn) => (
+              <div key={addOn.name} className="extra-option">
+                <input
+                  type="checkbox"
+                  id={addOn.name}
+                  onChange={() => handleAddOnChange(addOn)}
+                />
+                <label htmlFor={addOn.name}>
+                  {addOn.name} (+${addOn.price.toFixed(2)})
+                </label>
+              </div>
+            ))}
 
+            {/* Extras Section */}
+            <h4>Extras</h4>
+            {selectedProduct.extras?.map((extra) => (
+              <div key={extra.name} className="extra-option">
+                <input
+                  type="checkbox"
+                  id={extra.name}
+                  checked={selectedExtras.some(e => e.name === extra.name)}
+                  onChange={() => handleExtraChange(extra)}
+                />
+                <label htmlFor={extra.name}>
+                  {extra.name} (+${extra.price.toFixed(2)})
+                </label>
+              </div>
+            ))}
 
-     {/* Extras Section */}
-<h4>Extras</h4>
-{selectedProduct.extras?.map((extra) => (
-  <div key={extra.name} className="extra-option">
-    <input
-      type="checkbox"
-      id={extra.name}
-      checked={selectedExtras.some(e => e.name === extra.name)}
-      onChange={() => handleExtraChange(extra)}
-    />
-    <label htmlFor={extra.name}>
-      {extra.name} (+${extra.price.toFixed(2)})
-    </label>
-  </div>
-))}
+            {/* Modifications Section */}
+            <h4>Modifications</h4>
+            {selectedProduct.modifications?.map((mod) => (
+              <div key={mod.name} className="extra-option">
+                <input
+                  type="checkbox"
+                  id={mod.name}
+                  checked={selectedModifications.some(m => m.name === mod.name)}
+                  onChange={() => handleModificationChange(mod)}
+                />
+                <label htmlFor={mod.name}>{mod.name}</label>
+              </div>
+            ))}
 
+            {/* Special Instructions Section */}
+            <h4>Special Instructions</h4>
+            <button
+              className="toggle-special-instruction"
+              onClick={() => setShowSpecialInstruction(!showSpecialInstruction)}
+            >
+              {showSpecialInstruction ? "Hide Special Instructions" : "Add Special Instructions"}
+              <FaRegArrowAltCircleRight size={24} className="nav-icon" />
+            </button>
+            {showSpecialInstruction && (
+              <textarea
+                placeholder="Add special instructions..."
+                value={specialInstruction}
+                onChange={(e) => setSpecialInstruction(e.target.value)}
+                className="special-instruction"
+              ></textarea>
+            )}
 
-
-
-      {/* Modifications Section */}
-<h4>Modifications</h4>
-{selectedProduct.modifications?.map((mod) => (
-  <div key={mod.name} className="extra-option">
-    <input
-      type="checkbox"
-      id={mod.name}
-      checked={selectedModifications.some(m => m.name === mod.name)}
-      onChange={() => handleModificationChange(mod)}
-    />
-    <label htmlFor={mod.name}>{mod.name}</label>
-  </div>
-))}
-
-
-      {/* Special Instructions Section */}
-      <h4>Special Instructions</h4>
-      <button
-        className="toggle-special-instruction"
-        onClick={() => setShowSpecialInstruction(!showSpecialInstruction)}
-      >
-        {showSpecialInstruction ? "Hide Special Instructions" : "Add Special Instructions"}
-        <FaRegArrowAltCircleRight size={24} className="nav-icon" />
-      </button>
-      {showSpecialInstruction && (
-        <textarea
-          placeholder="Add special instructions..."
-          value={specialInstruction}
-          onChange={(e) => setSpecialInstruction(e.target.value)}
-          className="special-instruction"
-        ></textarea>
+            {/* Popup Buttons */}
+            <div className="popup-buttons">
+              <button className="confirm-btn" onClick={addToCart}>Confirm</button>
+              <button className="cancel-btn" onClick={closePopup}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
-
-      {/* Popup Buttons */}
-      <div className="popup-buttons">
-        <button className="confirm-btn" onClick={addToCart}>Confirm</button>
-        <button className="cancel-btn" onClick={closePopup}>Cancel</button>
-      </div>
-    </div>
-  </div>
-)}
 
       <footer className="footer-nav">
         <FaHome className="nav-icon" />
