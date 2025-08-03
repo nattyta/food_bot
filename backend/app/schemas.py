@@ -16,7 +16,7 @@ class OrderCreate(BaseModel):
     order_type: str
     items: List[OrderItem]  # Properly typed items list
     total_price: float
-    # Removed location since you're storing in address
+    
 
 class UserCreate(BaseModel):
     chat_id: int
@@ -25,7 +25,9 @@ class UserCreate(BaseModel):
     address: Optional[str] = None
 
 
-
+class Location(BaseModel):
+    lat: float
+    lng: float
 
 # Add this new class
 class UserContactUpdate(BaseModel):
