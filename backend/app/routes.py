@@ -20,7 +20,7 @@ router = APIRouter()
 # Load bot token once globally
 BOT_TOKEN = os.getenv("Telegram_API", "").strip()
 
-if not BOT_TOKEN:
+if not BOT_TOKEN:BOT_TOKEN
     logger.error("Telegram_API env var is not set!")
 
 # Pydantic model for the auth request body
@@ -245,26 +245,6 @@ async def update_contact(
             status_code=500,
             detail="Internal server error"
         )
-
-
-# Protected route example: update profile
-@router.post("/api/update-profile")
-def update_profile(
-    profile_data: ProfileUpdate,
-    chat_id: int = Depends(telegram_auth_dependency)  # Use Telegram initData auth
-):
-    try:
-        with DatabaseManager() as db:
-            db.execute(
-                "UPDATE users SET profile_data = %s WHERE chat_id = %s",
-                (json.dumps(profile_data.dict()), chat_id)
-            )
-    except Exception as e:
-        logger.error(f"Profile update failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Profile update failed")
-
-    return {"status": "success"}
-
 
 @router.get("/health")
 async def health_check():

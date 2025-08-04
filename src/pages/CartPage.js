@@ -129,27 +129,13 @@ const CartPage = ({ cart, setCart }) => {
         throw new Error("Please enter a delivery address");
       }
 
-      const isTelegram = isTelegramWebApp();
-      const tgWebApp = window.Telegram?.WebApp;
-      
-      const chat_id = isTelegram 
-        ? tgWebApp?.initDataUnsafe?.user?.id
-        : null;
-
-      if (!chat_id) {
-        const alertMsg = "❌ Failed to detect Telegram user. Please reopen the app.";
-        console.error(alertMsg);
-        if (isTelegram) {
-          tgWebApp.showAlert(alertMsg);
-        } else {
-          alert(alertMsg);
-        }
-        return;
+      const authToken = localStorage.getItem('auth_token');
+      if (!authToken) {
+        throw new Error("Authentication token missing. Please refresh the page.");
       }
 
       // Prepare request data
       const requestData = {
-        chat_id: parseInt(chat_id),
         phone: orderDetails.phone,
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
         location: orderType === 'delivery' ? orderDetails.delivery.location : null
@@ -158,21 +144,9 @@ const CartPage = ({ cart, setCart }) => {
       console.log("Request data:", requestData);
 
       const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
       };
-
-      // Add auth token if available
-      const authToken = localStorage.getItem('auth_token');
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-        console.log("Using auth token from localStorage");
-      }
-      else if (isTelegram && tgWebApp.initData) {
-        headers['x-telegram-init-data'] = tgWebApp.initData;
-        console.log("Using Telegram initData for auth");
-      } else {
-        console.log("No auth token found");
-      }
 
       const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
       console.log("API URL:", apiUrl);
