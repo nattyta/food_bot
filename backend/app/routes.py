@@ -170,7 +170,7 @@ def save_user(
 @router.post("/update-contact")
 async def update_contact(
     contact_data: UserContactUpdate,
-    request: Request,  # Add request to access headers
+    request: Request,  
     chat_id: int = Depends(telegram_auth_dependency)
 ):
     # Start debug info
@@ -292,7 +292,7 @@ async def update_contact(
             detail="Internal server error"
         )
 
-        
+
 @router.get("/health")
 async def health_check():
     return {
