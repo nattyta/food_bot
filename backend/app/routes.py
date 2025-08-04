@@ -12,6 +12,10 @@ from .crud import create_user, update_user_contact
 from .auth import validate_init_data
 import hashlib
 import hmac
+import time
+import uuid
+from datetime import datetime
+
 
 logger = logging.getLogger(__name__)
 
@@ -20,8 +24,9 @@ router = APIRouter()
 # Load bot token once globally
 BOT_TOKEN = os.getenv("Telegram_API", "").strip()
 
-if not BOT_TOKEN:BOT_TOKEN
+if not BOT_TOKEN:
     logger.error("Telegram_API env var is not set!")
+
 
 # Pydantic model for the auth request body
 class InitDataPayload(BaseModel):
@@ -35,7 +40,7 @@ async def telegram_auth_dependency(request: Request):
 
     try:
         user = validate_init_data(init_data, BOT_TOKEN)
-        logger.warning(f"⚠️  Using token for validation: {repr(bot_token)}")
+        logger.warning(f"⚠️  Using token for validation: {repr(BOT_TOKEN)}")
         logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
         request.state.telegram_user = user
         return user.get("id")
@@ -187,15 +192,10 @@ async def update_contact(
         # Prepare location data for database
         location_json = None
         if contact_data.location:
-            # Validate location structure
-            if not isinstance(contact_data.location, dict) or 'lat' not in contact_data.location or 'lng' not in contact_data.location:
-                error_msg = "Invalid location format"
-                logger.error(error_msg)
-                raise HTTPException(status_code=400, detail=error_msg)
-                
+            # Access location as object attributes, not dictionary keys
             location_json = json.dumps({
-                "lat": contact_data.location['lat'],
-                "lng": contact_data.location['lng']
+                "lat": contact_data.location.lat,
+                "lng": contact_data.location.lng
             })
         
         with DatabaseManager() as db:
@@ -250,7 +250,7 @@ async def update_contact(
 async def health_check():
     return {
         "status": "ok",
-        "telegram_verified": has_valid_token,  # Set during startup
+        "telegram_verified": bool(BOT_TOKEN),  # Set during startup
         "timestamp": int(time.time())
     }
 
@@ -263,7 +263,7 @@ async def create_order(order: OrderCreate, request: Request):
     if not init_data:
         raise HTTPException(status_code=401, detail="Missing Telegram initData")
 
-    user_data = validate_init_data(init_data, os.getenv("Telegram_API"))
+    user_data = validate_init_data(init_data, BOT_TOKEN)
     user_id = user_data["user"]["id"]
 
     conn = get_db_connection()
