@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./cart.css";
 
@@ -15,6 +15,30 @@ const CartPage = ({ cart, setCart }) => {
       location: null
     }
   });
+
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+        console.debug("Loaded cart from localStorage:", JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to parse saved cart", e);
+      }
+    }
+  }, [setCart]);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    if (cart.length > 0) {
+      localStorage.setItem('cart', JSON.stringify(cart));
+      console.debug("Saved cart to localStorage:", cart);
+    } else {
+      localStorage.removeItem('cart');
+      console.debug("Cleared cart from localStorage");
+    }
+  }, [cart]);
 
   // Define Telegram WebApp detection function at top level
   const isTelegramWebApp = () => {
@@ -119,6 +143,14 @@ const CartPage = ({ cart, setCart }) => {
     try {
       console.log("Starting order confirmation...");
       
+      // Debug: Log all localStorage contents
+      console.debug("LocalStorage contents:", { 
+        auth_token: localStorage.getItem('auth_token'),
+        cart: localStorage.getItem('cart'),
+        allKeys: Object.keys(localStorage),
+        telegramInitData: isTelegramWebApp() ? window.Telegram.WebApp.initData : "N/A"
+      });
+  
       // Validate phone number
       if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
         throw new Error("Please enter a valid Ethiopian phone number");
@@ -128,38 +160,50 @@ const CartPage = ({ cart, setCart }) => {
       if (orderType === "delivery" && !orderDetails.delivery.address.trim()) {
         throw new Error("Please enter a delivery address");
       }
-
+  
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) {
+        // Detailed debug info for missing token
+        const debugInfo = {
+          timestamp: new Date().toISOString(),
+          inTelegram: isTelegramWebApp(),
+          initData: isTelegramWebApp() ? window.Telegram.WebApp.initData : "Not in Telegram",
+          initDataUnsafe: isTelegramWebApp() ? window.Telegram.WebApp.initDataUnsafe : "Not in Telegram",
+          sessionHistory: performance.getEntriesByType("navigation")[0]?.type
+        };
+        console.error("Authentication token missing! Debug info:", debugInfo);
+        
         throw new Error("Authentication token missing. Please refresh the page.");
       }
-
+  
       // Prepare request data
       const requestData = {
         phone: orderDetails.phone,
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
         location: orderType === 'delivery' ? orderDetails.delivery.location : null
       };
-
-      console.log("Request data:", requestData);
-
+  
+      console.log("Request data:", JSON.stringify(requestData, null, 2));
+  
       const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
       };
-
+  
       const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
       console.log("API URL:", apiUrl);
-      console.log("Headers:", headers);
-
+      console.log("Headers:", JSON.stringify(headers));
+  
       // Make the request
+      const startTime = performance.now();
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(requestData)
       });
-
-      console.log("Response status:", response.status);
+      const duration = performance.now() - startTime;
+      
+      console.log(`Response status: ${response.status} (${duration.toFixed(1)}ms)`);
       
       if (!response.ok) {
         let errorDetail = `HTTP ${response.status}`;
@@ -183,7 +227,7 @@ const CartPage = ({ cart, setCart }) => {
         
         throw new Error(`Backend error: ${errorDetail}`);
       }
-
+  
       const result = await response.json();
       console.log("API response:", result);
       

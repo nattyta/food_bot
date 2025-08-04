@@ -170,16 +170,33 @@ def save_user(
 @router.post("/update-contact")
 async def update_contact(
     contact_data: UserContactUpdate,
+    request: Request,  # Add request to access headers
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-    # Log incoming request
+    # Start debug info
+    debug_info = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "client": request.client.host if request.client else None,
+        "headers": dict(request.headers),
+        "chat_id_from_auth": chat_id,
+        "contact_data_chat_id": contact_data.chat_id,
+        "request_data": contact_data.dict()
+    }
     logger.info(f"Update contact request for chat_id: {chat_id}")
-    logger.debug(f"Request data: {contact_data.dict()}")
-
+    logger.debug(f"Request debug info: {json.dumps(debug_info, indent=2)}")
+    
     # Validate chat_id matches
     if chat_id != contact_data.chat_id:
         error_msg = f"User ID mismatch: {chat_id} vs {contact_data.chat_id}"
         logger.warning(error_msg)
+        
+        # Add auth diagnostic info
+        auth_diag = {
+            "auth_token": request.headers.get("authorization"),
+            "telegram_init_data": request.headers.get("x-telegram-init-data")
+        }
+        logger.debug(f"Auth diagnostic: {json.dumps(auth_diag)}")
+        
         raise HTTPException(status_code=403, detail=error_msg)
     
     # Validate Ethiopian phone format
@@ -192,15 +209,30 @@ async def update_contact(
         # Prepare location data for database
         location_json = None
         if contact_data.location:
-            # Access location as object attributes, not dictionary keys
-            location_json = json.dumps({
-                "lat": contact_data.location.lat,
-                "lng": contact_data.location.lng
-            })
+            logger.debug(f"Location data received: {contact_data.location}")
+            
+            # Access location as object attributes
+            try:
+                location_json = json.dumps({
+                    "lat": contact_data.location.lat,
+                    "lng": contact_data.location.lng
+                })
+                logger.debug(f"Location JSON: {location_json}")
+            except AttributeError as ae:
+                logger.error("Location attribute error! Data structure might be wrong")
+                logger.error(f"Received location: {contact_data.location}")
+                logger.exception(ae)
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid location format. Expected 'lat' and 'lng' properties"
+                )
         
+        # Database operation
         with DatabaseManager() as db:
+            logger.debug("Starting database operation...")
+            
             # Update user contact information
-            db.execute(
+            update_result = db.execute(
                 """
                 UPDATE users 
                 SET phone = %s, 
@@ -217,10 +249,11 @@ async def update_contact(
                 )
             )
             
-            if db.rowcount == 0:
-                # If no user exists, create a new one
+            logger.debug(f"UPDATE result: {update_result.rowcount} rows affected")
+            
+            if update_result.rowcount == 0:
                 logger.info(f"Creating new user for chat_id: {chat_id}")
-                db.execute(
+                insert_result = db.execute(
                     """
                     INSERT INTO users (chat_id, phone, address, location)
                     VALUES (%s, %s, %s, %s)
@@ -232,20 +265,34 @@ async def update_contact(
                         location_json
                     )
                 )
+                logger.debug(f"INSERT result: {insert_result.rowcount} rows inserted")
         
         logger.info(f"Contact updated successfully for chat_id: {chat_id}")
         return {"status": "success", "updated": True}
         
     except HTTPException as he:
         # Re-raise HTTP exceptions
+        logger.error(f"HTTPException in update-contact: {he.detail}")
         raise he
     except Exception as e:
         logger.error(f"Contact update failed: {str(e)}", exc_info=True)
+        
+        # Additional error diagnostics
+        error_diag = {
+            "error_type": type(e).__name__,
+            "chat_id": chat_id,
+            "phone": contact_data.phone,
+            "address": contact_data.address,
+            "location_type": type(contact_data.location).__name__ if contact_data.location else None
+        }
+        logger.debug(f"Error diagnostics: {json.dumps(error_diag)}")
+        
         raise HTTPException(
             status_code=500,
             detail="Internal server error"
         )
 
+        
 @router.get("/health")
 async def health_check():
     return {
