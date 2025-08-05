@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./cart.css";
 
-const CartPage = ({ cart, setCart }) => {
+const CartPage = ({ cart, setCart, telegramInitData }) => {
   const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = useState({});
   const [showOrderPopup, setShowOrderPopup] = useState(false);
@@ -200,19 +200,17 @@ const CartPage = ({ cart, setCart }) => {
         'Authorization': `Bearer ${authToken}`
       };
   
-      // Add Telegram initData header if available
-      if (inTelegram && window.Telegram.WebApp.initData) {
-        headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
-        console.log("✅ Added Telegram initData header");
+      // Use the preserved initData from App.js instead of window object
+      if (telegramInitData) {
+        headers['x-telegram-init-data'] = telegramInitData;
+        console.log("✅ Added preserved Telegram initData header");
       } else {
-        console.warn("⚠️ Not adding Telegram initData header. Reason:", 
-          inTelegram ? "initData missing" : "not in Telegram environment");
+        console.warn("⚠️ No preserved Telegram initData available");
       }
-  
-      console.log("Headers:", JSON.stringify(headers, null, 2));
   
       const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
       console.log("API URL:", apiUrl);
+      console.log("Headers:", JSON.stringify(headers, null, 2));
   
       // Make the request
       const startTime = performance.now();
