@@ -32,31 +32,41 @@ if not BOT_TOKEN:
 class InitDataPayload(BaseModel):
     initData: str
 
-# Dependency that validates Telegram initData on protected routes
 async def telegram_auth_dependency(request: Request):
-    # Detailed header logging
-    headers = dict(request.headers)
-    logger.debug(f"Auth dependency called. Headers received: {json.dumps(headers, indent=2)}")
+    # Log all headers for debugging
+    all_headers = dict(request.headers)
+    logger.info("📩 Received request with headers:")
+    for header, value in all_headers.items():
+        logger.info(f"  {header}: {value[:100]}{'...' if len(value) > 100 else ''}")
     
     init_data = request.headers.get('x-telegram-init-data')
     
     if not init_data:
-        logger.warning("❌ Missing Telegram initData header")
-        logger.debug("Available headers:")
-        for header, value in headers.items():
-            logger.debug(f"  {header}: {value}")
+        logger.error("❌ Missing Telegram initData header")
+        # Check for common alternative headers
+        alt_headers = {
+            'x-telegram-initdata': request.headers.get('x-telegram-initdata'),
+            'telegram-init-data': request.headers.get('telegram-init-data'),
+            'init-data': request.headers.get('init-data'),
+            'x-init-data': request.headers.get('x-init-data')
+        }
+        logger.info("🔍 Checking alternative headers:")
+        for name, value in alt_headers.items():
+            if value:
+                logger.info(f"  Found alternative header: {name}")
+                init_data = value
+                break
         
-        raise HTTPException(status_code=401, detail="Missing Telegram initData header")
+        if not init_data:
+            logger.error("🚫 No Telegram initData found in any header")
+            raise HTTPException(status_code=401, detail="Missing Telegram initData header")
+        else:
+            logger.warning("⚠️ Using alternative header for initData")
 
     try:
-        logger.debug(f"Validating initData: {init_data[:50]}...")
+        logger.debug(f"🔐 Validating initData: {init_data[:50]}...")
         user = validate_init_data(init_data, BOT_TOKEN)
         logger.info(f"✅ Validation successful for user: {user.get('id')}")
-        
-        # Log token info without exposing it
-        logger.warning(f"⚠️ Using token for validation: {BOT_TOKEN[:3]}...{BOT_TOKEN[-3:]}")
-        logger.debug(f"Bot token from env: {os.getenv('Telegram_API')[:3]}...")
-        
         request.state.telegram_user = user
         return user.get("id")
     except HTTPException as he:
@@ -65,6 +75,9 @@ async def telegram_auth_dependency(request: Request):
     except Exception as e:
         logger.error(f"🔥 Telegram auth validation failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
+
+
+        
 @router.post("/auth/telegram")
 async def auth_endpoint(request: Request):
     init_data = request.headers.get("x-telegram-init-data")

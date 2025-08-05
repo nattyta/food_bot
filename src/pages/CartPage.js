@@ -143,12 +143,22 @@ const CartPage = ({ cart, setCart }) => {
     try {
       console.log("Starting order confirmation...");
       
+      // Log Telegram WebApp status - defined at the top level of try block
+      const inTelegram = isTelegramWebApp();
+      console.log("In Telegram WebApp:", inTelegram);
+      
+      if (inTelegram) {
+        console.log("Telegram WebApp version:", window.Telegram.WebApp.version);
+        console.log("Telegram initData available:", !!window.Telegram.WebApp.initData);
+        console.log("Telegram initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
+      }
+      
       // Debug: Log all localStorage contents
       console.debug("LocalStorage contents:", { 
         auth_token: localStorage.getItem('auth_token'),
         cart: localStorage.getItem('cart'),
         allKeys: Object.keys(localStorage),
-        telegramInitData: isTelegramWebApp() ? window.Telegram.WebApp.initData : "N/A"
+        telegramInitData: inTelegram ? window.Telegram.WebApp.initData : "N/A"
       });
   
       // Validate phone number
@@ -166,9 +176,9 @@ const CartPage = ({ cart, setCart }) => {
         // Detailed debug info for missing token
         const debugInfo = {
           timestamp: new Date().toISOString(),
-          inTelegram: isTelegramWebApp(),
-          initData: isTelegramWebApp() ? window.Telegram.WebApp.initData : "Not in Telegram",
-          initDataUnsafe: isTelegramWebApp() ? window.Telegram.WebApp.initDataUnsafe : "Not in Telegram",
+          inTelegram: inTelegram,
+          initData: inTelegram ? window.Telegram.WebApp.initData : "Not in Telegram",
+          initDataUnsafe: inTelegram ? window.Telegram.WebApp.initDataUnsafe : "Not in Telegram",
           sessionHistory: performance.getEntriesByType("navigation")[0]?.type
         };
         console.error("Authentication token missing! Debug info:", debugInfo);
@@ -189,14 +199,20 @@ const CartPage = ({ cart, setCart }) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
       };
-
-      if (isTelegramWebApp() && window.Telegram.WebApp.initData) {
+  
+      // Add Telegram initData header if available
+      if (inTelegram && window.Telegram.WebApp.initData) {
         headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+        console.log("✅ Added Telegram initData header");
+      } else {
+        console.warn("⚠️ Not adding Telegram initData header. Reason:", 
+          inTelegram ? "initData missing" : "not in Telegram environment");
       }
+  
+      console.log("Headers:", JSON.stringify(headers, null, 2));
   
       const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
       console.log("API URL:", apiUrl);
-      console.log("Headers:", JSON.stringify(headers));
   
       // Make the request
       const startTime = performance.now();
@@ -260,7 +276,6 @@ const CartPage = ({ cart, setCart }) => {
       setIsSubmitting(false);
     }
   };
-
 
 
   return (
