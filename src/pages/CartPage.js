@@ -1,13 +1,29 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import "./cart.css";
+
+// Fix leaflet marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const CartPage = ({ cart, setCart, telegramInitData }) => {
   const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = useState({});
   const [showOrderPopup, setShowOrderPopup] = useState(false);
+  const [showMapPopup, setShowMapPopup] = useState(false);
   const [orderType, setOrderType] = useState("pickup");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mapCenter, setMapCenter] = useState([9.005401, 38.763611]); // Default to Addis Ababa
+  const [markerPosition, setMarkerPosition] = useState(null);
+  const mapRef = useRef(null);
+  
   const [orderDetails, setOrderDetails] = useState({
     phone: "", 
     delivery: {
@@ -15,7 +31,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       location: null
     }
   });
-
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -29,7 +44,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     }
   }, [setCart]);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
     if (cart.length > 0) {
       localStorage.setItem('cart', JSON.stringify(cart));
@@ -40,7 +54,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     }
   }, [cart]);
 
-  // Define Telegram WebApp detection function at top level
   const isTelegramWebApp = () => {
     try {
       return (
@@ -52,13 +65,10 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     }
   };
 
-  // FIXED: Correct price calculation (no double counting)
   const totalPrice = useMemo(() => {
     return cart.reduce((acc, item) => {
-      // Item price already includes add-ons and extras
       const itemPrice = parseFloat(item.price) || 0;
       const quantity = parseFloat(item.quantity) || 1;
-      
       return acc + (itemPrice * quantity);
     }, 0);
   }, [cart]);
@@ -71,7 +81,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     setShowOrderPopup(true);
   };
 
-  // FIXED: Safer quantity updates
   const handleIncrease = (id) => {
     setCart(prevCart => 
       prevCart.map(item => 
@@ -107,32 +116,54 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       const tg = window.Telegram.WebApp;
       tg.requestLocation((location) => {
         if (location) {
-          setOrderDetails(prev => ({
-            ...prev,
-            delivery: {
-              ...prev.delivery,
-              location: {
-                lat: location.latitude,
-                lng: location.longitude
-              }
-            }
-          }));
-          tg.showAlert("Location saved!");
+          const newPosition = [location.latitude, location.longitude];
+          setMapCenter(newPosition);
+          setMarkerPosition(newPosition);
+          setShowMapPopup(true);
         }
       }, (error) => tg.showAlert(`Error: ${error}`));
     } else {
-      // Fallback for browser testing
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const newPosition = [
+              position.coords.latitude,
+              position.coords.longitude
+            ];
+            setMapCenter(newPosition);
+            setMarkerPosition(newPosition);
+            setShowMapPopup(true);
+          },
+          (error) => alert(`Error getting location: ${error.message}`)
+        );
+      } else {
+        alert("Geolocation is not supported by your browser");
+      }
+    }
+  };
+
+  const handleMapClick = (e) => {
+    setMarkerPosition([e.latlng.lat, e.latlng.lng]);
+  };
+
+  const saveMapLocation = () => {
+    if (markerPosition) {
       setOrderDetails(prev => ({
         ...prev,
         delivery: {
           ...prev.delivery,
           location: {
-            lat: 9.005401,  // Default Addis Ababa coordinates
-            lng: 38.763611
+            lat: markerPosition[0],
+            lng: markerPosition[1]
           }
         }
       }));
-      alert("Location set to default (Addis Ababa) for testing");
+      setShowMapPopup(false);
+      if (isTelegramWebApp()) {
+        window.Telegram.WebApp.showAlert("Location saved!");
+      } else {
+        alert("Location saved!");
+      }
     }
   };
 
@@ -152,7 +183,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         console.log("Telegram initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
       }
       
-      // Get chat_id from Telegram if available
       const chat_id = inTelegram 
         ? window.Telegram.WebApp.initDataUnsafe.user.id 
         : null;
@@ -164,12 +194,10 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         telegramInitData: inTelegram ? window.Telegram.WebApp.initData : "N/A"
       });
   
-      // Validate phone number
       if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
         throw new Error("Please enter a valid Ethiopian phone number");
       }
       
-      // Validate delivery address if needed
       if (orderType === "delivery" && !orderDetails.delivery.address.trim()) {
         throw new Error("Please enter a delivery address");
       }
@@ -184,13 +212,11 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           sessionHistory: performance.getEntriesByType("navigation")[0]?.type
         };
         console.error("Authentication token missing! Debug info:", debugInfo);
-        
         throw new Error("Authentication token missing. Please refresh the page.");
       }
   
-      // Prepare request data WITH chat_id
       const requestData = {
-        chat_id,  // Add chat_id here
+        chat_id,
         phone: orderDetails.phone,
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
         location: orderType === 'delivery' ? orderDetails.delivery.location : null
@@ -214,7 +240,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       console.log("API URL:", apiUrl);
       console.log("Headers:", JSON.stringify(headers, null, 2));
   
-      // Make the request
       const startTime = performance.now();
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -233,17 +258,13 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           responseBody = await response.text();
           console.log("Raw response:", responseBody);
           
-          // Improved error parsing for 422 responses
           if (response.status === 422) {
             try {
               const errorData = JSON.parse(responseBody);
-              // Extract validation errors
               const validationErrors = errorData.detail.map(err => 
                 `${err.loc.join('.')}: ${err.msg}`
               ).join('; ');
-              
               errorDetail = `Validation error: ${validationErrors}`;
-              console.error("Validation errors:", validationErrors);
             } catch {}
           } else {
             try {
@@ -286,7 +307,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       setIsSubmitting(false);
     }
   };
-
 
   return (
     <div className="cart-page">
@@ -413,38 +433,33 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
               Delivery
             </label>
 
-            {/* Universal Phone Input */}
             <div className="phone-section">
               <label>
                 Contact Phone:
                 <input
-  type="tel"
-  placeholder="+251912345678"
-  className="formbox"
-  value={orderDetails.phone}
-  onChange={(e) => {
-    // Remove any non-digit characters first
-    let phone = e.target.value.replace(/\D/g, '');
-    // Format as Ethiopian number if starting with 251
-    if (phone.startsWith('251')) {
-      phone = `+${phone}`;
-    } else if (phone.startsWith('0')) {
-      // Convert local format to international
-      phone = `+251${phone.substring(1)}`;
-    }
-    setOrderDetails({
-      ...orderDetails, 
-      phone: phone
-    });
-  }}
-  required
-  pattern="(\+251|0)[79]\d{8}"
-/>
+                  type="tel"
+                  placeholder="+251912345678"
+                  className="formbox"
+                  value={orderDetails.phone}
+                  onChange={(e) => {
+                    let phone = e.target.value.replace(/\D/g, '');
+                    if (phone.startsWith('251')) {
+                      phone = `+${phone}`;
+                    } else if (phone.startsWith('0')) {
+                      phone = `+251${phone.substring(1)}`;
+                    }
+                    setOrderDetails({
+                      ...orderDetails, 
+                      phone: phone
+                    });
+                  }}
+                  required
+                  pattern="(\+251|0)[79]\d{8}"
+                />
               </label>
               <p className="hint-text">For order updates and payment verification</p>
             </div>
 
-            {/* Delivery-Specific Fields */}
             {orderType === "delivery" && (
               <div className="delivery-form">
                 <label>
@@ -484,6 +499,52 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
                 onClick={handleConfirmOrder}
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Map Popup */}
+      {showMapPopup && (
+        <div className="map-popup">
+          <div className="map-popup-content">
+            <h3>Select Delivery Location</h3>
+            <p>Click on the map to place your marker</p>
+            
+            <div className="map-container">
+              <MapContainer
+                center={mapCenter}
+                zoom={15}
+                style={{ height: "400px", width: "100%" }}
+                whenCreated={mapInstance => mapRef.current = mapInstance}
+                onClick={handleMapClick}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                {markerPosition && (
+                  <Marker position={markerPosition}>
+                    <Popup>Delivery Location</Popup>
+                  </Marker>
+                )}
+              </MapContainer>
+            </div>
+            
+            <div className="map-buttons">
+              <button 
+                className="cancel-button" 
+                onClick={() => setShowMapPopup(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="confirm-button" 
+                onClick={saveMapLocation}
+                disabled={!markerPosition}
+              >
+                Save Location
               </button>
             </div>
           </div>
