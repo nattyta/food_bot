@@ -65,18 +65,27 @@ async def telegram_auth_dependency(request: Request):
 
     try:
         logger.debug(f"🔐 Validating initData: {init_data[:50]}...")
-        user = validate_init_data(init_data, BOT_TOKEN)
-        logger.info(f"✅ Validation successful for user: {user.get('id')}")
-        request.state.telegram_user = user
-        return user.get("id")
+        user_data = validate_init_data(init_data, BOT_TOKEN)  # Renamed variable for clarity
+        
+        # Extract user information properly
+        user = user_data.get('user', {})
+        chat_id = user.get('id')
+        
+        if not chat_id:
+            logger.error("❌ Chat ID not found in user data")
+            raise HTTPException(status_code=401, detail="User ID not found in initData")
+            
+        logger.info(f"✅ Validation successful for user: {chat_id}")
+        request.state.telegram_user = user_data
+        
+        return chat_id  # Return the numeric chat_id
+    
     except HTTPException as he:
         logger.error(f"❌ Validation failed: {he.detail}")
         raise
     except Exception as e:
         logger.error(f"🔥 Telegram auth validation failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
-
-
 
 @router.post("/auth/telegram")
 async def auth_endpoint(request: Request):
