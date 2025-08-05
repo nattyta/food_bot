@@ -393,38 +393,58 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           <div className="popup-content">
             <h2>Select Order Type</h2>
             
-            {/* ... order type selection ... */}
+            <label>
+              <input 
+                  type="radio" 
+                value="pickup" 
+                checked={orderType === "pickup"} 
+                onChange={() => setOrderType("pickup")} 
+              />
+              Pickup
+            </label>
             
+            <label>
+              <input 
+                type="radio" 
+                value="delivery" 
+                checked={orderType === "delivery"} 
+                onChange={() => setOrderType("delivery")} 
+              />
+              Delivery
+            </label>
+
+            {/* Universal Phone Input */}
             <div className="phone-section">
               <label>
                 Contact Phone:
                 <input
-                  type="tel"
-                  placeholder="+251912345678"
-                  className="formbox"
-                  value={orderDetails.phone}
-                  onChange={(e) => {
-                    let phone = e.target.value.replace(/\D/g, '');
-                    // Format as Ethiopian number
-                    if (phone.startsWith('251')) {
-                      phone = `+${phone}`;
-                    } else if (phone.startsWith('0')) {
-                      phone = `+251${phone.substring(1)}`;
-                    } else if (phone.length > 0 && !phone.startsWith('+')) {
-                      phone = `+251${phone}`;
-                    }
-                    setOrderDetails({
-                      ...orderDetails, 
-                      phone: phone
-                    });
-                  }}
-                  required
-                  pattern="(\+251|0)[79]\d{8}"
-                />
+  type="tel"
+  placeholder="+251912345678"
+  className="formbox"
+  value={orderDetails.phone}
+  onChange={(e) => {
+    // Remove any non-digit characters first
+    let phone = e.target.value.replace(/\D/g, '');
+    // Format as Ethiopian number if starting with 251
+    if (phone.startsWith('251')) {
+      phone = `+${phone}`;
+    } else if (phone.startsWith('0')) {
+      // Convert local format to international
+      phone = `+251${phone.substring(1)}`;
+    }
+    setOrderDetails({
+      ...orderDetails, 
+      phone: phone
+    });
+  }}
+  required
+  pattern="(\+251|0)[79]\d{8}"
+/>
               </label>
               <p className="hint-text">For order updates and payment verification</p>
             </div>
 
+            {/* Delivery-Specific Fields */}
             {orderType === "delivery" && (
               <div className="delivery-form">
                 <label>
@@ -456,16 +476,14 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
               <button 
                 className="cancel-button" 
                 onClick={() => setShowOrderPopup(false)}
-                disabled={isSubmitting}
               >
                 Cancel
               </button>
               <button 
                 className="confirm-button" 
                 onClick={handleConfirmOrder}
-                disabled={isSubmitting}
               >
-                {isSubmitting ? "Processing..." : "Confirm"}
+                Confirm
               </button>
             </div>
           </div>
