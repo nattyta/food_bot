@@ -193,21 +193,6 @@ async def update_contact(
     logger.info(f"📬 Update contact request for chat_id: {chat_id}")
     logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
     
-    if (response.status == 422) {
-    const errorData = await response.json();
-    throw new Error(`Validation error: ${errorData.detail[0].msg}`);
-}
-   
-        # Detailed auth diagnostic
-        auth_diag = {
-            "authorization_header": request.headers.get("authorization"),
-            "telegram_init_data": request.headers.get("x-telegram-init-data"),
-            "auth_token_length": len(request.headers.get("authorization", ""))
-        }
-        logger.debug(f"🕵️ Auth diagnostic: {json.dumps(auth_diag)}")
-        
-        raise HTTPException(status_code=403, detail=error_msg)
-    
     # Validate Ethiopian phone format
     if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
         error_msg = "Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
@@ -222,6 +207,10 @@ async def update_contact(
             logger.debug(f"📍 Location data received: {contact_data.location}")
             
             try:
+                # Ensure location has lat and lng properties
+                if not hasattr(contact_data.location, 'lat') or not hasattr(contact_data.location, 'lng'):
+                    raise AttributeError("Location missing lat or lng")
+                    
                 location_json = json.dumps({
                     "lat": contact_data.location.lat,
                     "lng": contact_data.location.lng
@@ -292,7 +281,6 @@ async def update_contact(
             "phone": contact_data.phone,
             "address": contact_data.address,
             "location_type": type(contact_data.location).__name__ if contact_data.location else None,
-            "stack_trace": str(e.__traceback__)
         }
         logger.error(f"💥 Error diagnostics: {json.dumps(error_diag)}")
         
