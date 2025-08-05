@@ -171,7 +171,7 @@ async def update_contact(
     logger.info(f"Update contact request for chat_id: {chat_id}")
     logger.debug(f"Request debug info: {json.dumps(debug_info, indent=2)}")
     
-    # Validate chat_id matches
+    
     if chat_id != contact_data.chat_id:
         error_msg = f"User ID mismatch: {chat_id} vs {contact_data.chat_id}"
         logger.warning(error_msg)
