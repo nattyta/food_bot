@@ -77,7 +77,7 @@ async def telegram_auth_dependency(request: Request):
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
 
 
-        
+
 @router.post("/auth/telegram")
 async def auth_endpoint(request: Request):
     init_data = request.headers.get("x-telegram-init-data")
@@ -193,11 +193,11 @@ async def update_contact(
     logger.info(f"📬 Update contact request for chat_id: {chat_id}")
     logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
     
-    # Validate chat_id matches
-    if chat_id != contact_data.chat_id:
-        error_msg = f"User ID mismatch: {chat_id} vs {contact_data.chat_id}"
-        logger.warning(f"🔒 {error_msg}")
-        
+    if (response.status === 422) {
+    const errorData = await response.json();
+    throw new Error(`Validation error: ${errorData.detail[0].msg}`);
+}
+   
         # Detailed auth diagnostic
         auth_diag = {
             "authorization_header": request.headers.get("authorization"),

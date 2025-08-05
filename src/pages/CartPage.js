@@ -143,7 +143,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     try {
       console.log("Starting order confirmation...");
       
-      // Log Telegram WebApp status - defined at the top level of try block
       const inTelegram = isTelegramWebApp();
       console.log("In Telegram WebApp:", inTelegram);
       
@@ -153,7 +152,11 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         console.log("Telegram initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
       }
       
-      // Debug: Log all localStorage contents
+      // Get chat_id from Telegram if available
+      const chat_id = inTelegram 
+        ? window.Telegram.WebApp.initDataUnsafe.user.id 
+        : null;
+  
       console.debug("LocalStorage contents:", { 
         auth_token: localStorage.getItem('auth_token'),
         cart: localStorage.getItem('cart'),
@@ -173,7 +176,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) {
-        // Detailed debug info for missing token
         const debugInfo = {
           timestamp: new Date().toISOString(),
           inTelegram: inTelegram,
@@ -186,8 +188,9 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         throw new Error("Authentication token missing. Please refresh the page.");
       }
   
-      // Prepare request data
+      // Prepare request data WITH chat_id
       const requestData = {
+        chat_id,  // Add chat_id here
         phone: orderDetails.phone,
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
         location: orderType === 'delivery' ? orderDetails.delivery.location : null
@@ -200,7 +203,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         'Authorization': `Bearer ${authToken}`
       };
   
-      // Use the preserved initData from App.js instead of window object
       if (telegramInitData) {
         headers['x-telegram-init-data'] = telegramInitData;
         console.log("✅ Added preserved Telegram initData header");
@@ -231,13 +233,23 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           responseBody = await response.text();
           console.log("Raw response:", responseBody);
           
-          // Try to parse as JSON
-          try {
-            const errorData = JSON.parse(responseBody);
-            errorDetail = errorData.detail || errorDetail;
-            console.error("Error response body:", errorData);
-          } catch (e) {
-            errorDetail = responseBody || errorDetail;
+          // Improved error parsing for 422 responses
+          if (response.status === 422) {
+            try {
+              const errorData = JSON.parse(responseBody);
+              // Extract validation errors
+              const validationErrors = errorData.detail.map(err => 
+                `${err.loc.join('.')}: ${err.msg}`
+              ).join('; ');
+              
+              errorDetail = `Validation error: ${validationErrors}`;
+              console.error("Validation errors:", validationErrors);
+            } catch {}
+          } else {
+            try {
+              const errorData = JSON.parse(responseBody);
+              errorDetail = errorData.detail || errorDetail;
+            } catch {}
           }
         } catch (e) {
           console.error("Failed to parse error response:", e);

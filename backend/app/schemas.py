@@ -32,7 +32,7 @@ class Location(BaseModel):
 
 # Add this new class
 class UserContactUpdate(BaseModel):
-    chat_id: int
+    chat_id: Optional[int] = None
     phone: str
     address: Optional[str] = None
     location: Optional[Dict[str, Any]] = None
