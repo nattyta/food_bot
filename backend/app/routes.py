@@ -53,19 +53,9 @@ async def telegram_auth_dependency(request: Request):
 @router.post("/auth/telegram")
 async def auth_endpoint(request: Request):
     init_data = request.headers.get("x-telegram-init-data")
-    bot_token = os.getenv("Telegram_API")
     
     if not init_data:
-        raise HTTPException(400, "Missing initData")
-    
-    try:
-        user_data = validate_init_data(init_data, bot_token)
-        return {"status": "success", "user": user_data}
-    except HTTPException as e:
-        return JSONResponse(
-            status_code=e.status_code,
-            content={"detail": e.detail}
-        )
+        raise HTTPException(status_code=400, detail="Missing initData")
     
     # Get bot token with safety checks
     BOT_TOKEN = os.getenv("Telegram_API", "").strip()
@@ -79,17 +69,16 @@ async def auth_endpoint(request: Request):
             }
         )
 
-    # Request forensics for debugging
     logger.debug("🔍 [AUTH DIAGNOSTICS]")
-    logger.debug(f"  Header length: {len(raw_header)}")
-    logger.debug(f"  First 50 chars: {raw_header[:50]}")
-    logger.debug(f"  Last 50 chars: {raw_header[-50:]}")
-    logger.debug(f"  Contains hash: {'hash=' in raw_header}")
+    logger.debug(f"  Header length: {len(init_data)}")
+    logger.debug(f"  First 50 chars: {init_data[:50]}")
+    logger.debug(f"  Last 50 chars: {init_data[-50:]}")
+    logger.debug(f"  Contains hash: {'hash=' in init_data}")
     logger.debug(f"  Bot token: {BOT_TOKEN[:3]}...{BOT_TOKEN[-3:]}")
     
     try:
         # Use the raw header directly for validation
-        user = validate_init_data(raw_header, BOT_TOKEN)
+        user = validate_init_data(init_data, BOT_TOKEN)
         logger.info(f"✅ Authentication successful for user: {user.get('user', {}).get('id')}")
         
         # Generate session token
@@ -108,11 +97,10 @@ async def auth_endpoint(request: Request):
         return {
             "status": "success",
             "user": user,
-            "session_token": session_token
+            "session_token": session_token  # MAKE SURE THIS IS INCLUDED
         }
     
     except HTTPException as he:
-        # Handle known validation errors
         logger.error(f"❌ Authentication failed: {he.detail}")
         return JSONResponse(
             status_code=he.status_code,
@@ -121,14 +109,13 @@ async def auth_endpoint(request: Request):
                 "detail": he.detail,
                 "diagnostic": {
                     "bot_token_length": len(BOT_TOKEN),
-                    "header_sample": f"{raw_header[:50]}...{raw_header[-50:]}",
+                    "header_sample": f"{init_data[:50]}...{init_data[-50:]}",
                     "validation_step": "hash_comparison"
                 }
             }
         )
     
     except Exception as e:
-        # Handle unexpected errors
         logger.exception("💥 CRITICAL: Unhandled authentication error")
         return JSONResponse(
             status_code=500,
@@ -138,12 +125,11 @@ async def auth_endpoint(request: Request):
                 "error_info": str(e),
                 "diagnostic": {
                     "bot_token": BOT_TOKEN[:3] + "..." + BOT_TOKEN[-3:],
-                    "header_length": len(raw_header),
+                    "header_length": len(init_data),
                     "exception_type": type(e).__name__
                 }
             }
         )
-
 
 @router.post("/save_user")
 def save_user(
