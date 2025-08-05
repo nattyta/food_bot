@@ -33,6 +33,33 @@ class DatabaseManager:
         if self.conn:
             self.conn.close()
 
+    def execute(self, query: str, params: tuple = ()):
+        """Execute a SQL query and return the cursor"""
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, params)
+                self.conn.commit()
+                return cur
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Database query failed: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Database operation failed: {str(e)}"
+            )
+    
+    def fetchone(self, query: str, params: tuple = ()):
+        """Execute a query and fetch one result"""
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            return cur.fetchone()
+    
+    def fetchall(self, query: str, params: tuple = ()):
+        """Execute a query and fetch all results"""
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            return cur.fetchall()
+
     def register_user(self, user: UserData) -> Dict[str, Any]:
         try:
             with self.conn.cursor() as cur:

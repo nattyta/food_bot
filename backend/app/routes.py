@@ -86,13 +86,7 @@ async def auth_endpoint(request: Request):
         chat_id = user.get('user', {}).get('id')
         
         # Store session in database
-        if chat_id:
-            with DatabaseManager() as db:
-                db.execute(
-                    "INSERT INTO sessions (chat_id, session_token) VALUES (%s, %s) "
-                    "ON CONFLICT (chat_id) DO UPDATE SET session_token = EXCLUDED.session_token",
-                    (chat_id, session_token)
-                )
+       
         
         return {
             "status": "success",
@@ -171,7 +165,7 @@ async def update_contact(
     logger.info(f"Update contact request for chat_id: {chat_id}")
     logger.debug(f"Request debug info: {json.dumps(debug_info, indent=2)}")
     
-    
+     
     if chat_id != contact_data.chat_id:
         error_msg = f"User ID mismatch: {chat_id} vs {contact_data.chat_id}"
         logger.warning(error_msg)

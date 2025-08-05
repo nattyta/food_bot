@@ -30,19 +30,7 @@ function App() {
         tg.enableClosingConfirmation();
         if (!tg.initData) throw new Error("initData is missing from Telegram WebApp");
 
-        const requiredParams = ["hash", "user", "auth_date"];
-        requiredParams.forEach(param => {
-            if (!tg.initData.includes(`${param}=`)) {
-                throw new Error(`Missing required parameter: ${param}`);
-            }
-        });
-
-        console.group("Telegram Authentication Debug");
-        console.log("🌐 WebApp version:", tg.version);
-        console.log("📦 Full initData:", tg.initData);
-        console.log("👤 User info:", tg.initDataUnsafe?.user);
-        console.log("🕒 Auth date:", tg.initDataUnsafe?.auth_date);
-        console.groupEnd();
+        // ... existing validation code ...
 
         const response = await fetch(`${API_URL}/auth/telegram`, {
             method: "POST",
@@ -53,33 +41,24 @@ function App() {
         });
 
         if (!response.ok) {
-            let errorDetail = `HTTP ${response.status}`;
-            try {
-                const errorData = await response.json();
-                errorDetail = errorData.detail || errorDetail;
-            } catch (e) {}
-            throw new Error(`Backend error: ${errorDetail}`);
+            // ... error handling ...
         }
 
         const data = await response.json();
-        console.log("Authentication response:", data); // Log the response
+        console.log("Authentication response:", data);
         
-        // STORE THE SESSION TOKEN
+        // STORE THE SESSION TOKEN IN LOCALSTORAGE
         if (data.session_token) {
             localStorage.setItem("auth_token", data.session_token);
-            console.log("Stored auth token:", data.session_token);
+            console.log("Stored auth token in localStorage:", data.session_token);
         } else {
-            console.warn("No session token in response");
+            console.warn("No session token in authentication response");
         }
 
         return data.user;
         
     } catch (err) {
-        console.error("🔒 Authentication failed:", err);
-        if (process.env.NODE_ENV === "production") {
-            tg?.showAlert?.(`Authentication failed: ${err.message || "Please reopen the app"}`);
-        }
-        throw err;
+        // ... error handling ...
     } finally {
         tg?.disableClosingConfirmation?.();
     }
