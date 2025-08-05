@@ -34,22 +34,37 @@ class InitDataPayload(BaseModel):
 
 # Dependency that validates Telegram initData on protected routes
 async def telegram_auth_dependency(request: Request):
+    # Detailed header logging
+    headers = dict(request.headers)
+    logger.debug(f"Auth dependency called. Headers received: {json.dumps(headers, indent=2)}")
+    
     init_data = request.headers.get('x-telegram-init-data')
+    
     if not init_data:
+        logger.warning("❌ Missing Telegram initData header")
+        logger.debug("Available headers:")
+        for header, value in headers.items():
+            logger.debug(f"  {header}: {value}")
+        
         raise HTTPException(status_code=401, detail="Missing Telegram initData header")
 
     try:
+        logger.debug(f"Validating initData: {init_data[:50]}...")
         user = validate_init_data(init_data, BOT_TOKEN)
-        logger.warning(f"⚠️  Using token for validation: {repr(BOT_TOKEN)}")
-        logger.debug(f"Bot token from env: {repr(os.getenv('Telegram_API'))}")
+        logger.info(f"✅ Validation successful for user: {user.get('id')}")
+        
+        # Log token info without exposing it
+        logger.warning(f"⚠️ Using token for validation: {BOT_TOKEN[:3]}...{BOT_TOKEN[-3:]}")
+        logger.debug(f"Bot token from env: {os.getenv('Telegram_API')[:3]}...")
+        
         request.state.telegram_user = user
         return user.get("id")
-    except HTTPException:
+    except HTTPException as he:
+        logger.error(f"❌ Validation failed: {he.detail}")
         raise
     except Exception as e:
-        logger.error(f"Telegram auth validation failed: {e}")
+        logger.error(f"🔥 Telegram auth validation failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=401, detail="Invalid Telegram initData")
-
 @router.post("/auth/telegram")
 async def auth_endpoint(request: Request):
     init_data = request.headers.get("x-telegram-init-data")
@@ -153,54 +168,55 @@ async def update_contact(
     request: Request,  
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-    # Start debug info
+    # Comprehensive debug info
     debug_info = {
         "timestamp": datetime.utcnow().isoformat(),
         "client": request.client.host if request.client else None,
         "headers": dict(request.headers),
         "chat_id_from_auth": chat_id,
-        "contact_data_chat_id": contact_data.chat_id,
-        "request_data": contact_data.dict()
+        "contact_data": contact_data.dict()
     }
-    logger.info(f"Update contact request for chat_id: {chat_id}")
-    logger.debug(f"Request debug info: {json.dumps(debug_info, indent=2)}")
     
-     
+    logger.info(f"📬 Update contact request for chat_id: {chat_id}")
+    logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
+    
+    # Validate chat_id matches
     if chat_id != contact_data.chat_id:
         error_msg = f"User ID mismatch: {chat_id} vs {contact_data.chat_id}"
-        logger.warning(error_msg)
+        logger.warning(f"🔒 {error_msg}")
         
-        # Add auth diagnostic info
+        # Detailed auth diagnostic
         auth_diag = {
-            "auth_token": request.headers.get("authorization"),
-            "telegram_init_data": request.headers.get("x-telegram-init-data")
+            "authorization_header": request.headers.get("authorization"),
+            "telegram_init_data": request.headers.get("x-telegram-init-data"),
+            "auth_token_length": len(request.headers.get("authorization", ""))
         }
-        logger.debug(f"Auth diagnostic: {json.dumps(auth_diag)}")
+        logger.debug(f"🕵️ Auth diagnostic: {json.dumps(auth_diag)}")
         
         raise HTTPException(status_code=403, detail=error_msg)
     
     # Validate Ethiopian phone format
     if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
         error_msg = "Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
-        logger.warning(error_msg)
+        logger.warning(f"📱 {error_msg}")
+        logger.debug(f"Received phone: {contact_data.phone}")
         raise HTTPException(status_code=400, detail=error_msg)
     
     try:
-        # Prepare location data for database
+        # Prepare location data
         location_json = None
         if contact_data.location:
-            logger.debug(f"Location data received: {contact_data.location}")
+            logger.debug(f"📍 Location data received: {contact_data.location}")
             
-            # Access location as object attributes
             try:
                 location_json = json.dumps({
                     "lat": contact_data.location.lat,
                     "lng": contact_data.location.lng
                 })
-                logger.debug(f"Location JSON: {location_json}")
+                logger.debug(f"🗺️ Location JSON: {location_json}")
             except AttributeError as ae:
-                logger.error("Location attribute error! Data structure might be wrong")
-                logger.error(f"Received location: {contact_data.location}")
+                logger.error("❌ Location attribute error!")
+                logger.error(f"Received location structure: {type(contact_data.location)} - {contact_data.location}")
                 logger.exception(ae)
                 raise HTTPException(
                     status_code=400,
@@ -209,7 +225,7 @@ async def update_contact(
         
         # Database operation
         with DatabaseManager() as db:
-            logger.debug("Starting database operation...")
+            logger.debug("💾 Starting database operation...")
             
             # Update user contact information
             update_result = db.execute(
@@ -229,10 +245,10 @@ async def update_contact(
                 )
             )
             
-            logger.debug(f"UPDATE result: {update_result.rowcount} rows affected")
+            logger.info(f"🔄 UPDATE affected {update_result.rowcount} rows")
             
             if update_result.rowcount == 0:
-                logger.info(f"Creating new user for chat_id: {chat_id}")
+                logger.info(f"👤 Creating new user for chat_id: {chat_id}")
                 insert_result = db.execute(
                     """
                     INSERT INTO users (chat_id, phone, address, location)
@@ -245,27 +261,27 @@ async def update_contact(
                         location_json
                     )
                 )
-                logger.debug(f"INSERT result: {insert_result.rowcount} rows inserted")
+                logger.info(f"✅ INSERT created {insert_result.rowcount} rows")
         
-        logger.info(f"Contact updated successfully for chat_id: {chat_id}")
+        logger.info(f"👍 Contact updated successfully for chat_id: {chat_id}")
         return {"status": "success", "updated": True}
         
     except HTTPException as he:
-        # Re-raise HTTP exceptions
-        logger.error(f"HTTPException in update-contact: {he.detail}")
+        logger.error(f"⛔ HTTPException: {he.detail}")
         raise he
     except Exception as e:
-        logger.error(f"Contact update failed: {str(e)}", exc_info=True)
+        logger.error(f"🔥 Contact update failed: {str(e)}", exc_info=True)
         
-        # Additional error diagnostics
+        # Detailed error diagnostics
         error_diag = {
             "error_type": type(e).__name__,
             "chat_id": chat_id,
             "phone": contact_data.phone,
             "address": contact_data.address,
-            "location_type": type(contact_data.location).__name__ if contact_data.location else None
+            "location_type": type(contact_data.location).__name__ if contact_data.location else None,
+            "stack_trace": str(e.__traceback__)
         }
-        logger.debug(f"Error diagnostics: {json.dumps(error_diag)}")
+        logger.error(f"💥 Error diagnostics: {json.dumps(error_diag)}")
         
         raise HTTPException(
             status_code=500,

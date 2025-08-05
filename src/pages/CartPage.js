@@ -189,6 +189,10 @@ const CartPage = ({ cart, setCart }) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`
       };
+
+      if (isTelegramWebApp() && window.Telegram.WebApp.initData) {
+        headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+      }
   
       const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
       console.log("API URL:", apiUrl);
