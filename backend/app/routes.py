@@ -193,7 +193,7 @@ async def update_contact(
     logger.info(f"📬 Update contact request for chat_id: {chat_id}")
     logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
     
-    if (response.status === 422) {
+    if (response.status == 422) {
     const errorData = await response.json();
     throw new Error(`Validation error: ${errorData.detail[0].msg}`);
 }
