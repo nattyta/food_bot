@@ -181,7 +181,6 @@ async def update_contact(
     request: Request,  
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-    # Comprehensive debug info
     debug_info = {
         "timestamp": datetime.utcnow().isoformat(),
         "client": request.client.host if request.client else None,
@@ -207,10 +206,6 @@ async def update_contact(
             logger.debug(f"📍 Location data received: {contact_data.location}")
             
             try:
-                # Ensure location has lat and lng properties
-                if not hasattr(contact_data.location, 'lat') or not hasattr(contact_data.location, 'lng'):
-                    raise AttributeError("Location missing lat or lng")
-                    
                 location_json = json.dumps({
                     "lat": contact_data.location.lat,
                     "lng": contact_data.location.lng
@@ -235,8 +230,7 @@ async def update_contact(
                 UPDATE users 
                 SET phone = %s, 
                     address = %s, 
-                    location = %s,
-                    last_updated = NOW()
+                    location = %s
                 WHERE chat_id = %s
                 """,
                 (
