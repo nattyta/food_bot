@@ -14,6 +14,10 @@ const HomePage = ({ cart, setCart }) => {
   const [specialInstruction, setSpecialInstruction] = useState("");  
   const navigate = useNavigate();
   const [selectedModifications, setSelectedModifications] = useState([]);
+  
+  // New state for phone capture
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [userPhone, setUserPhone] = useState('');
 
   useEffect(() => {
     const fetchedCategories = ["All", "Popular", "Pizza", "Burger", "Pasta", "Drinks", "Desserts"];
@@ -24,7 +28,138 @@ const HomePage = ({ cart, setCart }) => {
       { id: 2, name: "Veggie Burger", description: "With Fresh Vegetables", price: 7.99, image: "burger.jpg", category: "Burger", addOns: [{ name: "Avocado", price: 1.2 }, { name: "Cheese Slice", price: 0.8 }], extras: [{ name: "Fries", price: 2.5 }, { name: "Drink", price: 1.5 }], modifications: [{ name: "No Tomato" }, { name: "No Mayo" }] }
     ];
     setProducts(sampleProducts);
+    
+    // Check if we need to show phone modal
+    const checkPhone = async () => {
+      try {
+        // Only check in Telegram environment
+        if (isTelegramWebApp()) {
+          const response = await fetch('/me');
+          if (response.ok) {
+            const data = await response.json();
+            if (!data.phone) {
+              setShowPhoneModal(true);
+            } else {
+              setUserPhone(data.phone);
+            }
+          } else {
+            setShowPhoneModal(true);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check phone:', error);
+        if (isTelegramWebApp()) setShowPhoneModal(true);
+      }
+    };
+    
+    checkPhone();
   }, []);
+
+  // Check if we're in Telegram WebApp
+  const isTelegramWebApp = () => {
+    try {
+      return (
+        typeof window !== 'undefined' &&
+        window?.Telegram?.WebApp?.initDataUnsafe?.user?.id !== undefined
+      );
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // Phone capture modal component
+  const PhoneCaptureModal = () => {
+    const [phone, setPhone] = useState('');
+    const [method, setMethod] = useState(null);
+
+    const handleTelegramShare = async () => {
+      try {
+        const userContact = await new Promise((resolve) => {
+          window.Telegram.WebApp.requestContact(resolve);
+        });
+        
+        if (userContact && userContact.phone_number) {
+          await fetch('/update-phone', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+              phone: userContact.phone_number,
+              source: 'telegram' 
+            })
+          });
+          setMethod('telegram');
+          setPhone(userContact.phone_number);
+          setUserPhone(userContact.phone_number);
+          setShowPhoneModal(false);
+        }
+      } catch (error) {
+        console.error('Phone share failed:', error);
+        alert('Failed to share phone. Please try manually.');
+      }
+    };
+
+    const handleManualSubmit = async () => {
+      // Normalize phone number
+      let normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '+251' + normalizedPhone.substring(1);
+      } else if (!normalizedPhone.startsWith('251')) {
+        normalizedPhone = '+251' + normalizedPhone;
+      } else {
+        normalizedPhone = '+' + normalizedPhone;
+      }
+      
+      if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+        alert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
+        return;
+      }
+      
+      try {
+        await fetch('/update-phone', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ 
+            phone: normalizedPhone,
+            source: 'manual' 
+          })
+        });
+        setMethod('manual');
+        setPhone(normalizedPhone);
+        setUserPhone(normalizedPhone);
+        setShowPhoneModal(false);
+      } catch (error) {
+        console.error('Failed to save phone:', error);
+        alert('Failed to save phone. Please try again.');
+      }
+    };
+
+    return (
+      <div className="phone-modal-overlay">
+        <div className="phone-modal">
+          <h2>Welcome to FoodBot!</h2>
+          <p>We need your phone number to continue</p>
+          
+          <button className="btn-telegram" onClick={handleTelegramShare}>
+            Share via Telegram
+          </button>
+          
+          <div className="divider">OR</div>
+          
+          <div className="manual-entry">
+            <input 
+              type="tel"
+              placeholder="+251XXXXXXXXX"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <button className="btn-submit" onClick={handleManualSubmit}>
+              Submit Manually
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const openPopup = (product) => {
     setSelectedProduct(product);
@@ -104,6 +239,9 @@ const HomePage = ({ cart, setCart }) => {
 
   return (
     <div className="homepage">
+      {/* Phone capture modal - appears only for first-time Telegram users */}
+      {showPhoneModal && <PhoneCaptureModal />}
+      
       <header className="header">
         <h1>Find the best food for you</h1>
         <div className="profile-pic"></div>

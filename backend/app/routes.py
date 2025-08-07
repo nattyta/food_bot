@@ -184,113 +184,106 @@ def save_user(
         "message": "User saved successfully"
     })
 
-@router.post("/update-contact")
-async def update_contact(
-    contact_data: UserContactUpdate,
-    request: Request,  
+
+
+@router.get("/me")
+async def get_current_user(
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-    debug_info = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "client": request.client.host if request.client else None,
-        "headers": dict(request.headers),
-        "chat_id_from_auth": chat_id,
-        "contact_data": contact_data.dict()
+    with DatabaseManager() as db:
+        db.execute("SELECT phone, phone_source FROM users WHERE chat_id = %s", (chat_id,))
+        user = db.fetchone()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "phone": user[0],
+        "phone_source": user[1]
     }
+
+
+
+# New phone update endpoint
+@router.post("/update-phone")
+async def update_phone(
+    request_data: PhoneUpdateRequest,
+    request: Request,
+    chat_id: int = Depends(telegram_auth_dependency)
+):
+    # Validate phone format
+    if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
+        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
     
-    logger.info(f"📬 Update contact request for chat_id: {chat_id}")
-    logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
+    # Validate source
+    if request_data.source not in ['telegram', 'manual']:
+        raise HTTPException(status_code=400, detail="Invalid phone source")
     
-    # Validate Ethiopian phone format
-    if contact_data.phone and not re.fullmatch(r'^\+251[79]\d{8}$', contact_data.phone):
-        error_msg = "Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
-        logger.warning(f"📱 {error_msg}")
-        logger.debug(f"Received phone: {contact_data.phone}")
-        raise HTTPException(status_code=400, detail=error_msg)
-    
-    try:
-        # Prepare location data
-        location_json = None
-        if contact_data.location:
-            logger.debug(f"📍 Location data received: {contact_data.location}")
-            
-            try:
-                location_json = json.dumps({
-                    "lat": contact_data.location.lat,
-                    "lng": contact_data.location.lng
-                })
-                logger.debug(f"🗺️ Location JSON: {location_json}")
-            except AttributeError as ae:
-                logger.error("❌ Location attribute error!")
-                logger.error(f"Received location structure: {type(contact_data.location)} - {contact_data.location}")
-                logger.exception(ae)
-                raise HTTPException(
-                    status_code=400,
-                    detail="Invalid location format. Expected 'lat' and 'lng' properties"
-                )
-        
-        # Database operation
-        with DatabaseManager() as db:
-            logger.debug("💾 Starting database operation...")
-            
-            # Update user contact information
-            update_result = db.execute(
-                """
-                UPDATE users 
-                SET phone = %s, 
-                    address = %s, 
-                    location = %s
-                WHERE chat_id = %s
-                """,
-                (
-                    contact_data.phone,
-                    contact_data.address,
-                    location_json,
-                    chat_id
-                )
-            )
-            
-            logger.info(f"🔄 UPDATE affected {update_result.rowcount} rows")
-            
-            if update_result.rowcount == 0:
-                logger.info(f"👤 Creating new user for chat_id: {chat_id}")
-                insert_result = db.execute(
-                    """
-                    INSERT INTO users (chat_id, phone, address, location)
-                    VALUES (%s, %s, %s, %s)
-                    """,
-                    (
-                        chat_id,
-                        contact_data.phone,
-                        contact_data.address,
-                        location_json
-                    )
-                )
-                logger.info(f"✅ INSERT created {insert_result.rowcount} rows")
-        
-        logger.info(f"👍 Contact updated successfully for chat_id: {chat_id}")
-        return {"status": "success", "updated": True}
-        
-    except HTTPException as he:
-        logger.error(f"⛔ HTTPException: {he.detail}")
-        raise he
-    except Exception as e:
-        logger.error(f"🔥 Contact update failed: {str(e)}", exc_info=True)
-        
-        # Detailed error diagnostics
-        error_diag = {
-            "error_type": type(e).__name__,
-            "chat_id": chat_id,
-            "phone": contact_data.phone,
-            "address": contact_data.address,
-            "location_type": type(contact_data.location).__name__ if contact_data.location else None,
-        }
-        logger.error(f"💥 Error diagnostics: {json.dumps(error_diag)}")
-        
-        raise HTTPException(
-            status_code=500,
-            detail="Internal server error"
+    with DatabaseManager() as db:
+        db.execute(
+            "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
+            (request_data.phone, request_data.source, chat_id)
         )
+        
+        if db.rowcount == 0:
+            db.execute(
+                "INSERT INTO users (chat_id, phone, phone_source) VALUES (%s, %s, %s)",
+                (chat_id, request_data.phone, request_data.source)
+            )
+    
+    return {"status": "success"}
+
+# Modify orders endpoint
+@router.post("/orders")
+async def create_order(order: OrderCreate, request: Request):
+    init_data = request.headers.get("x-telegram-init-data")
+    if not init_data:
+        raise HTTPException(status_code=401, detail="Missing Telegram initData")
+
+    user_data = validate_init_data(init_data, BOT_TOKEN)
+    user_id = user_data["user"]["id"]
+    
+    # Phone validation
+    if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
+        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
+    
+    # Prepare delivery location
+    delivery_location = None
+    if order.latitude and order.longitude:
+        delivery_location = json.dumps({
+            "lat": order.latitude,
+            "lng": order.longitude
+        })
+    
+    # Create order
+    with DatabaseManager() as db:
+    db.execute("""
+        INSERT INTO orders (
+            user_id, items, total_price, order_status,
+            phone, latitude, longitude, location_label,
+            notes, is_guest_order, created_at
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING order_id;
+    """, (
+        user_id,
+        json.dumps(order.items),  # Properly serialized
+        order.total_price,
+        'pending',
+        order.phone,
+        order.latitude,
+        order.longitude,
+        order.location_label,
+        order.notes,
+        order.is_guest_order,
+        datetime.utcnow()
+    ))
+        
+        order_id = db.fetchone()[0]
+    
+    return {"status": "success", "order_id": order_id}
+
+# Remove old endpoint
+# DELETE /update-contact
 
 
 @router.get("/health")
@@ -300,57 +293,4 @@ async def health_check():
         "telegram_verified": bool(BOT_TOKEN),  # Set during startup
         "timestamp": int(time.time())
     }
-
-
-
-
-@router.post("/orders")
-async def create_order(order: OrderCreate, request: Request):
-    init_data = request.headers.get("x-telegram-init-data")
-    if not init_data:
-        raise HTTPException(status_code=401, detail="Missing Telegram initData")
-
-    user_data = validate_init_data(init_data, BOT_TOKEN)
-    user_id = user_data["user"]["id"]
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Save to `orders` table
-        cursor.execute("""
-            INSERT INTO orders (user_id, items, total_price, order_status, delivery_info, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING order_id;
-        """, (
-            user_id,
-            json.dumps([item.dict() for item in order.items]),  # Store raw item info
-            order.total_price,
-            'pending',  # default status
-            json.dumps({"address": order.address, "phone": order.phone, "type": order.order_type}),
-            datetime.utcnow()
-        ))
-        order_id = cursor.fetchone()[0]
-
-        # Save to `order_items` table (normalized view)
-        for item in order.items:
-            cursor.execute("""
-                INSERT INTO order_items (order_id, product_id, quantity, unit_price)
-                VALUES (%s, %s, %s, %s);
-            """, (
-                order_id,
-                item.id,
-                item.quantity,
-                item.price
-            ))
-
-        conn.commit()
-        return {"status": "success", "order_id": order_id}
-
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        conn.close()
 

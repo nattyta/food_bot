@@ -10,13 +10,7 @@ class OrderItem(BaseModel):
     extras: List[Dict] = []
     specialInstruction: str = ""
 
-class OrderCreate(BaseModel):
-    chat_id: int  # Changed to match your frontend
-    phone: str
-    address: Optional[str] = None
-    order_type: str
-    items: List[OrderItem]  # Properly typed items list
-    total_price: float
+
     
 
 class UserCreate(BaseModel):
@@ -33,9 +27,7 @@ class Location(BaseModel):
 # Add this new class
 class UserContactUpdate(BaseModel):
     chat_id: Optional[int] = None
-    phone: str
-    address: Optional[str] = None
-    location: Optional[Dict[str, Any]] = None
+
 
 class PaymentRequest(BaseModel):
     order_id: str
@@ -51,4 +43,20 @@ class ProfileUpdate(BaseModel):
     last_name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    profile_data: Optional[Dict] = None
+    profile_data: Optional[Dict] = None"
+
+
+
+class PhoneUpdateRequest(BaseModel):
+    phone: str
+    source: str  # 'telegram' or 'manual'
+
+class OrderCreate(BaseModel):
+    phone: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    location_label: Optional[str] = None
+    notes: Optional[str] = None
+    items: List[Dict]  # Changed to List[Dict] to match frontend
+    total_price: float
+    is_guest_order: bool = False

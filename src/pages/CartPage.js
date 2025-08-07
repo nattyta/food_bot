@@ -23,7 +23,10 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   const [mapCenter, setMapCenter] = useState([9.005401, 38.763611]); // Default to Addis Ababa
   const [markerPosition, setMarkerPosition] = useState(null);
   const mapRef = useRef(null);
-  
+  const [locationLabel, setLocationLabel] = useState('');
+  const [userData, setUserData] = useState(null);
+
+
   const [orderDetails, setOrderDetails] = useState({
     phone: "", 
     delivery: {
@@ -167,6 +170,22 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     }
   };
 
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const response = await fetch('/me');
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data);
+        setOrderDetails(prev => ({
+          ...prev,
+          phone: data.phone
+        }));
+      }
+    };
+    fetchUserData();
+  }, []);
+
   const handleConfirmOrder = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -183,24 +202,20 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         console.log("Telegram initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
       }
       
-      const chat_id = inTelegram 
-        ? window.Telegram.WebApp.initDataUnsafe.user.id 
-        : null;
-  
-      console.debug("LocalStorage contents:", { 
-        auth_token: localStorage.getItem('auth_token'),
-        cart: localStorage.getItem('cart'),
-        allKeys: Object.keys(localStorage),
-        telegramInitData: inTelegram ? window.Telegram.WebApp.initData : "N/A"
-      });
-  
+      // Phone validation
       if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
         throw new Error("Please enter a valid Ethiopian phone number");
       }
       
-      if (orderType === "delivery" && !orderDetails.delivery.address.trim()) {
-        throw new Error("Please enter a delivery address");
-      }
+      // Delivery validation
+      if (orderType === "delivery") {
+        if (!orderDetails.delivery.address.trim()) {
+            throw new Error("Please enter a delivery address");
+        }
+        if (!orderDetails.delivery.location) {
+            throw new Error("Please share your location by clicking the '📍 Share Location' button");
+        }
+    }
   
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) {
@@ -215,14 +230,28 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         throw new Error("Authentication token missing. Please refresh the page.");
       }
   
-      const requestData = {
-        chat_id,
+      // Prepare order data for /orders endpoint
+      const orderData = {
         phone: orderDetails.phone,
-        address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
-        location: orderType === 'delivery' ? orderDetails.delivery.location : null
+        latitude: orderDetails.delivery.location?.lat || null,
+        longitude: orderDetails.delivery.location?.lng || null,
+        location_label: locationLabel, // From new state variable
+        notes: "", // Optional notes field
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          addOns: item.addOns || [],
+          extras: item.extras || [],
+          modifications: item.modifications || [],
+          specialInstruction: item.specialInstruction || ""
+        })),
+        total_price: totalPrice,
+        is_guest_order: false
       };
   
-      console.log("Request data:", JSON.stringify(requestData, null, 2));
+      console.log("Order data:", JSON.stringify(orderData, null, 2));
   
       const headers = {
         'Content-Type': 'application/json',
@@ -236,7 +265,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         console.warn("⚠️ No preserved Telegram initData available");
       }
   
-      const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/update-contact`;
+      const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/orders`;
       console.log("API URL:", apiUrl);
       console.log("Headers:", JSON.stringify(headers, null, 2));
   
@@ -244,7 +273,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(orderData)
       });
       const duration = performance.now() - startTime;
       
@@ -276,18 +305,18 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           console.error("Failed to parse error response:", e);
         }
         
-        throw new Error(`Backend error: ${errorDetail}`);
+        throw new Error(`Order creation failed: ${errorDetail}`);
       }
   
       const result = await response.json();
       console.log("API response:", result);
       
       if (result.status === "success") {
-        console.log("Contact update successful, navigating to payment");
+        console.log("Order created successfully, navigating to payment");
         navigate('/payment', { 
           state: { 
-            contactInfo: requestData,
-            cartTotal: totalPrice 
+            orderId: result.order_id,
+            totalAmount: totalPrice
           }
         });
       } else {
@@ -307,7 +336,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="cart-page">
       <button className="back-button" onClick={() => navigate(-1)}>
@@ -507,48 +536,68 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
 
       {/* Map Popup */}
       {showMapPopup && (
-        <div className="map-popup">
-          <div className="map-popup-content">
-            <h3>Select Delivery Location</h3>
-            <p>Click on the map to place your marker</p>
-            
-            <div className="map-container">
-              <MapContainer
-                center={mapCenter}
-                zoom={15}
-                style={{ height: "400px", width: "100%" }}
-                whenCreated={mapInstance => mapRef.current = mapInstance}
-                onClick={handleMapClick}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                {markerPosition && (
-                  <Marker position={markerPosition}>
-                    <Popup>Delivery Location</Popup>
-                  </Marker>
-                )}
-              </MapContainer>
-            </div>
-            
-            <div className="map-buttons">
-              <button 
-                className="cancel-button" 
-                onClick={() => setShowMapPopup(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                className="confirm-button" 
-                onClick={saveMapLocation}
-                disabled={!markerPosition}
-              >
-                Save Location
-              </button>
-            </div>
-          </div>
-        </div>
+         <div className="map-popup">
+         <div className="map-popup-content">
+           <h3>Select Delivery Location</h3>
+           <p>Click on the map to place your marker</p>
+           
+           <div className="map-container">
+             <MapContainer
+               center={mapCenter}
+               zoom={15}
+               style={{ height: "400px", width: "100%" }}
+               whenCreated={mapInstance => mapRef.current = mapInstance}
+               onClick={handleMapClick}
+             >
+               <TileLayer
+                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+               />
+               {markerPosition && (
+                 <Marker position={markerPosition}>
+                   <Popup>
+                     Your delivery location
+                     {locationLabel && <div>Details: {locationLabel}</div>}
+                   </Popup>
+                 </Marker>
+               )}
+             </MapContainer>
+           </div>
+     
+           {/* Location details input */}
+           <div className="location-details-section">
+             <input
+               type="text"
+               placeholder="Add location details (floor, gate, landmark, etc)"
+               value={locationLabel}
+               onChange={(e) => setLocationLabel(e.target.value)}
+               className="location-label-input"
+             />
+             <p className="location-hint">
+               Add specific details to help our delivery driver find you
+             </p>
+           </div>
+           
+           <div className="map-buttons">
+             <button 
+               className="cancel-button" 
+               onClick={() => {
+                 setShowMapPopup(false);
+                 setLocationLabel(''); // Reset location label
+               }}
+             >
+               Cancel
+             </button>
+             <button 
+               className="confirm-button" 
+               onClick={saveMapLocation}
+               disabled={!markerPosition}
+             >
+               Save Location
+             </button>
+           </div>
+         </div>
+       </div>
       )}
     </div>
   );

@@ -332,3 +332,58 @@
   justify-content: space-between;
   margin-top: 15px;
 }
+
+/* Location details section */
+.location-details-section {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.location-label-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.location-hint {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Map buttons */
+.map-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.cancel-button, .confirm-button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  flex: 1;
+  margin: 0 5px;
+}
+
+.cancel-button {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.confirm-button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.confirm-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
