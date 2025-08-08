@@ -346,7 +346,12 @@ const PhoneCaptureModal = () => {
     <Router>
       <div className="App">
         {/* Phone capture modal - appears only for first-time Telegram users */}
-        {showPhoneModal && <PhoneCaptureModal />}
+        {showPhoneModal && <PhoneCaptureModal onClose={() => setShowPhoneModal(false)}
+    onSave={(phone) => {
+      setUserPhone(phone);
+      setShowPhoneModal(false);
+    }}
+    telegramInitData={telegramInitData} />}
         
         {/* <DebugBanner logs={debugLogs} /> */}
         <Routes>

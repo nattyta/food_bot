@@ -1,41 +1,113 @@
-const PhoneCaptureModal = ({ onClose, onSave }) => {
+const PhoneCaptureModal = ({ onClose, onSave, telegramInitData }) => {
     const [phone, setPhone] = useState('');
     const [method, setMethod] = useState(null);
   
     const handleTelegramShare = async () => {
       try {
-        const userPhone = window.Telegram.WebApp.requestContact();
-        if (userPhone) {
-          await fetch('/update-phone', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-              phone: userPhone.phone_number,
-              source: 'telegram' 
-            })
-          });
-          onSave(userPhone.phone_number);
-        }
+        window.Telegram.WebApp.requestContact(
+          (contact) => {
+            if (contact && contact.phone_number) {
+              const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+              };
+              
+              // Add Telegram initData if available
+              if (telegramInitData) {
+                headers['x-telegram-init-data'] = telegramInitData;
+              }
+    
+              fetch('/update-phone', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ 
+                  phone: contact.phone_number,
+                  source: 'telegram' 
+                })
+              })
+              .then(response => {
+                if (!response.ok) throw new Error('Failed to save phone');
+                return response.json();
+              })
+              .then(() => {
+                setMethod('telegram');
+                onSave(contact.phone_number);
+                if (window.Telegram.WebApp) {
+                  window.Telegram.WebApp.showAlert('Phone number saved successfully!');
+                }
+              })
+              .catch(error => {
+                console.error('Save failed:', error);
+                if (window.Telegram.WebApp) {
+                  window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
+                }
+              });
+            }
+          },
+          (error) => {
+            console.error('Contact request failed:', error);
+            if (window.Telegram.WebApp) {
+              window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
+            }
+          }
+        );
       } catch (error) {
         console.error('Phone share failed:', error);
+        if (window.Telegram.WebApp) {
+          window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
+        }
       }
     };
-  
+
     const handleManualSubmit = async () => {
-      if (!/^\+251[79]\d{8}$/.test(phone)) {
-        alert('Please enter a valid Ethiopian phone number');
+      // Normalize phone number
+      let normalizedPhone = phone.replace(/\D/g, '');
+      if (normalizedPhone.startsWith('0')) {
+        normalizedPhone = '+251' + normalizedPhone.substring(1);
+      } else if (!normalizedPhone.startsWith('251')) {
+        normalizedPhone = '+251' + normalizedPhone;
+      } else {
+        normalizedPhone = '+' + normalizedPhone;
+      }
+      
+      if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+        if (window.Telegram.WebApp) {
+          window.Telegram.WebApp.showAlert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
+        } else {
+          alert('Please enter a valid Ethiopian phone number');
+        }
         return;
       }
       
-      await fetch('/update-phone', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ 
-          phone: phone,
-          source: 'manual' 
-        })
-      });
-      onSave(phone);
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      };
+      
+      // Add Telegram initData if available
+      if (telegramInitData) {
+        headers['x-telegram-init-data'] = telegramInitData;
+      }
+
+      try {
+        await fetch('/update-phone', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ 
+            phone: normalizedPhone,
+            source: 'manual' 
+          })
+        });
+        setMethod('manual');
+        onSave(normalizedPhone);
+      } catch (error) {
+        console.error('Failed to save phone:', error);
+        if (window.Telegram.WebApp) {
+          window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
+        } else {
+          alert('Failed to save phone. Please try again.');
+        }
+      }
     };
   
     return (
