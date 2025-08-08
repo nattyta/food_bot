@@ -248,16 +248,8 @@ async def create_order(order: OrderCreate, request: Request):
     if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
         raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
     
-    # Prepare delivery location
-    delivery_location = None
-    if order.latitude and order.longitude:
-        delivery_location = json.dumps({
-            "lat": order.latitude,
-            "lng": order.longitude
-        })
-    
-    # Create order
-   with DatabaseManager() as db:
+    # Create order - FIXED INDENTATION
+    with DatabaseManager() as db:
         db.execute("""
             INSERT INTO orders (
                 user_id, items, total_price, order_status,
@@ -282,9 +274,6 @@ async def create_order(order: OrderCreate, request: Request):
         order_id = db.fetchone()[0]
     
     return {"status": "success", "order_id": order_id}
-
-# Remove old endpoint
-# DELETE /update-contact
 
 
 @router.get("/health")
