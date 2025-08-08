@@ -43,7 +43,7 @@ class ProfileUpdate(BaseModel):
     last_name: Optional[str] = None
     phone: Optional[str] = None
     address: Optional[str] = None
-    profile_data: Optional[Dict] = None"
+    profile_data: Optional[Dict] = None
 
 
 
