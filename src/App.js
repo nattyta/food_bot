@@ -98,14 +98,19 @@ function App() {
   // Check if user needs to provide phone number
   const checkPhone = async () => {
     try {
-      // Only check in Telegram environment
       if (!isTelegramWebApp()) return;
       
-      const response = await fetch('/me', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      });
+      // Create headers with both auth token and Telegram initData
+      const headers = {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      };
+  
+      // Add Telegram initData if available
+      if (telegramInitData) {
+        headers['x-telegram-init-data'] = telegramInitData;
+      }
+  
+      const response = await fetch('/me', { headers });
       
       if (response.ok) {
         const data = await response.json();
@@ -122,7 +127,7 @@ function App() {
       setShowPhoneModal(true);
     }
   };
-
+  
   // FIXED: Restore cart from localStorage on load
   useEffect(() => {
     try {

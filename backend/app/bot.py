@@ -49,15 +49,14 @@ def get_db_connection():
         raise
 
 
-def save_user_to_db(chat_id: int, name: str, session_token: str):
+def save_user_to_db(chat_id: int, name: str):
     """Save or update user in database"""
     query = """
-    INSERT INTO users (chat_id, name, session_token)
-    VALUES (%s, %s, %s)
+    INSERT INTO users (chat_id, name)
+    VALUES (%s, %s)
     ON CONFLICT (chat_id)
     DO UPDATE SET
         name = EXCLUDED.name,
-        session_token = EXCLUDED.session_token,
         last_active = NOW()
     RETURNING chat_id;
     """
@@ -65,7 +64,7 @@ def save_user_to_db(chat_id: int, name: str, session_token: str):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (chat_id, name, session_token))
+                cur.execute(query, (chat_id, name))
                 result = cur.fetchone()
                 conn.commit()
                 logger.info(f"Saved user {chat_id} to database")
@@ -84,13 +83,13 @@ def handle_start(message):
         try:
             user = message.from_user
             chat_id = user.id
-            session_token = str(uuid.uuid4())
+            
             
             # Save to database
             saved_id = save_user_to_db(
                 chat_id=chat_id,
-                name=user.first_name,
-                session_token=session_token
+                name=user.first_name
+                
             )
             
             logger.info(f"User {saved_id} initialized")

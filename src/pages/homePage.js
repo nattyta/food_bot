@@ -47,29 +47,52 @@ const HomePage = ({ cart, setCart, telegramInitData }) => {
     const [phone, setPhone] = useState('');
     const [method, setMethod] = useState(null);
 
-    const handleTelegramShare = async () => {
+    const handleTelegramShare = () => {
       try {
-        const userContact = await new Promise((resolve) => {
-          window.Telegram.WebApp.requestContact(resolve);
-        });
-        
-        if (userContact && userContact.phone_number) {
-          await fetch('/update-phone', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-              phone: userContact.phone_number,
-              source: 'telegram' 
-            })
-          });
-          setMethod('telegram');
-          setPhone(userContact.phone_number);
-          setUserPhone(userContact.phone_number);
-          setShowPhoneModal(false);
-        }
+        window.Telegram.WebApp.requestContact(
+          (contact) => {
+            if (contact && contact.phone_number) {
+              const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+              };
+              
+              if (telegramInitData) {
+                headers['x-telegram-init-data'] = telegramInitData;
+              }
+    
+              fetch('/update-phone', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ 
+                  phone: contact.phone_number,
+                  source: 'telegram' 
+                })
+              })
+              .then(response => {
+                if (!response.ok) throw new Error('Failed to save phone');
+                return response.json();
+              })
+              .then(() => {
+                setMethod('telegram');
+                setUserPhone(contact.phone_number);
+                setShowPhoneModal(false);
+                window.Telegram.WebApp.showAlert('Phone number saved successfully!');
+              })
+              .catch(error => {
+                console.error('Save failed:', error);
+                window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
+              });
+            }
+          },
+          (error) => {
+            console.error('Contact request failed:', error);
+            window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
+          }
+        );
       } catch (error) {
         console.error('Phone share failed:', error);
-        alert('Failed to share phone. Please try manually.');
+        window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
       }
     };
 

@@ -338,3 +338,43 @@ telebot.apihelper.ApiTelegramException: A request to the Telegram API was unsucc
 2025-08-08 14:50:13,321 - __main__ - INFO - Database connection successful
 2025-08-08 14:50:14,083 - __main__ - INFO - Webhook removed
 2025-08-08 15:40:43,892 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-08 21:52:09,193 - __main__ - INFO - Starting FoodBot...
+2025-08-08 21:52:11,441 - __main__ - INFO - Database connection successful
+2025-08-08 21:52:12,184 - __main__ - INFO - Webhook removed
+2025-08-08 21:52:38,255 - __main__ - ERROR - Failed to save user 916638938: column "session_token" of relation "users" does not exist
+LINE 2:     INSERT INTO users (chat_id, name, session_token)
+                                              ^
+2025-08-08 21:52:38,256 - __main__ - ERROR - Start failed for 916638938: column "session_token" of relation "users" does not exist
+LINE 2:     INSERT INTO users (chat_id, name, session_token)
+                                              ^
+2025-08-08 21:53:28,255 - __main__ - INFO - Starting FoodBot...
+2025-08-08 21:53:30,011 - __main__ - INFO - Database connection successful
+2025-08-08 21:53:30,576 - __main__ - INFO - Webhook removed
+2025-08-08 21:53:36,419 - __main__ - ERROR - Failed to save user 916638938: INSERT has more expressions than target columns
+LINE 3:     VALUES ($1, $2, $3)
+                            ^
+2025-08-08 21:53:36,419 - __main__ - ERROR - Start failed for 916638938: INSERT has more expressions than target columns
+LINE 3:     VALUES ($1, $2, $3)
+                            ^
+2025-08-08 21:53:56,107 - __main__ - ERROR - Failed to save user 916638938: INSERT has more expressions than target columns
+LINE 3:     VALUES ($1, $2, $3)
+                            ^
+2025-08-08 21:53:56,108 - __main__ - ERROR - Start failed for 916638938: INSERT has more expressions than target columns
+LINE 3:     VALUES ($1, $2, $3)
+                            ^
+2025-08-08 21:54:03,494 - __main__ - INFO - Starting FoodBot...
+2025-08-08 21:54:05,534 - __main__ - INFO - Database connection successful
+2025-08-08 21:54:06,110 - __main__ - INFO - Webhook removed
+2025-08-08 21:54:10,923 - __main__ - ERROR - Failed to save user 916638938: the query has 2 placeholders but 3 parameters were passed
+2025-08-08 21:54:10,924 - __main__ - ERROR - Start failed for 916638938: the query has 2 placeholders but 3 parameters were passed
+2025-08-08 21:54:34,438 - __main__ - INFO - Starting FoodBot...
+2025-08-08 21:54:36,266 - __main__ - INFO - Database connection successful
+2025-08-08 21:54:36,903 - __main__ - INFO - Webhook removed
+2025-08-08 21:54:38,561 - __main__ - ERROR - Start failed for 916638938: save_user_to_db() got an unexpected keyword argument 'session_token'
+2025-08-08 21:55:44,998 - __main__ - INFO - Starting FoodBot...
+2025-08-08 21:55:46,866 - __main__ - INFO - Database connection successful
+2025-08-08 21:55:47,583 - __main__ - INFO - Webhook removed
+2025-08-08 21:55:53,822 - __main__ - INFO - Saved user 916638938 to database
+2025-08-08 21:55:53,823 - __main__ - INFO - User 916638938 initialized
+2025-08-08 22:15:15,733 - __main__ - INFO - Saved user 6523397595 to database
+2025-08-08 22:15:15,735 - __main__ - INFO - User 6523397595 initialized
