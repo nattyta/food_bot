@@ -95,19 +95,28 @@ function App() {
     }
   };
 
-  // Check if user needs to provide phone number
   const checkPhone = async () => {
     try {
       if (!isTelegramWebApp()) return;
       
+      // Get auth token
+      const authToken = localStorage.getItem('auth_token');
+      if (!authToken) return;
+      
       // Create headers with both auth token and Telegram initData
       const headers = {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        'Authorization': `Bearer ${authToken}`
       };
-  
-      // Add Telegram initData if available
+      
+      // Always add Telegram initData if available
       if (telegramInitData) {
         headers['x-telegram-init-data'] = telegramInitData;
+      } else {
+        // Try to get initData directly from Telegram if not in state
+        const tg = window.Telegram?.WebApp;
+        if (tg && tg.initData) {
+          headers['x-telegram-init-data'] = tg.initData;
+        }
       }
   
       const response = await fetch('/me', { headers });
@@ -127,7 +136,7 @@ function App() {
       setShowPhoneModal(true);
     }
   };
-  
+
   // FIXED: Restore cart from localStorage on load
   useEffect(() => {
     try {
@@ -182,6 +191,9 @@ function App() {
     // PRESERVE THE INITDATA IMMEDIATELY - BEFORE USING IT
     const initData = tg.initData;
     setTelegramInitData(initData);
+
+   
+    localStorage.setItem('telegram_init_data', initData);
     
     addDebugLog("✅ Telegram WebApp initialized");
     addDebugLog(`📦 Full initData: ${initData}`);

@@ -191,17 +191,22 @@ def save_user(
 async def get_current_user(
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-    with DatabaseManager() as db:
-        db.execute("SELECT phone, phone_source FROM users WHERE chat_id = %s", (chat_id,))
-        user = db.fetchone()
+    try:
+        with DatabaseManager() as db:
+            db.execute("SELECT phone, phone_source FROM users WHERE chat_id = %s", (chat_id,))
+            user = db.fetchone()
+        
+        if not user:
+            return {"phone": None, "phone_source": None}
+        
+        return {
+            "phone": user[0],
+            "phone_source": user[1]
+        }
     
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return {
-        "phone": user[0],
-        "phone_source": user[1]
-    }
+    except Exception as e:
+        logger.error(f"Database error in /me: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 
