@@ -29,6 +29,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
 
   const [orderDetails, setOrderDetails] = useState({
     phone: "", 
+    locationLabel: "",
     delivery: {
       address: "",
       location: null
@@ -159,7 +160,8 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
             lat: markerPosition[0],
             lng: markerPosition[1]
           }
-        }
+        },
+        locationLabel: locationLabel
       }));
       setShowMapPopup(false);
       if (isTelegramWebApp()) {
@@ -173,14 +175,23 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const response = await fetch('/me');
-      if (response.ok) {
-        const data = await response.json();
-        setUserData(data);
-        setOrderDetails(prev => ({
-          ...prev,
-          phone: data.phone
-        }));
+      try {
+        const response = await fetch('/me', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setUserData(data);
+          setOrderDetails(prev => ({
+            ...prev,
+            phone: data.phone || ""
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
       }
     };
     fetchUserData();
@@ -202,20 +213,29 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         console.log("Telegram initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
       }
       
-      // Phone validation
-      if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
-        throw new Error("Please enter a valid Ethiopian phone number");
+      // PHONE NORMALIZATION AND VALIDATION
+      let phone = orderDetails.phone.replace(/\D/g, ''); // Remove non-digit characters
+      if (phone.startsWith('251')) {
+        phone = '+' + phone;
+      } else if (phone.startsWith('0')) {
+        phone = '+251' + phone.substring(1);
+      } else if (!phone.startsWith('+251')) {
+        phone = '+251' + phone;
       }
       
-      // Delivery validation
+      if (!/^\+251[79]\d{8}$/.test(phone)) {
+        throw new Error("Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9 and 8 digits");
+      }
+      
+      // DELIVERY VALIDATION
       if (orderType === "delivery") {
         if (!orderDetails.delivery.address.trim()) {
-            throw new Error("Please enter a delivery address");
+          throw new Error("Please enter a delivery address");
         }
         if (!orderDetails.delivery.location) {
-            throw new Error("Please share your location by clicking the '📍 Share Location' button");
+          throw new Error("Please share your location by clicking the '📍 Share Location' button");
         }
-    }
+      }
   
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) {
@@ -230,13 +250,13 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         throw new Error("Authentication token missing. Please refresh the page.");
       }
   
-      // Prepare order data for /orders endpoint
+      // PREPARE ORDER DATA
       const orderData = {
-        phone: orderDetails.phone,
+        phone: phone,  // Use the normalized phone number
         latitude: orderDetails.delivery.location?.lat || null,
         longitude: orderDetails.delivery.location?.lng || null,
-        location_label: locationLabel, // From new state variable
-        notes: "", // Optional notes field
+        location_label: orderDetails.locationLabel,
+        notes: "", 
         items: cart.map(item => ({
           id: item.id,
           name: item.name,
@@ -471,16 +491,10 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
                   className="formbox"
                   value={orderDetails.phone}
                   onChange={(e) => {
-                    let phone = e.target.value.replace(/\D/g, '');
-                    if (phone.startsWith('251')) {
-                      phone = `+${phone}`;
-                    } else if (phone.startsWith('0')) {
-                      phone = `+251${phone.substring(1)}`;
-                    }
-                    setOrderDetails({
-                      ...orderDetails, 
-                      phone: phone
-                    });
+                    setOrderDetails(prev => ({
+                      ...prev, 
+                      phone: e.target.value
+                    }));
                   }}
                   required
                   pattern="(\+251|0)[79]\d{8}"

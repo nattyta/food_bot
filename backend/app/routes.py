@@ -13,6 +13,7 @@ from .auth import validate_init_data
 import hashlib
 import hmac
 import time
+from .schemas import PhoneUpdateRequest
 import uuid
 from datetime import datetime
 
@@ -256,27 +257,27 @@ async def create_order(order: OrderCreate, request: Request):
         })
     
     # Create order
-    with DatabaseManager() as db:
-    db.execute("""
-        INSERT INTO orders (
-            user_id, items, total_price, order_status,
-            phone, latitude, longitude, location_label,
-            notes, is_guest_order, created_at
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING order_id;
-    """, (
-        user_id,
-        json.dumps(order.items),  # Properly serialized
-        order.total_price,
-        'pending',
-        order.phone,
-        order.latitude,
-        order.longitude,
-        order.location_label,
-        order.notes,
-        order.is_guest_order,
-        datetime.utcnow()
-    ))
+   with DatabaseManager() as db:
+        db.execute("""
+            INSERT INTO orders (
+                user_id, items, total_price, order_status,
+                phone, latitude, longitude, location_label,
+                notes, is_guest_order, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING order_id;
+        """, (
+            user_id,
+            json.dumps(order.items),
+            order.total_price,
+            'pending',
+            order.phone,
+            order.latitude,
+            order.longitude,
+            order.location_label,
+            order.notes,
+            order.is_guest_order,
+            datetime.utcnow()
+        ))
         
         order_id = db.fetchone()[0]
     
