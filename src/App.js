@@ -333,7 +333,7 @@ const PhoneCaptureModal = () => {
         
         {/* <DebugBanner logs={debugLogs} /> */}
         <Routes>
-          <Route path="/" element={<HomePage cart={cart} setCart={setCart} user={auth?.user} />} />
+          <Route path="/" element={<HomePage cart={cart} setCart={setCart} user={auth?.user}  telegramInitData={telegramInitData} />} />
           <Route path="/detail" element={<Detail cart={cart} setCart={setCart} />} />
           <Route path="/order-history" element={<OrderHistory />} />
           <Route path="/CartPage" element={

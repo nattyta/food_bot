@@ -7,7 +7,9 @@ class OrderItem(BaseModel):
     name: str
     price: float
     quantity: int
+    addOns: List[Dict] = []
     extras: List[Dict] = []
+    modifications: List[Dict] = []
     specialInstruction: str = ""
 
 

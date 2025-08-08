@@ -3,7 +3,7 @@ import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegArrowAltCircleR
 import { useNavigate } from "react-router-dom";
 import "./homePage.css";
 
-const HomePage = ({ cart, setCart }) => {
+const HomePage = ({ cart, setCart, telegramInitData }) => {
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState([]);
@@ -28,31 +28,6 @@ const HomePage = ({ cart, setCart }) => {
       { id: 2, name: "Veggie Burger", description: "With Fresh Vegetables", price: 7.99, image: "burger.jpg", category: "Burger", addOns: [{ name: "Avocado", price: 1.2 }, { name: "Cheese Slice", price: 0.8 }], extras: [{ name: "Fries", price: 2.5 }, { name: "Drink", price: 1.5 }], modifications: [{ name: "No Tomato" }, { name: "No Mayo" }] }
     ];
     setProducts(sampleProducts);
-    
-    // Check if we need to show phone modal
-    const checkPhone = async () => {
-      try {
-        // Only check in Telegram environment
-        if (isTelegramWebApp()) {
-          const response = await fetch('/me');
-          if (response.ok) {
-            const data = await response.json();
-            if (!data.phone) {
-              setShowPhoneModal(true);
-            } else {
-              setUserPhone(data.phone);
-            }
-          } else {
-            setShowPhoneModal(true);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to check phone:', error);
-        if (isTelegramWebApp()) setShowPhoneModal(true);
-      }
-    };
-    
-    checkPhone();
   }, []);
 
   // Check if we're in Telegram WebApp
@@ -239,8 +214,6 @@ const HomePage = ({ cart, setCart }) => {
 
   return (
     <div className="homepage">
-      {/* Phone capture modal - appears only for first-time Telegram users */}
-      {showPhoneModal && <PhoneCaptureModal />}
       
       <header className="header">
         <h1>Find the best food for you</h1>

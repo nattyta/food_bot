@@ -176,11 +176,16 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch('/me', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          }
-        });
+        const headers = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        };
+        
+        // Add Telegram initData if available
+        if (telegramInitData) {
+          headers['x-telegram-init-data'] = telegramInitData;
+        }
+  
+        const response = await fetch('/me', { headers });
         
         if (response.ok) {
           const data = await response.json();
@@ -195,7 +200,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       }
     };
     fetchUserData();
-  }, []);
+  }, [telegramInitData]);  
 
   const handleConfirmOrder = async () => {
     if (isSubmitting) return;
