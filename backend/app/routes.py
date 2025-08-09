@@ -193,12 +193,11 @@ async def get_current_user(
 ):
     try:
         with DatabaseManager() as db:
-            # Execute query and fetch result
-            cur = db.execute_query(
+            # Use fetchone instead of execute_query
+            user = db.fetchone(
                 "SELECT phone, phone_source FROM users WHERE chat_id = %s",
                 (chat_id,)
             )
-            user = cur.fetchone()
         
         if not user:
             return {"phone": None, "phone_source": None}
@@ -213,7 +212,6 @@ async def get_current_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-# New phone update endpoint
 @router.post("/update-phone")
 async def update_phone(
     request_data: PhoneUpdateRequest,
@@ -229,12 +227,14 @@ async def update_phone(
         raise HTTPException(status_code=400, detail="Invalid phone source")
     
     with DatabaseManager() as db:
-        db.execute(
+        # Capture cursor to access rowcount
+        cursor = db.execute(
             "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
             (request_data.phone, request_data.source, chat_id)
         )
         
-        if db.rowcount == 0:
+        # Check rowcount on cursor
+        if cursor.rowcount == 0:
             db.execute(
                 "INSERT INTO users (chat_id, phone, phone_source) VALUES (%s, %s, %s)",
                 (chat_id, request_data.phone, request_data.source)

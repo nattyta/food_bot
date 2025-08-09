@@ -34,12 +34,12 @@ class DatabaseManager:
             self.conn.close()
 
     def execute(self, query: str, params: tuple = ()):
-        """Execute a SQL query and return the cursor"""
         try:
             with self.conn.cursor() as cur:
                 cur.execute(query, params)
                 self.conn.commit()
-                return cur
+                # Return both cursor and rowcount
+                return cur, cur.rowcount
         except Exception as e:
             self.conn.rollback()
             logger.error(f"Database query failed: {str(e)}")
@@ -47,6 +47,7 @@ class DatabaseManager:
                 status_code=500,
                 detail=f"Database operation failed: {str(e)}"
             )
+
     
     def fetchone(self, query: str, params: tuple = ()):
         """Execute a query and fetch one result"""
