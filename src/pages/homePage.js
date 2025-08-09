@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import PhoneCaptureModal from '../components/PhoneCaptureModal';
 import "./homePage.css";
 
 const HomePage = ({ cart, setCart, telegramInitData }) => {
@@ -18,6 +19,26 @@ const HomePage = ({ cart, setCart, telegramInitData }) => {
   // New state for phone capture
   const [showPhoneModal, setShowPhoneModal] = useState(false);
   const [userPhone, setUserPhone] = useState('');
+
+
+  const openPopup = (product) => {
+    setSelectedProduct(product);
+    setSelectedAddOns([]);
+    setSelectedExtras([]);
+    setSelectedModifications([]);
+    setSpecialInstruction("");
+    setShowSpecialInstruction(false);
+  };
+
+  const closePopup = () => {
+    setSelectedProduct(null);
+    setSelectedAddOns([]);
+    setSelectedExtras([]);
+    setSelectedModifications([]);
+    setSpecialInstruction("");
+    setShowSpecialInstruction(false);
+  };
+
 
   useEffect(() => {
     const fetchedCategories = ["All", "Popular", "Pizza", "Burger", "Pasta", "Drinks", "Desserts"];
@@ -42,140 +63,6 @@ const HomePage = ({ cart, setCart, telegramInitData }) => {
     }
   };
 
-  // Phone capture modal component
-  const PhoneCaptureModal = () => {
-    const [phone, setPhone] = useState('');
-    const [method, setMethod] = useState(null);
-
-    const handleTelegramShare = () => {
-      try {
-        window.Telegram.WebApp.requestContact(
-          (contact) => {
-            if (contact && contact.phone_number) {
-              const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-              };
-              
-              if (telegramInitData) {
-                headers['x-telegram-init-data'] = telegramInitData;
-              }
-    
-              fetch('/update-phone', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ 
-                  phone: contact.phone_number,
-                  source: 'telegram' 
-                })
-              })
-              .then(response => {
-                if (!response.ok) throw new Error('Failed to save phone');
-                return response.json();
-              })
-              .then(() => {
-                setMethod('telegram');
-                setUserPhone(contact.phone_number);
-                setShowPhoneModal(false);
-                window.Telegram.WebApp.showAlert('Phone number saved successfully!');
-              })
-              .catch(error => {
-                console.error('Save failed:', error);
-                window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
-              });
-            }
-          },
-          (error) => {
-            console.error('Contact request failed:', error);
-            window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
-          }
-        );
-      } catch (error) {
-        console.error('Phone share failed:', error);
-        window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
-      }
-    };
-
-    const handleManualSubmit = async () => {
-      // Normalize phone number
-      let normalizedPhone = phone.replace(/\D/g, '');
-      if (normalizedPhone.startsWith('0')) {
-        normalizedPhone = '+251' + normalizedPhone.substring(1);
-      } else if (!normalizedPhone.startsWith('251')) {
-        normalizedPhone = '+251' + normalizedPhone;
-      } else {
-        normalizedPhone = '+' + normalizedPhone;
-      }
-      
-      if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
-        alert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
-        return;
-      }
-      
-      try {
-        await fetch('/update-phone', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ 
-            phone: normalizedPhone,
-            source: 'manual' 
-          })
-        });
-        setMethod('manual');
-        setPhone(normalizedPhone);
-        setUserPhone(normalizedPhone);
-        setShowPhoneModal(false);
-      } catch (error) {
-        console.error('Failed to save phone:', error);
-        alert('Failed to save phone. Please try again.');
-      }
-    };
-
-    return (
-      <div className="phone-modal-overlay">
-        <div className="phone-modal">
-          <h2>Welcome to FoodBot!</h2>
-          <p>We need your phone number to continue</p>
-          
-          <button className="btn-telegram" onClick={handleTelegramShare}>
-            Share via Telegram
-          </button>
-          
-          <div className="divider">OR</div>
-          
-          <div className="manual-entry">
-            <input 
-              type="tel"
-              placeholder="+251XXXXXXXXX"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <button className="btn-submit" onClick={handleManualSubmit}>
-              Submit Manually
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const openPopup = (product) => {
-    setSelectedProduct(product);
-    setSelectedAddOns([]);
-    setSelectedExtras([]);
-    setSelectedModifications([]);
-    setSpecialInstruction("");
-    setShowSpecialInstruction(false);
-  };
-
-  const closePopup = () => {
-    setSelectedProduct(null);
-    setSelectedAddOns([]);
-    setSelectedExtras([]);
-    setSelectedModifications([]);
-    setSpecialInstruction("");
-    setShowSpecialInstruction(false);
-  };
 
   const handleAddOnChange = (addOn) => {
     setSelectedAddOns(prev => {
@@ -237,6 +124,19 @@ const HomePage = ({ cart, setCart, telegramInitData }) => {
 
   return (
     <div className="homepage">
+
+      {/* Phone capture modal */}
+        {showPhoneModal && (
+        <PhoneCaptureModal 
+          onClose={() => setShowPhoneModal(false)}
+          onSave={(phone) => {
+            setUserPhone(phone);
+            setShowPhoneModal(false);
+          }}
+          telegramInitData={telegramInitData}
+          appName="FoodBot"
+        />
+      )}
       
       <header className="header">
         <h1>Find the best food for you</h1>

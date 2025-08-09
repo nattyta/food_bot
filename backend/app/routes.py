@@ -193,8 +193,12 @@ async def get_current_user(
 ):
     try:
         with DatabaseManager() as db:
-            db.execute("SELECT phone, phone_source FROM users WHERE chat_id = %s", (chat_id,))
-            user = db.fetchone()
+            # Execute query and fetch result
+            cur = db.execute_query(
+                "SELECT phone, phone_source FROM users WHERE chat_id = %s",
+                (chat_id,)
+            )
+            user = cur.fetchone()
         
         if not user:
             return {"phone": None, "phone_source": None}
@@ -207,7 +211,6 @@ async def get_current_user(
     except Exception as e:
         logger.error(f"Database error in /me: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
 
 
 # New phone update endpoint
