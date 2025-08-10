@@ -214,7 +214,7 @@ async def update_phone(
     chat_id: int = Depends(telegram_auth_dependency)
     
 ):
-  logger.info(f"Updating phone for user {chat_id} to {request_data.phone}")
+  
  
     # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
