@@ -409,3 +409,4 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-10 23:51:34,033 - __main__ - INFO - Database connection successful
 2025-08-10 23:51:35,571 - __main__ - INFO - Webhook removed
 2025-08-10 23:51:47,250 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 00:11:33,565 - __main__ - ERROR - Contact handling error: name 're' is not defined
