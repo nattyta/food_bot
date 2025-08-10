@@ -21,39 +21,43 @@ const PhoneCaptureModal = ({
   
       console.log("[DEBUG] Requesting contact access...");
       tg.requestContact(
-        (contactResult) => {
-          // Handle different response formats
-          let contact;
-          if (typeof contactResult === 'string') {
-            console.log("[DEBUG] Received string contact data");
-            try {
-              // Decode URI component and parse JSON
-              const decoded = decodeURIComponent(contactResult);
-              const match = decoded.match(/contact=({.*})/);
-              if (match && match[1]) {
-                contact = JSON.parse(match[1]);
+        (contact) => {
+          // Telegram now returns a simple boolean true on success
+          if (contact === true) {
+            console.log("[DEBUG] Contact share successful");
+            
+            // Contact is now available in initDataUnsafe
+            const user = tg.initDataUnsafe.user;
+            if (user?.phone_number) {
+              const userPhone = user.phone_number;
+              console.log(`[DEBUG] Phone number: ${userPhone}`);
+              
+              // Normalize and validate phone number
+              let normalizedPhone = userPhone.replace(/\D/g, '');
+              if (normalizedPhone.startsWith('0')) {
+                normalizedPhone = '+251' + normalizedPhone.substring(1);
+              } else if (!normalizedPhone.startsWith('251')) {
+                normalizedPhone = '+251' + normalizedPhone;
+              } else {
+                normalizedPhone = '+' + normalizedPhone;
               }
-            } catch (e) {
-              console.error("[DEBUG] Failed to parse contact string", e);
+              
+              // Validate Ethiopian format
+              if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+                tg.showAlert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
+                return;
+              }
+              
+              // Save the phone number
+              onSave(normalizedPhone);
+            } else {
+              console.error("[DEBUG] Phone number not found in user object");
+              tg.showAlert("Failed to get phone number");
             }
-          } else if (typeof contactResult === 'object') {
-            console.log("[DEBUG] Received object contact data");
-            contact = contactResult;
           } else {
-            console.error("[DEBUG] Unexpected contact format", contactResult);
+            console.error("[DEBUG] Unexpected contact response:", contact);
+            tg.showAlert("Contact access failed");
           }
-  
-          if (!contact?.phone_number) {
-            console.error("[DEBUG] No phone number in contact", contact);
-            tg.showAlert("Failed to get phone number");
-            return;
-          }
-  
-          console.log("[DEBUG] Contact received:", contact);
-          const userPhone = contact.phone_number;
-          console.log(`[DEBUG] Raw phone: ${userPhone}`);
-          
-          // ... rest of your processing code ...
         },
         (error) => {
           console.error('[DEBUG] Contact request failed:', error);
@@ -66,6 +70,7 @@ const PhoneCaptureModal = ({
     }
   };
 
+  
   const handleManualSubmit = async () => {
     // Normalize phone number
     let normalizedPhone = phone.replace(/\D/g, '');
