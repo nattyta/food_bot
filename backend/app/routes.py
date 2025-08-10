@@ -206,11 +206,6 @@ async def get_current_user(
             "phone": user[0],
             "phone_source": user[1]
         }
-    
-    except Exception as e:
-        logger.error(f"Database error in /me: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
-
 
 @router.post("/update-phone")
 async def update_phone(
@@ -218,6 +213,7 @@ async def update_phone(
     request: Request,
     chat_id: int = Depends(telegram_auth_dependency)
 ):
+ logger.info(f"Updating phone for user {chat_id} to {request_data.phone}")
     # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
         raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
@@ -227,7 +223,7 @@ async def update_phone(
         raise HTTPException(status_code=400, detail="Invalid phone source")
     
     with DatabaseManager() as db:
-        # Capture cursor to access rowcount
+        
         cursor = db.execute(
             "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
             (request_data.phone, request_data.source, chat_id)

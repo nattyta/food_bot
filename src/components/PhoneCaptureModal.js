@@ -11,64 +11,88 @@ const PhoneCaptureModal = ({
 
   const handleTelegramShare = () => {
     try {
-      window.Telegram.WebApp.requestContact(
-        (contact) => {
-          if (contact && contact.phone_number) {
-            const userPhone = contact.phone_number;
-            setPhone(userPhone);
-            
-            // Save to backend
-            const headers = {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            };
-            
-            if (telegramInitData) {
-              headers['x-telegram-init-data'] = telegramInitData;
-            }
+        window.Telegram.WebApp.requestContact(
+            async (contact) => {  // Make callback async
+                if (contact && contact.phone_number) {
+                    const userPhone = contact.phone_number;
+                    setPhone(userPhone);
+                    
+                    try {
+                        // Normalize phone number
+                        let normalizedPhone = userPhone.replace(/\D/g, '');
+                        if (normalizedPhone.startsWith('0')) {
+                            normalizedPhone = '+251' + normalizedPhone.substring(1);
+                        } else if (!normalizedPhone.startsWith('251')) {
+                            normalizedPhone = '+251' + normalizedPhone;
+                        } else {
+                            normalizedPhone = '+' + normalizedPhone;
+                        }
 
-            fetch('/update-phone', {
-              method: 'POST',
-              headers,
-              body: JSON.stringify({ 
-                phone: userPhone,
-                source: 'telegram' 
-              })
-            })
-            .then(response => {
-              if (!response.ok) throw new Error('Failed to save phone');
-              return response.json();
-            })
-            .then(() => {
-              setMethod('telegram');
-              onSave(userPhone);
-              if (onClose) onClose();
-              if (window.Telegram.WebApp) {
-                window.Telegram.WebApp.showAlert('Phone number saved successfully!');
-              }
-            })
-            .catch(error => {
-              console.error('Save failed:', error);
-              if (window.Telegram.WebApp) {
-                window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
-              }
-            });
-          }
-        },
-        (error) => {
-          console.error('Contact request failed:', error);
-          if (window.Telegram.WebApp) {
-            window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
-          }
-        }
-      );
+                        // Validate Ethiopian format
+                        if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+                            throw new Error('Invalid Ethiopian phone number');
+                        }
+
+                        // Prepare request
+                        const payload = {
+                            phone: normalizedPhone,
+                            source: 'telegram'
+                        };
+
+                        // Prepare headers
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        };
+                        
+                        if (telegramInitData) {
+                            headers['x-telegram-init-data'] = telegramInitData;
+                        }
+
+                        // Send to backend
+                        const response = await fetch('/update-phone', {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.detail || 'Failed to save phone');
+                        }
+
+                        // Success handling
+                        setMethod('telegram');
+                        onSave(normalizedPhone);
+                        if (onClose) onClose();
+                        
+                        if (window.Telegram.WebApp) {
+                            window.Telegram.WebApp.showAlert('Phone number saved successfully!');
+                        }
+                    } catch (error) {
+                        console.error('Save failed:', error);
+                        if (window.Telegram.WebApp) {
+                            window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
+                        } else {
+                            alert(`Error: ${error.message}`);
+                        }
+                    }
+                }
+            },
+            (error) => {
+                console.error('Contact request failed:', error);
+                if (window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
+                }
+            }
+        );
     } catch (error) {
-      console.error('Phone share failed:', error);
-      if (window.Telegram.WebApp) {
-        window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
-      }
+        console.error('Phone share failed:', error);
+        if (window.Telegram.WebApp) {
+            window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
+        }
     }
-  };
+};
 
   const handleManualSubmit = async () => {
     // Normalize phone number
