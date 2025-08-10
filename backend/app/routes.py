@@ -215,27 +215,39 @@ async def update_phone(
 ):
     # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
+        logger.error(f"Invalid phone format: {request_data.phone}")
         raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
     
     # Validate source
     if request_data.source not in ['telegram', 'manual']:
+        logger.error(f"Invalid phone source: {request_data.source}")
         raise HTTPException(status_code=400, detail="Invalid phone source")
     
-    with DatabaseManager() as db:
-        # Execute update and get cursor
-        cursor = db.execute(
-            "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
-            (request_data.phone, request_data.source, chat_id)
-        )
-        
-        # Check rowcount on cursor
-        if cursor.rowcount == 0:
-            db.execute(
-                "INSERT INTO users (chat_id, phone, phone_source) VALUES (%s, %s, %s)",
-                (chat_id, request_data.phone, request_data.source)
+    try:
+        with DatabaseManager() as db:
+            # Execute update and get cursor
+            cursor, rowcount = db.execute(
+                "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
+                (request_data.phone, request_data.source, chat_id)
             )
+            
+            if rowcount == 0:
+                logger.info(f"No user found for {chat_id}, inserting new record")
+                db.execute(
+                    "INSERT INTO users (chat_id, phone, phone_source) VALUES (%s, %s, %s)",
+                    (chat_id, request_data.phone, request_data.source)
+                )
+            else:
+                logger.info(f"Updated phone for user {chat_id}")
     
-    return {"status": "success"}
+        return {"status": "success"}
+    
+    except HTTPException as he:
+        # Re-raise HTTPExceptions
+        raise he
+    except Exception as e:
+        logger.exception(f"Database error in /update-phone: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # Modify orders endpoint
 @router.post("/orders")
