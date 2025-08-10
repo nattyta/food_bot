@@ -21,18 +21,15 @@ const PhoneCaptureModal = ({
   
       console.log("[DEBUG] Requesting contact access...");
       tg.requestContact(
-        (contact) => {
-          // Telegram now returns a simple boolean true on success
-          if (contact === true) {
-            console.log("[DEBUG] Contact share successful");
+        async (contact) => {  // Make callback async
+          console.log("[DEBUG] Contact received:", contact);
+          
+          if (contact && contact.phone_number) {
+            const userPhone = contact.phone_number;
+            console.log(`[DEBUG] Raw phone: ${userPhone}`);
             
-            // Contact is now available in initDataUnsafe
-            const user = tg.initDataUnsafe.user;
-            if (user?.phone_number) {
-              const userPhone = user.phone_number;
-              console.log(`[DEBUG] Phone number: ${userPhone}`);
-              
-              // Normalize and validate phone number
+            try {
+              // Normalize phone number
               let normalizedPhone = userPhone.replace(/\D/g, '');
               if (normalizedPhone.startsWith('0')) {
                 normalizedPhone = '+251' + normalizedPhone.substring(1);
@@ -41,22 +38,59 @@ const PhoneCaptureModal = ({
               } else {
                 normalizedPhone = '+' + normalizedPhone;
               }
-              
+  
               // Validate Ethiopian format
               if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
-                tg.showAlert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
-                return;
+                throw new Error('Invalid Ethiopian phone number format');
               }
+  
+              // Prepare request
+              const payload = {
+                phone: normalizedPhone,
+                source: 'telegram'
+              };
+  
+              // Prepare headers
+              const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+              };
               
-              // Save the phone number
+              if (telegramInitData) {
+                headers['x-telegram-init-data'] = telegramInitData;
+              }
+  
+              // Send to backend
+              const response = await fetch('/update-phone', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+              });
+  
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to save phone');
+              }
+  
+              // Success handling
+              setMethod('telegram');
               onSave(normalizedPhone);
-            } else {
-              console.error("[DEBUG] Phone number not found in user object");
-              tg.showAlert("Failed to get phone number");
+              if (onClose) onClose();
+              
+              if (window.Telegram.WebApp) {
+                window.Telegram.WebApp.showAlert('Phone number saved successfully!');
+              }
+            } catch (error) {
+              console.error('Save failed:', error);
+              if (window.Telegram.WebApp) {
+                window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
+              } else {
+                alert(`Error: ${error.message}`);
+              }
             }
           } else {
-            console.error("[DEBUG] Unexpected contact response:", contact);
-            tg.showAlert("Contact access failed");
+            console.error("[DEBUG] No phone number in contact", contact);
+            tg.showAlert("Failed to get phone number");
           }
         },
         (error) => {

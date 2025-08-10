@@ -405,3 +405,7 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-10 23:12:12,999 - __main__ - INFO - Webhook removed
 2025-08-10 23:16:31,427 - __main__ - ERROR - Contact handling error: name 're' is not defined
 2025-08-10 23:22:37,253 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-10 23:51:30,900 - __main__ - INFO - Starting FoodBot...
+2025-08-10 23:51:34,033 - __main__ - INFO - Database connection successful
+2025-08-10 23:51:35,571 - __main__ - INFO - Webhook removed
+2025-08-10 23:51:47,250 - __main__ - ERROR - Contact handling error: name 're' is not defined
