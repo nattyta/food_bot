@@ -212,10 +212,7 @@ async def update_phone(
     request_data: PhoneUpdateRequest,
     request: Request,
     chat_id: int = Depends(telegram_auth_dependency)
-    
 ):
-  
- 
     # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
         raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
@@ -225,7 +222,7 @@ async def update_phone(
         raise HTTPException(status_code=400, detail="Invalid phone source")
     
     with DatabaseManager() as db:
-        
+        # Execute update and get cursor
         cursor = db.execute(
             "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
             (request_data.phone, request_data.source, chat_id)
