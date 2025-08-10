@@ -133,6 +133,49 @@ def handle_webapp_data(message):
     # ======================
     # MAIN EXECUTION
     # ======================
+
+
+
+@bot.message_handler(content_types=['contact'])
+def handle_contact(message):
+    try:
+        contact = message.contact
+        user_id = message.from_user.id
+        phone = contact.phone_number
+        
+        # Normalize phone number
+        phone = phone.replace('+', '').replace(' ', '')
+        if phone.startswith('0'):
+            phone = '251' + phone[1:]
+        elif not phone.startswith('251'):
+            phone = '251' + phone
+        
+        # Validate Ethiopian format
+        if not re.match(r'^251[79]\d{8}$', phone):
+            bot.reply_to(message, "❌ Invalid Ethiopian number format")
+            return
+        
+        # Save to database
+        with psycopg.connect(os.getenv("DATABASE_URL")) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO users (chat_id, phone, phone_source)
+                    VALUES (%s, %s, 'telegram')
+                    ON CONFLICT (chat_id)
+                    DO UPDATE SET
+                        phone = EXCLUDED.phone,
+                        phone_source = EXCLUDED.phone_source
+                    """,
+                    (user_id, '+' + phone)
+                )
+                conn.commit()
+        
+        bot.reply_to(message, "✅ Phone number saved successfully!")
+        
+    except Exception as e:
+        logger.error(f"Contact handling error: {str(e)}")
+        bot.reply_to(message, "⚠️ Failed to save phone. Please try again.")
 if __name__ == "__main__":
     logger.info("Starting FoodBot...")
     try:

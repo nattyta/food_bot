@@ -21,77 +21,39 @@ const PhoneCaptureModal = ({
   
       console.log("[DEBUG] Requesting contact access...");
       tg.requestContact(
-        async (contact) => {
-          console.log("[DEBUG] Contact received:", contact);
-          
+        (contactResult) => {
+          // Handle different response formats
+          let contact;
+          if (typeof contactResult === 'string') {
+            console.log("[DEBUG] Received string contact data");
+            try {
+              // Decode URI component and parse JSON
+              const decoded = decodeURIComponent(contactResult);
+              const match = decoded.match(/contact=({.*})/);
+              if (match && match[1]) {
+                contact = JSON.parse(match[1]);
+              }
+            } catch (e) {
+              console.error("[DEBUG] Failed to parse contact string", e);
+            }
+          } else if (typeof contactResult === 'object') {
+            console.log("[DEBUG] Received object contact data");
+            contact = contactResult;
+          } else {
+            console.error("[DEBUG] Unexpected contact format", contactResult);
+          }
+  
           if (!contact?.phone_number) {
-            console.error("[DEBUG] No phone number in contact");
+            console.error("[DEBUG] No phone number in contact", contact);
             tg.showAlert("Failed to get phone number");
             return;
           }
   
-          let phone = contact.phone_number;
-          console.log(`[DEBUG] Raw phone: ${phone}`);
+          console.log("[DEBUG] Contact received:", contact);
+          const userPhone = contact.phone_number;
+          console.log(`[DEBUG] Raw phone: ${userPhone}`);
           
-          // Normalize phone
-          phone = phone.replace(/\D/g, '');
-          if (phone.startsWith('0')) {
-            phone = '+251' + phone.substring(1);
-          } else if (!phone.startsWith('251')) {
-            phone = '+251' + phone;
-          } else {
-            phone = '+' + phone;
-          }
-          
-          console.log(`[DEBUG] Normalized phone: ${phone}`);
-          
-          // Validate format
-          if (!/^\+251[79]\d{8}$/.test(phone)) {
-            console.error(`[DEBUG] Invalid phone format: ${phone}`);
-            tg.showAlert("Invalid Ethiopian phone format");
-            return;
-          }
-  
-          try {
-            console.log("[DEBUG] Preparing API request");
-            const payload = { phone, source: 'telegram' };
-            const headers = {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            };
-            
-            if (telegramInitData) {
-              headers['x-telegram-init-data'] = telegramInitData;
-              console.log("[DEBUG] Added initData to headers");
-            }
-  
-            console.log("[DEBUG] Sending to /update-phone:", payload);
-            const response = await fetch('/update-phone', {
-              method: 'POST',
-              headers,
-              body: JSON.stringify(payload)
-            });
-  
-            console.log(`[DEBUG] Response status: ${response.status}`);
-            
-            if (!response.ok) {
-              const errorData = await response.text();
-              console.error(`[DEBUG] API error: ${response.status} - ${errorData}`);
-              throw new Error(`API error: ${response.status}`);
-            }
-  
-            const data = await response.json();
-            console.log("[DEBUG] API response:", data);
-            
-            setMethod('telegram');
-            onSave(phone);
-            if (onClose) onClose();
-            
-            tg.showAlert("Phone number saved successfully!");
-          } catch (error) {
-            console.error('[DEBUG] Save failed:', error);
-            tg.showAlert("Failed to save phone. Please try manually.");
-          }
+          // ... rest of your processing code ...
         },
         (error) => {
           console.error('[DEBUG] Contact request failed:', error);
