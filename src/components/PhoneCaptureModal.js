@@ -10,22 +10,30 @@ const PhoneCaptureModal = ({
   const [method, setMethod] = useState(null);
 
   const handleTelegramShare = () => {
+    console.log("[DEBUG] Share via Telegram button clicked");
     try {
       const tg = window.Telegram?.WebApp;
       if (!tg || !tg.requestContact) {
-        alert("Contact sharing not available");
+        console.error("[DEBUG] Telegram contact API not available");
+        tg?.showAlert?.("Contact sharing not available in this version");
         return;
       }
   
+      console.log("[DEBUG] Requesting contact access...");
       tg.requestContact(
         async (contact) => {
+          console.log("[DEBUG] Contact received:", contact);
+          
           if (!contact?.phone_number) {
+            console.error("[DEBUG] No phone number in contact");
             tg.showAlert("Failed to get phone number");
             return;
           }
   
           let phone = contact.phone_number;
-          // Normalize phone number
+          console.log(`[DEBUG] Raw phone: ${phone}`);
+          
+          // Normalize phone
           phone = phone.replace(/\D/g, '');
           if (phone.startsWith('0')) {
             phone = '+251' + phone.substring(1);
@@ -34,21 +42,18 @@ const PhoneCaptureModal = ({
           } else {
             phone = '+' + phone;
           }
-  
+          
+          console.log(`[DEBUG] Normalized phone: ${phone}`);
+          
           // Validate format
           if (!/^\+251[79]\d{8}$/.test(phone)) {
+            console.error(`[DEBUG] Invalid phone format: ${phone}`);
             tg.showAlert("Invalid Ethiopian phone format");
             return;
           }
   
-          // Save to state
-          setPhone(phone);
-          
-          // DEBUG: Show we got the number
-          tg.showAlert(`Got phone: ${phone}`);
-          
           try {
-            // Prepare request
+            console.log("[DEBUG] Preparing API request");
             const payload = { phone, source: 'telegram' };
             const headers = {
               'Content-Type': 'application/json',
@@ -57,36 +62,45 @@ const PhoneCaptureModal = ({
             
             if (telegramInitData) {
               headers['x-telegram-init-data'] = telegramInitData;
+              console.log("[DEBUG] Added initData to headers");
             }
   
-            // Send to backend
+            console.log("[DEBUG] Sending to /update-phone:", payload);
             const response = await fetch('/update-phone', {
               method: 'POST',
               headers,
               body: JSON.stringify(payload)
             });
   
+            console.log(`[DEBUG] Response status: ${response.status}`);
+            
             if (!response.ok) {
-              throw new Error('Failed to save phone');
+              const errorData = await response.text();
+              console.error(`[DEBUG] API error: ${response.status} - ${errorData}`);
+              throw new Error(`API error: ${response.status}`);
             }
   
-            // Success
+            const data = await response.json();
+            console.log("[DEBUG] API response:", data);
+            
+            setMethod('telegram');
             onSave(phone);
             if (onClose) onClose();
-            tg.showAlert("Phone number saved!");
+            
+            tg.showAlert("Phone number saved successfully!");
           } catch (error) {
-            console.error('Save failed:', error);
-            tg.showAlert("Failed to save phone");
+            console.error('[DEBUG] Save failed:', error);
+            tg.showAlert("Failed to save phone. Please try manually.");
           }
         },
         (error) => {
-          console.error('Contact error:', error);
-          tg.showAlert("Contact access denied");
+          console.error('[DEBUG] Contact request failed:', error);
+          tg.showAlert("Contact access denied or failed");
         }
       );
     } catch (error) {
-      console.error('Telegram share error:', error);
-      window.Telegram?.WebApp?.showAlert("System error");
+      console.error('[DEBUG] System error:', error);
+      window.Telegram?.WebApp?.showAlert("System error. Please try manually.");
     }
   };
 

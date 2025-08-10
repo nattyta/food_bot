@@ -33,20 +33,23 @@ class DatabaseManager:
         if self.conn:
             self.conn.close()
 
-    def execute(self, query: str, params: tuple = ()):
-        try:
-            with self.conn.cursor() as cur:
-                cur.execute(query, params)
-                self.conn.commit()
-                # Return both cursor and rowcount
-                return cur, cur.rowcount
-        except Exception as e:
-            self.conn.rollback()
-            logger.error(f"Database query failed: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Database operation failed: {str(e)}"
-            )
+  def execute(self, query: str, params: tuple = ()):
+    try:
+        logger.info(f"🔧 EXECUTING QUERY: {query[:100]}...")
+        logger.info(f"🔧 PARAMS: {params}")
+        
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            self.conn.commit()
+            logger.info(f"✅ QUERY SUCCESS, ROWS: {cur.rowcount}")
+            return cur, cur.rowcount
+    except Exception as e:
+        logger.error(f"❌ QUERY FAILED: {str(e)}")
+        self.conn.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database operation failed: {str(e)}"
+        )
 
     
     def fetchone(self, query: str, params: tuple = ()):

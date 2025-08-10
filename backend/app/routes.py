@@ -218,51 +218,51 @@ async def update_phone(
     request: Request,
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-    # Log the update request
-    logger.info(f"📱 Phone update request for user {chat_id}. Source: {request_data.source}")
-    logger.debug(f"Original phone: {request_data.phone}")
-
+    # Detailed logging
+    logger.info(f"📱 UPDATE PHONE REQUEST FOR USER: {chat_id}")
+    logger.info(f"📱 Source: {request_data.source}, Phone: {request_data.phone}")
+    
     # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
-        logger.error(f"❌ Invalid phone format: {request_data.phone}")
+        logger.error(f"❌ INVALID PHONE FORMAT: {request_data.phone}")
         raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
     
     # Validate source
     if request_data.source not in ['telegram', 'manual']:
-        logger.error(f"❌ Invalid phone source: {request_data.source}")
+        logger.error(f"❌ INVALID SOURCE: {request_data.source}")
         raise HTTPException(status_code=400, detail="Invalid phone source")
     
     try:
-        # Log before database operation
-        logger.info(f"📝 Updating phone for user {chat_id} to {request_data.phone}")
-        
         with DatabaseManager() as db:
-            # Execute update and get cursor
+            # Log before operation
+            logger.info(f"🔄 UPDATING USER {chat_id} PHONE: {request_data.phone}")
+            
+            # Execute update
             cursor, rowcount = db.execute(
                 "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
                 (request_data.phone, request_data.source, chat_id)
             )
             
+            logger.info(f"📝 UPDATE ROWS AFFECTED: {rowcount}")
+            
             if rowcount == 0:
-                logger.info(f"ℹ️ No user found for {chat_id}, inserting new record")
+                logger.info(f"ℹ️ NO USER FOUND, INSERTING NEW: {chat_id}")
                 db.execute(
                     "INSERT INTO users (chat_id, phone, phone_source) VALUES (%s, %s, %s)",
                     (chat_id, request_data.phone, request_data.source)
                 )
             else:
-                logger.info(f"✅ Successfully updated phone for user {chat_id}")
-    
+                logger.info(f"✅ SUCCESSFULLY UPDATED USER: {chat_id}")
+        
         return {"status": "success"}
     
     except HTTPException as he:
-        # Re-raise HTTPExceptions
-        logger.error(f"🚨 HTTPException in /update-phone: {he.detail}")
+        logger.error(f"🚨 HTTP ERROR: {he.detail}")
         raise he
     except Exception as e:
-        logger.exception(f"🔥 Database error in /update-phone: {str(e)}")
+        logger.exception(f"🔥 DATABASE ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-        
 # Modify orders endpoint
 @router.post("/orders")
 async def create_order(order: OrderCreate, request: Request):
