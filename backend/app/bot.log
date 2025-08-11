@@ -428,3 +428,10 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-11 13:14:34,888 - __main__ - INFO - Starting FoodBot...
 2025-08-11 13:14:36,339 - __main__ - INFO - Database connection successful
 2025-08-11 13:14:37,118 - __main__ - INFO - Webhook removed
+2025-08-11 13:46:30,158 - __main__ - INFO - Saved user 916638938 to database
+2025-08-11 13:46:30,181 - __main__ - INFO - User 916638938 initialized
+2025-08-11 13:46:55,337 - __main__ - INFO - Saved user 916638938 to database
+2025-08-11 13:46:55,350 - __main__ - INFO - User 916638938 initialized
+2025-08-11 13:47:31,470 - __main__ - INFO - Starting FoodBot...
+2025-08-11 13:47:33,290 - __main__ - INFO - Database connection successful
+2025-08-11 13:47:33,920 - __main__ - INFO - Webhook removed
