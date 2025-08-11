@@ -418,3 +418,13 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-11 12:53:53,256 - __main__ - INFO - Webhook removed
 2025-08-11 12:55:36,282 - __main__ - ERROR - Contact handling error: name 're' is not defined
 2025-08-11 12:55:51,320 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 13:11:50,666 - __main__ - INFO - Starting FoodBot...
+2025-08-11 13:11:53,254 - __main__ - INFO - Database connection successful
+2025-08-11 13:11:54,600 - __main__ - INFO - Webhook removed
+2025-08-11 13:12:02,287 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 13:12:36,668 - __main__ - INFO - Saved user 916638938 to database
+2025-08-11 13:12:36,669 - __main__ - INFO - User 916638938 initialized
+2025-08-11 13:12:44,137 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 13:14:34,888 - __main__ - INFO - Starting FoodBot...
+2025-08-11 13:14:36,339 - __main__ - INFO - Database connection successful
+2025-08-11 13:14:37,118 - __main__ - INFO - Webhook removed
