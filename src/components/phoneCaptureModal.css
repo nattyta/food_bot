@@ -13,7 +13,7 @@
   }
   
   .phone-modal {
-    background: #1e1e1e;
+    background: #1e1e1e !important;
     padding: 2rem;
     border-radius: 15px;
     width: 90%;
