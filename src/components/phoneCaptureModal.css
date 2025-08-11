@@ -1,6 +1,148 @@
-.my-box {
-    background: pink;
-    padding: 20px;
-    font-size: 18px;
+/* Phone Modal Styles - Updated to match theme */
+.phone-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
   }
   
+  .phone-modal {
+    background: #1e1e1e;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    position: relative;
+    border: 1px solid #333;
+  }
+  
+  .phone-modal h2 {
+    color: #fff;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+  }
+  
+  .phone-modal p {
+    color: #aaa;
+    margin-bottom: 25px;
+    font-size: 1rem;
+  }
+  
+  .close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: color 0.3s;
+  }
+  
+  .close-button:hover {
+    color: #e76f51;
+  }
+  
+  .btn-telegram {
+    background: linear-gradient(to right, #0088cc, #006699);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 100%;
+    margin: 10px 0;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-telegram:hover {
+    background: linear-gradient(to right, #0077b3, #005580);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .divider {
+    position: relative;
+    margin: 25px 0;
+    color: #666;
+  }
+  
+  .divider span {
+    background: #1e1e1e;
+    position: relative;
+    z-index: 2;
+    padding: 0 15px;
+    font-size: 0.9rem;
+  }
+  
+  .divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #333;
+    z-index: 1;
+  }
+  
+  .manual-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+  }
+  
+  .phone-input {
+    background-color: #121212;
+    color: white;
+    border: 1px solid #333;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+  
+  .phone-input:focus {
+    outline: none;
+    border-color: #e76f51;
+    box-shadow: 0 0 0 2px rgba(231, 111, 81, 0.2);
+  }
+  
+  .phone-input::placeholder {
+    color: #555;
+  }
+  
+  .btn-submit {
+    background: linear-gradient(to right, #e76f51, #d45a3c);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-submit:hover {
+    background: linear-gradient(to right, #d45a3c, #c1492b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+  }
