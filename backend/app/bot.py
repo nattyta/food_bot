@@ -172,7 +172,15 @@ def handle_contact(message):
                 )
                 conn.commit()
         
-        bot.reply_to(message, "✅ Phone number saved successfully!")
+        # ✅ Send success message & signal WebApp to close
+        bot.send_message(
+            user_id,
+            "✅ Phone number saved successfully! \n\n📱 Closing popup...",
+            reply_markup=None
+        )
+        
+        # Send a hidden signal for WebApp to listen
+        bot.send_message(user_id, "__close_phone_popup__")
         
     except Exception as e:
         logger.error(f"Contact handling error: {str(e)}")

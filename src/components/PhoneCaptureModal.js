@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import "./phoneCaptureModal.css";
 const PhoneCaptureModal = ({ 
   onSave, 
@@ -8,6 +8,25 @@ const PhoneCaptureModal = ({
 }) => {
   const [phone, setPhone] = useState('');
   const [method, setMethod] = useState(null);
+
+
+
+  useEffect(() => {
+    if (window.Telegram?.WebApp) {
+      const handler = (event) => {
+        if (event?.data === "__close_phone_popup__") {
+          console.log("Signal from bot: closing popup");
+          if (onClose) onClose();
+        }
+      };
+
+      window.Telegram.WebApp.onEvent("message", handler);
+
+      return () => {
+        window.Telegram.WebApp.offEvent("message", handler);
+      };
+    }
+  }, [onClose]);
 
   const handleTelegramShare = () => {
     try {
