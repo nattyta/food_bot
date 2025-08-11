@@ -410,3 +410,11 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-10 23:51:35,571 - __main__ - INFO - Webhook removed
 2025-08-10 23:51:47,250 - __main__ - ERROR - Contact handling error: name 're' is not defined
 2025-08-11 00:11:33,565 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 00:21:31,984 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 00:21:54,402 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 12:36:14,219 - __main__ - CRITICAL - Bot crashed: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2025-08-11 12:53:50,674 - __main__ - INFO - Starting FoodBot...
+2025-08-11 12:53:52,606 - __main__ - INFO - Database connection successful
+2025-08-11 12:53:53,256 - __main__ - INFO - Webhook removed
+2025-08-11 12:55:36,282 - __main__ - ERROR - Contact handling error: name 're' is not defined
+2025-08-11 12:55:51,320 - __main__ - ERROR - Contact handling error: name 're' is not defined

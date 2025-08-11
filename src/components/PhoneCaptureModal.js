@@ -26,74 +26,90 @@ const PhoneCaptureModal = ({
           
           // Handle new boolean response
           if (result === true) {
-            // Contact is now available in initDataUnsafe
-            const user = tg.initDataUnsafe?.user;
+            // Get updated initData string
+            const updatedInitData = tg.initData;
+            console.log("[DEBUG] Updated initData:", updatedInitData);
             
-            if (user?.phone_number) {
-              const userPhone = user.phone_number;
-              console.log(`[DEBUG] Phone number from user object: ${userPhone}`);
+            // Parse initData to get phone number
+            let userPhone = null;
+            try {
+              // Parse URLSearchParams from initData
+              const params = new URLSearchParams(updatedInitData);
               
-              try {
-                // Normalize phone number
-                let normalizedPhone = userPhone.replace(/\D/g, '');
-                if (normalizedPhone.startsWith('0')) {
-                  normalizedPhone = '+251' + normalizedPhone.substring(1);
-                } else if (!normalizedPhone.startsWith('251')) {
-                  normalizedPhone = '+251' + normalizedPhone;
-                } else {
-                  normalizedPhone = '+' + normalizedPhone;
-                }
-  
-                // Validate Ethiopian format
-                if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
-                  throw new Error('Invalid Ethiopian phone number format');
-                }
-  
-                // Prepare request
-                const payload = {
-                  phone: normalizedPhone,
-                  source: 'telegram'
-                };
-  
-                // Prepare headers
-                const headers = {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                };
-                
-                if (telegramInitData) {
-                  headers['x-telegram-init-data'] = telegramInitData;
-                }
-  
-                // Send to backend
-                const response = await fetch('/update-phone', {
-                  method: 'POST',
-                  headers,
-                  body: JSON.stringify(payload)
-                });
-  
-                if (!response.ok) {
-                  const errorData = await response.json();
-                  throw new Error(errorData.detail || 'Failed to save phone');
-                }
-  
-                // Success handling
-                setMethod('telegram');
-                onSave(normalizedPhone);
-                if (onClose) onClose();
-                
-                if (window.Telegram.WebApp) {
-                  window.Telegram.WebApp.showAlert('Phone number saved successfully!');
-                }
-              } catch (error) {
-                console.error('Save failed:', error);
-                if (window.Telegram.WebApp) {
-                  window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
-                }
+              // Get and parse user JSON
+              const userParam = params.get('user');
+              if (userParam) {
+                const userData = JSON.parse(decodeURIComponent(userParam));
+                userPhone = userData?.phone_number;
+                console.log(`[DEBUG] Phone from parsed initData: ${userPhone}`);
               }
-            } else {
-              console.error("[DEBUG] Phone number not found in user object");
+            } catch (e) {
+              console.error("[DEBUG] Failed to parse initData:", e);
+            }
+            
+            if (!userPhone) {
+              console.error("[DEBUG] Phone number not found in initData");
               tg.showAlert("Failed to get phone number. Please try manually.");
+              return;
+            }
+            
+            // ... rest of your normalization and saving code ...
+            try {
+              // Normalize phone number
+              let normalizedPhone = userPhone.replace(/\D/g, '');
+              if (normalizedPhone.startsWith('0')) {
+                normalizedPhone = '+251' + normalizedPhone.substring(1);
+              } else if (!normalizedPhone.startsWith('251')) {
+                normalizedPhone = '+251' + normalizedPhone;
+              } else {
+                normalizedPhone = '+' + normalizedPhone;
+              }
+  
+              // Validate Ethiopian format
+              if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+                throw new Error('Invalid Ethiopian phone number format');
+              }
+  
+              // Prepare request
+              const payload = {
+                phone: normalizedPhone,
+                source: 'telegram'
+              };
+  
+              // Prepare headers
+              const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+              };
+              
+              // Use UPDATED initData for authentication
+              headers['x-telegram-init-data'] = updatedInitData;
+  
+              // Send to backend
+              const response = await fetch('/update-phone', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(payload)
+              });
+  
+              if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to save phone');
+              }
+  
+              // Success handling
+              setMethod('telegram');
+              onSave(normalizedPhone);
+              if (onClose) onClose();
+              
+              if (window.Telegram.WebApp) {
+                window.Telegram.WebApp.showAlert('Phone number saved successfully!');
+              }
+            } catch (error) {
+              console.error('Save failed:', error);
+              if (window.Telegram.WebApp) {
+                window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
+              }
             }
           } else {
             console.error("[DEBUG] Unexpected contact result:", result);
