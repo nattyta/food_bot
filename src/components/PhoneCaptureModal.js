@@ -29,12 +29,12 @@ const PhoneCaptureModal = ({
   }, [onClose]);
 
   const handleTelegramShare = () => {
+    console.log("[Telegram] Starting contact request...");
     try {
-      console.log("[Telegram] Starting contact request...");
       window.Telegram.WebApp.requestContact(
         async (contact) => {  
+          console.log("[Telegram] Contact received:", contact);
           if (contact && contact.phone_number) {
-            console.log("[Telegram] Contact received:", contact);
             const userPhone = contact.phone_number;
             setPhone(userPhone);
             
@@ -71,7 +71,7 @@ const PhoneCaptureModal = ({
               const initData = window.Telegram.WebApp.initData;
               if (initData) {
                 headers['x-telegram-init-data'] = initData;
-                console.log("[Auth] Using WebApp initData");
+                console.log("[Auth] Using WebApp initData:", initData.slice(0, 50) + "...");
               } else {
                 console.warn("[Auth] No WebApp initData available");
               }
@@ -94,21 +94,21 @@ const PhoneCaptureModal = ({
               setMethod('telegram');
               onSave(normalizedPhone);
               
-              // Close mechanisms with detailed logging
+              // Close mechanisms
               console.log("[WebApp] Attempting to close...");
               console.log("[WebApp] Version:", window.Telegram.WebApp.version);
               console.log("[WebApp] Platform:", window.Telegram.WebApp.platform);
               console.log("[WebApp] isExpanded:", window.Telegram.WebApp.isExpanded);
               
-              // 1. Try primary close method
+              // 1. Try close method
               if (typeof window.Telegram.WebApp.close === 'function') {
                 console.log("[Close] Using close() method");
                 window.Telegram.WebApp.close();
               }
               
-              // 2. Fallback to sendData after delay
+              // 2. If still not closed after delay, use sendData
               setTimeout(() => {
-                if (!window.Telegram.WebApp.isClosing) {
+                if (document.visibilityState !== 'hidden') {
                   console.log("[Close] Fallback to sendData()");
                   if (typeof window.Telegram.WebApp.sendData === 'function') {
                     window.Telegram.WebApp.sendData('close');
@@ -116,32 +116,17 @@ const PhoneCaptureModal = ({
                 }
               }, 300);
               
-              // 3. Final fallback to Haptic feedback
-              setTimeout(() => {
-                if (!window.Telegram.WebApp.isClosing) {
-                  console.log("[Close] Emergency fallback");
-                  if (typeof window.Telegram.WebApp.HapticFeedback.impactOccurred === 'function') {
-                    window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
-                  }
-                  alert("✅ Saved! Please close the window manually");
-                }
-              }, 1000);
-              
             } catch (error) {
               console.error('Save failed:', error);
-              // Detailed error logging
-              console.error("[Error] Details:", {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-              });
-              
               window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
             }
+          } else {
+            console.error('[Contact] No phone number found in contact:', contact);
+            window.Telegram.WebApp.showAlert('No phone number found in contact. Please try manually.');
           }
         },
         (error) => {
-          console.error('Contact request failed:', error);
+          console.error('[Telegram] Contact request failed:', error);
           window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
         }
       );
