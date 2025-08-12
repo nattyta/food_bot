@@ -483,3 +483,7 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-12 13:57:38,945 - __main__ - INFO - Webhook removed
 2025-08-12 13:58:46,851 - __main__ - INFO - Saved user 916638938 to database
 2025-08-12 13:58:46,854 - __main__ - INFO - User 916638938 initialized
+2025-08-12 15:41:15,513 - __main__ - INFO - Saved user 916638938 to database
+2025-08-12 15:41:15,515 - __main__ - INFO - User 916638938 initialized
+2025-08-12 15:42:57,402 - __main__ - INFO - Saved user 916638938 to database
+2025-08-12 15:42:57,404 - __main__ - INFO - User 916638938 initialized

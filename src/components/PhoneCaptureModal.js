@@ -32,19 +32,16 @@ const PhoneCaptureModal = ({
   const handleTelegramShare = () => {
     console.log("[Telegram] Starting contact request...");
     
-    // 1. Show loading state immediately
+    // Show loading state
     setLoading(true);
     
-    // 2. Request contact directly from Telegram
     window.Telegram.WebApp.requestContact(
-      async (contactResult) => {
+      async (contact) => {  
         try {
-          console.log("[Telegram] Contact result:", contactResult);
-          
-          // 3. Handle invalid contact responses
-          if (contactResult === true) {
-            // This means user granted access but we didn't get contact
-            console.warn("Got 'true' but no contact data");
+          // 1. Handle contact response quirks
+          if (contact === true) {
+            // Special case: User granted access but no contact returned
+            console.warn("Got 'true' response without contact data");
             window.Telegram.WebApp.showAlert(
               "Please select a contact with a phone number",
               () => window.Telegram.WebApp.requestContact()
@@ -52,86 +49,24 @@ const PhoneCaptureModal = ({
             return;
           }
           
-          if (!contactResult?.phone_number) {
-            console.error("Invalid contact object:", contactResult);
+          if (!contact?.phone_number) {
+            console.error("Invalid contact object:", contact);
             window.Telegram.WebApp.showAlert(
               "Telegram didn't provide a valid phone number. Please try manually."
             );
             return;
           }
   
-          const userPhone = contactResult.phone_number;
-          console.log("[Contact] Received phone:", userPhone);
+          // 2. Get phone number
+          const userPhone = contact.phone_number;
           setPhone(userPhone);
           
-          // 4. Normalize and validate phone
-          let normalizedPhone = userPhone.replace(/\D/g, '');
-          if (normalizedPhone.startsWith('0')) {
-            normalizedPhone = '+251' + normalizedPhone.substring(1);
-          } else if (!normalizedPhone.startsWith('251')) {
-            normalizedPhone = '+251' + normalizedPhone;
-          } else {
-            normalizedPhone = '+' + normalizedPhone;
-          }
-  
-          if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
-            throw new Error('Invalid Ethiopian phone number');
-          }
-  
-          // 5. Send only the normalized phone to backend
-          const response = await fetch('/update-phone', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            },
-            body: JSON.stringify({
-              phone: normalizedPhone,
-              source: 'telegram'
-            })
-          });
-  
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to save phone');
-          }
-  
-          // 6. Update UI state
-          setMethod('telegram');
-          onSave(normalizedPhone);
+          // 3. Send close command to bot
+          console.log("Sending close command to bot");
+          window.Telegram.WebApp.sendData('__SAVE_AND_CLOSE__');
           
-          // 7. GUARANTEED POPUP CLOSURE SEQUENCE
-          console.log("Initiating close sequence");
-          
-          // First: Try standard close
-          if (typeof window.Telegram.WebApp.close === 'function') {
-            window.Telegram.WebApp.close();
-          }
-          
-          // Second: Send close command after delay
-          setTimeout(() => {
-            try {
-              if (typeof window.Telegram.WebApp.sendData === 'function') {
-                window.Telegram.WebApp.sendData('__CLOSE_WEBAPP__');
-              }
-            } catch (e) {
-              console.error("sendData error:", e);
-            }
-            
-            // Third: Final fallback
-            if (document.visibilityState === 'visible') {
-              window.Telegram.WebApp.showAlert(
-                "✅ Phone saved! You can now close this window",
-                () => {
-                  try {
-                    window.Telegram.WebApp.close();
-                  } catch (e) {
-                    console.log("Final close attempt failed");
-                  }
-                }
-              );
-            }
-          }, 500);
+          // 4. Close popup immediately
+          window.Telegram.WebApp.close();
           
         } catch (error) {
           console.error('Contact processing failed:', error);
