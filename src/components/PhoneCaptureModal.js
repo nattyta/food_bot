@@ -35,12 +35,12 @@ const PhoneCaptureModal = ({
     // Show loading state
     setLoading(true);
     
+    // Request contact directly
     window.Telegram.WebApp.requestContact(
-      async (contact) => {  
+      (contact) => {
         try {
-          // 1. Handle contact response quirks
+          // Handle Telegram's quirky responses
           if (contact === true) {
-            // Special case: User granted access but no contact returned
             console.warn("Got 'true' response without contact data");
             window.Telegram.WebApp.showAlert(
               "Please select a contact with a phone number",
@@ -57,16 +57,21 @@ const PhoneCaptureModal = ({
             return;
           }
   
-          // 2. Get phone number
-          const userPhone = contact.phone_number;
-          setPhone(userPhone);
+          // This triggers bot.py's contact handler
+          console.log("Contact shared, waiting for bot to save...");
           
-          // 3. Send close command to bot
-          console.log("Sending close command to bot");
-          window.Telegram.WebApp.sendData('__SAVE_AND_CLOSE__');
-          
-          // 4. Close popup immediately
-          window.Telegram.WebApp.close();
+          // Close popup immediately after sharing
+          setTimeout(() => {
+            try {
+              window.Telegram.WebApp.close();
+            } catch (e) {
+              console.warn("Immediate close failed, trying fallback");
+              window.Telegram.WebApp.showAlert(
+                "✅ Phone saved! Tap anywhere to close",
+                () => window.Telegram.WebApp.close()
+              );
+            }
+          }, 1000);
           
         } catch (error) {
           console.error('Contact processing failed:', error);

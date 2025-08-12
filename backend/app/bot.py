@@ -153,7 +153,7 @@ def handle_contact(message):
         
         # Validate Ethiopian format
         if not re.match(r'^251[79]\d{8}$', phone):
-            bot.reply_to(message, "❌ Invalid Ethiopian number format. Please use +251 followed by 7 or 9 and 8 digits.")
+            bot.reply_to(message, "❌ Invalid Ethiopian number format.")
             return
         
         # Save to database
@@ -172,113 +172,20 @@ def handle_contact(message):
                 )
                 conn.commit()
         
-        # ✅ Send success message & signal WebApp to close
+        # Send close command to frontend
         bot.send_message(
             user_id,
-            "✅ Phone number saved successfully!",
-            reply_markup=None
+            "__CLOSE_WEBAPP__",  
+            parse_mode="Markdown"
         )
-        
-       
-        
-    except Exception as e:
-        logger.error(f"Contact handling error: {str(e)}")
-        bot.reply_to(message, "⚠️ Failed to save phone. Please try again or contact support.")
-
-
-
-
-@bot.message_handler(func=lambda message: message.text == '__CLOSE_WEBAPP__')
-def handle_close_command(message):
-    try:
-        user_id = message.from_user.id
-        bot.send_message(
-            user_id,
-            "✅ Phone number saved successfully! Closing window...",
-            reply_markup=types.ReplyKeyboardRemove()
-        )
-        
-        # This will trigger the webapp to close
-        bot.delete_message(message.chat.id, message.message_id)
-        
-    except Exception as e:
-        logger.error(f"Error handling close command: {str(e)}")
-
-
-@bot.message_handler(content_types=['text'])
-def handle_close_command(message):
-    try:
-        # 1. Check if it's our close command
-        if message.text == '__SAVE_AND_CLOSE__':
-            # 2. Get contact info from message (if available)
-            contact = message.contact
-            user_id = message.from_user.id
-            
-            # 3. Process phone if available
-            if contact and contact.phone_number:
-                phone = contact.phone_number
-                # Normalize and validate
-                phone = phone.replace('+', '').replace(' ', '')
-                if phone.startswith('0'):
-                    phone = '251' + phone[1:]
-                elif not phone.startswith('251'):
-                    phone = '251' + phone
-                
-                if re.match(r'^251[79]\d{8}$', phone):
-                    # 4. Save to database
-                    with psycopg.connect(os.getenv("DATABASE_URL")) as conn:
-                        with conn.cursor() as cur:
-                            cur.execute(
-                                """
-                                INSERT INTO users (chat_id, phone, phone_source)
-                                VALUES (%s, %s, 'telegram')
-                                ON CONFLICT (chat_id)
-                                DO UPDATE SET
-                                    phone = EXCLUDED.phone,
-                                    phone_source = EXCLUDED.phone_source
-                                """,
-                                (user_id, '+' + phone)
-                            )
-                            conn.commit()
-            
-            # 5. Send confirmation and close command
-            bot.send_message(
-                user_id,
-                "✅ Phone number saved successfully!",
-                reply_markup=types.ReplyKeyboardRemove()
-            )
-            
-            # 6. Delete the command message
-            bot.delete_message(message.chat.id, message.message_id)
-            
-    except Exception as e:
-        logger.error(f"Error handling close command: {str(e)}")
-
-@bot.message_handler(content_types=['contact'])
-def handle_contact(message):
-    try:
-        # Existing contact handling logic
-        contact = message.contact
-        user_id = message.from_user.id
-        phone = contact.phone_number
-        
-        # ... [your existing normalization and save logic] ...
-        
-        # 7. After saving, send close command
-        bot.send_message(
-            user_id,
-            "✅ Number saved! Closing window...",
-            reply_markup=types.ReplyKeyboardRemove()
-        )
-        
-        # 8. Send special command to close WebApp
-        bot.send_message(user_id, "__CLOSE_WEBAPP_NOW__")
         
     except Exception as e:
         logger.error(f"Contact handling error: {str(e)}")
         bot.reply_to(message, "⚠️ Failed to save phone. Please try again.")
 
-        
+
+
+
 if __name__ == "__main__":
     logger.info("Starting FoodBot...")
     try:
