@@ -58,14 +58,15 @@ const PhoneCaptureModal = ({
                 source: 'telegram'
               };
   
-              // Prepare headers
+              // Prepare headers - USE WEBAPP'S INITDATA DIRECTLY
               const headers = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
               };
               
-              if (telegramInitData) {
-                headers['x-telegram-init-data'] = telegramInitData;
+              // ALWAYS USE THE WEBAPP'S INITDATA
+              if (window.Telegram.WebApp.initData) {
+                headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
               }
   
               // Send to backend
@@ -80,34 +81,38 @@ const PhoneCaptureModal = ({
                 throw new Error(errorData.detail || 'Failed to save phone');
               }
   
-              // 🔹 REMOVED REDUNDANT /me CHECK
-              // 🔹 CLOSE POPUP IMMEDIATELY AFTER SUCCESS
+              // 🔹 CRITICAL FIX: USE TELEGRAM'S NATIVE ALERT
               setMethod('telegram');
               onSave(normalizedPhone);
-              window.Telegram.WebApp.close();
+              
+              // 🔹 CLOSE POPUP IMMEDIATELY
+              if (window.Telegram.WebApp.isExpanded) {
+                window.Telegram.WebApp.close();
+              } else {
+                // Handle mini-apps that might need different approach
+                window.Telegram.WebApp.sendData('close');
+                setTimeout(() => {
+                  if (window.Telegram.WebApp.close) {
+                    window.Telegram.WebApp.close();
+                  }
+                }, 300);
+              }
               
             } catch (error) {
               console.error('Save failed:', error);
-              if (window.Telegram.WebApp) {
-                window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
-              } else {
-                alert(`Error: ${error.message}`);
-              }
+              // ALWAYS USE TELEGRAM'S NATIVE ALERT
+              window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
             }
           }
         },
         (error) => {
           console.error('Contact request failed:', error);
-          if (window.Telegram.WebApp) {
-            window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
-          }
+          window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
         }
       );
     } catch (error) {
       console.error('Phone share failed:', error);
-      if (window.Telegram.WebApp) {
-        window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
-      }
+      window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
     }
   };
   

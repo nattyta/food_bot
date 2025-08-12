@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/static/css/main.35587a7d.css",
-    "main.js": "/static/js/main.f54755b4.js",
+    "main.js": "/static/js/main.cc0091dc.js",
     "static/media/cbeLogo.png": "/static/media/cbeLogo.e72d8245bac13543830f.png",
     "static/media/telebirrLogo.png": "/static/media/telebirrLogo.a9766c04d093c4d3b4cd.png",
     "static/media/cbebirrLogo.png": "/static/media/cbebirrLogo.a208eb16310894d42cd0.png",
     "static/media/abisiniaLogo.png": "/static/media/abisiniaLogo.200558b7c688ab3103f6.png",
     "index.html": "/index.html",
     "main.35587a7d.css.map": "/static/css/main.35587a7d.css.map",
-    "main.f54755b4.js.map": "/static/js/main.f54755b4.js.map"
+    "main.cc0091dc.js.map": "/static/js/main.cc0091dc.js.map"
   },
   "entrypoints": [
     "static/css/main.35587a7d.css",
-    "static/js/main.f54755b4.js"
+    "static/js/main.cc0091dc.js"
   ]
 }
