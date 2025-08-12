@@ -30,9 +30,11 @@ const PhoneCaptureModal = ({
 
   const handleTelegramShare = () => {
     try {
+      console.log("[Telegram] Starting contact request...");
       window.Telegram.WebApp.requestContact(
         async (contact) => {  
           if (contact && contact.phone_number) {
+            console.log("[Telegram] Contact received:", contact);
             const userPhone = contact.phone_number;
             setPhone(userPhone);
             
@@ -46,6 +48,7 @@ const PhoneCaptureModal = ({
               } else {
                 normalizedPhone = '+' + normalizedPhone;
               }
+              console.log("[Phone] Normalized:", normalizedPhone);
   
               // Validate Ethiopian format
               if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
@@ -58,17 +61,22 @@ const PhoneCaptureModal = ({
                 source: 'telegram'
               };
   
-              // Prepare headers - USE WEBAPP'S INITDATA DIRECTLY
+              // Prepare headers
               const headers = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
               };
               
-              // ALWAYS USE THE WEBAPP'S INITDATA
-              if (window.Telegram.WebApp.initData) {
-                headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;
+              // Use WebApp's initData
+              const initData = window.Telegram.WebApp.initData;
+              if (initData) {
+                headers['x-telegram-init-data'] = initData;
+                console.log("[Auth] Using WebApp initData");
+              } else {
+                console.warn("[Auth] No WebApp initData available");
               }
   
+              console.log("[API] Sending to /update-phone:", payload);
               // Send to backend
               const response = await fetch('/update-phone', {
                 method: 'POST',
@@ -80,27 +88,54 @@ const PhoneCaptureModal = ({
                 const errorData = await response.json();
                 throw new Error(errorData.detail || 'Failed to save phone');
               }
+              console.log("[API] Update successful!");
   
-              // 🔹 CRITICAL FIX: USE TELEGRAM'S NATIVE ALERT
+              // Update state
               setMethod('telegram');
               onSave(normalizedPhone);
               
-              // 🔹 CLOSE POPUP IMMEDIATELY
-              if (window.Telegram.WebApp.isExpanded) {
+              // Close mechanisms with detailed logging
+              console.log("[WebApp] Attempting to close...");
+              console.log("[WebApp] Version:", window.Telegram.WebApp.version);
+              console.log("[WebApp] Platform:", window.Telegram.WebApp.platform);
+              console.log("[WebApp] isExpanded:", window.Telegram.WebApp.isExpanded);
+              
+              // 1. Try primary close method
+              if (typeof window.Telegram.WebApp.close === 'function') {
+                console.log("[Close] Using close() method");
                 window.Telegram.WebApp.close();
-              } else {
-                // Handle mini-apps that might need different approach
-                window.Telegram.WebApp.sendData('close');
-                setTimeout(() => {
-                  if (window.Telegram.WebApp.close) {
-                    window.Telegram.WebApp.close();
-                  }
-                }, 300);
               }
+              
+              // 2. Fallback to sendData after delay
+              setTimeout(() => {
+                if (!window.Telegram.WebApp.isClosing) {
+                  console.log("[Close] Fallback to sendData()");
+                  if (typeof window.Telegram.WebApp.sendData === 'function') {
+                    window.Telegram.WebApp.sendData('close');
+                  }
+                }
+              }, 300);
+              
+              // 3. Final fallback to Haptic feedback
+              setTimeout(() => {
+                if (!window.Telegram.WebApp.isClosing) {
+                  console.log("[Close] Emergency fallback");
+                  if (typeof window.Telegram.WebApp.HapticFeedback.impactOccurred === 'function') {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+                  }
+                  alert("✅ Saved! Please close the window manually");
+                }
+              }, 1000);
               
             } catch (error) {
               console.error('Save failed:', error);
-              // ALWAYS USE TELEGRAM'S NATIVE ALERT
+              // Detailed error logging
+              console.error("[Error] Details:", {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+              });
+              
               window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
             }
           }
