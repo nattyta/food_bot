@@ -459,3 +459,27 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-12 12:26:50,006 - __main__ - INFO - User 916638938 initialized
 2025-08-12 12:48:15,368 - __main__ - INFO - Saved user 916638938 to database
 2025-08-12 12:48:15,374 - __main__ - INFO - User 916638938 initialized
+2025-08-12 13:08:29,070 - __main__ - INFO - Saved user 916638938 to database
+2025-08-12 13:08:29,071 - __main__ - INFO - User 916638938 initialized
+2025-08-12 13:09:13,178 - __main__ - INFO - Saved user 916638938 to database
+2025-08-12 13:09:13,180 - __main__ - INFO - User 916638938 initialized
+2025-08-12 13:16:13,840 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-12 13:38:15,534 - __main__ - INFO - Starting FoodBot...
+2025-08-12 13:38:17,475 - __main__ - INFO - Database connection successful
+2025-08-12 13:38:18,065 - __main__ - INFO - Webhook removed
+2025-08-12 13:41:36,624 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-12 13:42:53,557 - __main__ - INFO - Starting FoodBot...
+2025-08-12 13:42:55,553 - __main__ - INFO - Database connection successful
+2025-08-12 13:42:56,217 - __main__ - INFO - Webhook removed
+2025-08-12 13:43:12,834 - __main__ - INFO - Saved user 916638938 to database
+2025-08-12 13:43:12,837 - __main__ - INFO - User 916638938 initialized
+2025-08-12 13:51:23,649 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-12 13:56:13,103 - __main__ - INFO - Starting FoodBot...
+2025-08-12 13:56:14,905 - __main__ - INFO - Database connection successful
+2025-08-12 13:56:15,713 - __main__ - INFO - Webhook removed
+2025-08-12 13:57:25,264 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-12 13:57:30,365 - __main__ - INFO - Starting FoodBot...
+2025-08-12 13:57:33,476 - __main__ - INFO - Database connection successful
+2025-08-12 13:57:38,945 - __main__ - INFO - Webhook removed
+2025-08-12 13:58:46,851 - __main__ - INFO - Saved user 916638938 to database
+2025-08-12 13:58:46,854 - __main__ - INFO - User 916638938 initialized
