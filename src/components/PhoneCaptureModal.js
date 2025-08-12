@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import "./phoneCaptureModal.css";
-
 const PhoneCaptureModal = ({ 
   onSave, 
   onClose, 
@@ -9,6 +8,8 @@ const PhoneCaptureModal = ({
 }) => {
   const [phone, setPhone] = useState('');
   const [method, setMethod] = useState(null);
+
+
 
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -45,18 +46,18 @@ const PhoneCaptureModal = ({
               } else {
                 normalizedPhone = '+' + normalizedPhone;
               }
-
+  
               // Validate Ethiopian format
               if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
                 throw new Error('Invalid Ethiopian phone number');
               }
-
+  
               // Prepare request
               const payload = {
                 phone: normalizedPhone,
                 source: 'telegram'
               };
-
+  
               // Prepare headers
               const headers = {
                 'Content-Type': 'application/json',
@@ -66,36 +67,24 @@ const PhoneCaptureModal = ({
               if (telegramInitData) {
                 headers['x-telegram-init-data'] = telegramInitData;
               }
-
+  
               // Send to backend
               const response = await fetch('/update-phone', {
                 method: 'POST',
                 headers,
                 body: JSON.stringify(payload)
               });
-
+  
               if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || 'Failed to save phone');
               }
-
-              // 🔹 Check if phone is saved using /me
-              const meRes = await fetch("/me", {
-                headers: {
-                  "x-telegram-init-data": window.Telegram.WebApp.initData
-                }
-              });
-              const meData = await meRes.json();
-
-              if (meData.phone) {
-                alert("✅ Phone number saved successfully!");
-                window.Telegram.WebApp.close();
-              } else {
-                alert("❌ Failed to save phone, please try again.");
-              }
-
+  
+              // 🔹 REMOVED REDUNDANT /me CHECK
+              // 🔹 CLOSE POPUP IMMEDIATELY AFTER SUCCESS
               setMethod('telegram');
               onSave(normalizedPhone);
+              window.Telegram.WebApp.close();
               
             } catch (error) {
               console.error('Save failed:', error);
@@ -123,6 +112,7 @@ const PhoneCaptureModal = ({
   };
   
   const handleManualSubmit = async () => {
+    // Normalize phone number
     let normalizedPhone = phone.replace(/\D/g, '');
     if (normalizedPhone.startsWith('0')) {
       normalizedPhone = '+251' + normalizedPhone.substring(1);
