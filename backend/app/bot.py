@@ -186,6 +186,26 @@ def handle_contact(message):
         bot.reply_to(message, "⚠️ Failed to save phone. Please try again or contact support.")
 
 
+
+
+@bot.message_handler(func=lambda message: message.text == '__CLOSE_WEBAPP__')
+def handle_close_command(message):
+    try:
+        user_id = message.from_user.id
+        bot.send_message(
+            user_id,
+            "✅ Phone number saved successfully! Closing window...",
+            reply_markup=types.ReplyKeyboardRemove()
+        )
+        
+        # This will trigger the webapp to close
+        bot.delete_message(message.chat.id, message.message_id)
+        
+    except Exception as e:
+        logger.error(f"Error handling close command: {str(e)}")
+
+
+
 if __name__ == "__main__":
     logger.info("Starting FoodBot...")
     try:
