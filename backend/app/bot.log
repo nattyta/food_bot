@@ -606,3 +606,17 @@ LINE 8:                         updated_at = NOW()
 2025-08-13 14:54:15,174 - __main__ - INFO - User 916638938 initialized
 2025-08-13 14:56:14,880 - __main__ - INFO - ✅ Phone number saved successfully!
 2025-08-13 15:13:36,135 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-13 15:58:00,612 - __main__ - INFO - Starting FoodBot...
+2025-08-13 15:58:02,031 - __main__ - ERROR - Database connection failed: [Errno -3] Temporary failure in name resolution
+2025-08-13 15:58:02,032 - __main__ - CRITICAL - Bot crashed: [Errno -3] Temporary failure in name resolution
+2025-08-13 15:58:22,557 - __main__ - INFO - Starting FoodBot...
+2025-08-13 15:58:26,340 - __main__ - INFO - Database connection successful
+2025-08-13 15:58:27,495 - __main__ - INFO - Webhook removed
+2025-08-13 15:58:32,173 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 15:58:32,175 - __main__ - INFO - User 916638938 initialized
+2025-08-13 15:58:56,442 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 15:58:56,448 - __main__ - INFO - User 916638938 initialized
+2025-08-13 16:01:15,400 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 16:01:15,402 - __main__ - INFO - User 916638938 initialized
+2025-08-13 16:01:27,202 - __main__ - INFO - ✅ Phone number saved successfully!
+2025-08-13 16:17:25,709 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
