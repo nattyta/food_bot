@@ -626,3 +626,9 @@ LINE 8:                         updated_at = NOW()
 2025-08-13 17:27:59,879 - __main__ - INFO - Saved user 916638938 to database
 2025-08-13 17:27:59,880 - __main__ - INFO - User 916638938 initialized
 2025-08-13 17:28:10,697 - __main__ - INFO - ✅ Phone number saved successfully!
+2025-08-13 18:10:01,864 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 18:10:01,866 - __main__ - INFO - User 916638938 initialized
+2025-08-13 18:10:12,451 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 18:10:12,453 - __main__ - INFO - User 916638938 initialized
+2025-08-13 18:10:25,987 - __main__ - INFO - ✅ Phone number saved successfully!
+2025-08-13 18:14:28,097 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
