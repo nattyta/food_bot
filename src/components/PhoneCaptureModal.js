@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import "./phoneCaptureModal.css";
 const PhoneCaptureModal = ({ 
   onSave, 
   onClose, 
@@ -10,69 +10,90 @@ const PhoneCaptureModal = ({
   const [method, setMethod] = useState(null);
 
   const handleTelegramShare = () => {
-    console.log("[Telegram] Starting contact request...");
-    
-    // Add retry counter to prevent infinite loops
-    const MAX_RETRIES = 2;
-    let retryCount = 0;
-    
-    const requestContact = () => {
-      window.Telegram.WebApp.requestContact(
-        async (contact) => {  
-          console.log("[Telegram] Contact response:", contact);
-          
-          // Handle Telegram's 'true' response bug
-          if (contact === true) {
-            if (retryCount < MAX_RETRIES) {
-              retryCount++;
-              console.warn(`Got 'true' response, retrying (${retryCount}/${MAX_RETRIES})`);
-              requestContact(); // Recursive retry
-              return;
-            }
-            
-            // Final fallback after retries
-            window.Telegram.WebApp.showAlert(
-              "Contact shared successfully! Closing window...",
-              () => window.Telegram.WebApp.close()
-            );
-            return;
-          }
-          
-          // Handle actual contact object
-          if (contact?.phone_number) {
-            const userPhone = contact.phone_number;
-            setPhone(userPhone);
-            
-            try {
-              // ... [existing processing logic] ...
-              
-              // Close popup after processing
-              setTimeout(() => {
-                window.Telegram.WebApp.close();
-              }, 500);
-              
-            } catch (error) {
-              console.error('Save failed:', error);
-              window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
-            }
-          } else {
-            console.error("Invalid contact object:", contact);
-            window.Telegram.WebApp.showAlert(
-              "Telegram didn't provide a valid phone number. Please try manually."
-            );
-          }
-        },
-        (error) => {
-          console.error('Contact request failed:', error);
-          window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
-        }
-      );
-    };
-    
-    // Start the contact request
-    requestContact();
-  };
+    try {
+        window.Telegram.WebApp.requestContact(
+            async (contact) => {  // Make callback async
+                if (contact && contact.phone_number) {
+                    const userPhone = contact.phone_number;
+                    setPhone(userPhone);
+                    
+                    try {
+                        // Normalize phone number
+                        let normalizedPhone = userPhone.replace(/\D/g, '');
+                        if (normalizedPhone.startsWith('0')) {
+                            normalizedPhone = '+251' + normalizedPhone.substring(1);
+                        } else if (!normalizedPhone.startsWith('251')) {
+                            normalizedPhone = '+251' + normalizedPhone;
+                        } else {
+                            normalizedPhone = '+' + normalizedPhone;
+                        }
 
+                        // Validate Ethiopian format
+                        if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+                            throw new Error('Invalid Ethiopian phone number');
+                        }
+
+                        // Prepare request
+                        const payload = {
+                            phone: normalizedPhone,
+                            source: 'telegram'
+                        };
+
+                        // Prepare headers
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        };
+                        
+                        if (telegramInitData) {
+                            headers['x-telegram-init-data'] = telegramInitData;
+                        }
+
+                        // Send to backend
+                        const response = await fetch('/update-phone', {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.detail || 'Failed to save phone');
+                        }
+
+                        // Success handling
+                        setMethod('telegram');
+                        onSave(normalizedPhone);
+                        if (onClose) onClose();
+                        
+                        if (window.Telegram.WebApp) {
+                            window.Telegram.WebApp.showAlert('Phone number saved successfully!');
+                        }
+                    } catch (error) {
+                        console.error('Save failed:', error);
+                        if (window.Telegram.WebApp) {
+                            window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
+                        } else {
+                            alert(`Error: ${error.message}`);
+                        }
+                    }
+                }
+            },
+            (error) => {
+                console.error('Contact request failed:', error);
+                if (window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert('Failed to access contacts. Please try manually.');
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Phone share failed:', error);
+        if (window.Telegram.WebApp) {
+            window.Telegram.WebApp.showAlert('An unexpected error occurred. Please try manually.');
+        }
+    }
+};
+  
   const handleManualSubmit = async () => {
     // Normalize phone number
     let normalizedPhone = phone.replace(/\D/g, '');

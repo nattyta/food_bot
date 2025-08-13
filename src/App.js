@@ -219,35 +219,6 @@ function App() {
       });
   }, []);
 
-
-
-  useEffect(() => {
-    // Listen for messages from bot
-    const handleMessage = (event) => {
-      if (event.data === '__CLOSE_WEBAPP__') {
-        console.log("Received close command from bot");
-        try {
-          window.Telegram.WebApp.close();
-        } catch (e) {
-          console.warn("Close failed, using fallback");
-          window.Telegram.WebApp.showAlert(
-            "✅ Saved! Tap to close",
-            () => window.Telegram.WebApp.close()
-          );
-        }
-      }
-    };
-  
-    window.addEventListener('message', handleMessage);
-    
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, []);
-
-
-
-
   {showPhoneModal && (
     <PhoneCaptureModal 
       onSave={(phone) => {
