@@ -212,53 +212,6 @@ async def get_current_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-
-
-
-@router.post("/v1/handle-contact")
-async def handle_webapp_contact(request: Request):
-    data = await request.json()
-    phone = data.get('phone')
-    user_id = data.get('user_id')
-    source = data.get('source', 'telegram')
-    
-    if not phone or not user_id:
-        raise HTTPException(status_code=400, detail="Missing phone or user ID")
-    
-    # Normalization and validation
-    phone = phone.replace('+', '').replace(' ', '')
-    if phone.startswith('0'):
-        phone = '251' + phone[1:]
-    elif not phone.startswith('251'):
-        phone = '251' + phone
-    
-    if not re.match(r'^251[79]\d{8}$', phone):
-        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
-    
-    # Save to database (reuse existing logic)
-    try:
-        with psycopg.connect(os.getenv("DATABASE_URL")) as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    INSERT INTO users (chat_id, phone, phone_source)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (chat_id)
-                    DO UPDATE SET
-                        phone = EXCLUDED.phone,
-                        phone_source = EXCLUDED.phone_source
-                    """,
-                    (user_id, '+' + phone, source)
-                )
-                conn.commit()
-        return {"status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
-
 @router.post("/update-phone")
 async def update_phone(
     request_data: PhoneUpdateRequest,
@@ -359,4 +312,3 @@ async def health_check():
         "telegram_verified": bool(BOT_TOKEN),  # Set during startup
         "timestamp": int(time.time())
     }
-
