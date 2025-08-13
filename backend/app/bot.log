@@ -512,3 +512,13 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-13 13:41:03,776 - __main__ - INFO - Starting FoodBot...
 2025-08-13 13:41:05,831 - __main__ - INFO - Database connection successful
 2025-08-13 13:41:06,652 - __main__ - INFO - Webhook removed
+2025-08-13 13:45:47,017 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 13:45:47,020 - __main__ - INFO - User 916638938 initialized
+2025-08-13 13:48:32,492 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 13:48:32,494 - __main__ - INFO - User 916638938 initialized
+2025-08-13 13:48:56,867 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 13:48:56,869 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:15:57,628 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-13 14:17:42,881 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:17:44,730 - __main__ - INFO - Database connection successful
+2025-08-13 14:17:45,457 - __main__ - INFO - Webhook removed

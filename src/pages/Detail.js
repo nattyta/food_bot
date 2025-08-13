@@ -5,7 +5,7 @@ import "./detail.css";
 
 const Detail = ({ cart, setCart }) => {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
   const product = location.state?.product;
   const [showMessage, setShowMessage] = useState(false);
   const [showPopup, setShowPopup] = useState(false);

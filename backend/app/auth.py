@@ -41,17 +41,7 @@ def get_current_user(request: Request, credentials: HTTPBearer = Depends(securit
     request.state.chat_id = chat_id
     return chat_id
 
-SECRET_KEY_CACHE = {}
 
-import hmac
-import hashlib
-import json
-import logging
-import time
-from urllib.parse import unquote, parse_qsl
-from fastapi import HTTPException
-
-logger = logging.getLogger(__name__)
 
 # Cache for secret keys
 SECRET_KEY_CACHE = {}
