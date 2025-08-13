@@ -190,10 +190,9 @@ def handle_contact(message):
                     ON CONFLICT (chat_id)
                     DO UPDATE SET
                         phone = EXCLUDED.phone,
-                        phone_source = EXCLUDED.phone_source,
-                        updated_at = NOW()
+                        phone_source = EXCLUDED.phone_source
                     """,
-                    (user_id, full_phone)
+                    (user_id, '+' + phone)
                 )
                 conn.commit()
         

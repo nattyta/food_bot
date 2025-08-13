@@ -632,3 +632,12 @@ LINE 8:                         updated_at = NOW()
 2025-08-13 18:10:12,453 - __main__ - INFO - User 916638938 initialized
 2025-08-13 18:10:25,987 - __main__ - INFO - ✅ Phone number saved successfully!
 2025-08-13 18:14:28,097 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-13 18:24:30,023 - __main__ - INFO - Starting FoodBot...
+2025-08-13 18:24:31,982 - __main__ - INFO - Database connection successful
+2025-08-13 18:24:34,240 - __main__ - INFO - Webhook removed
+2025-08-13 18:24:46,088 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 18:24:46,089 - __main__ - INFO - User 916638938 initialized
+2025-08-13 18:25:11,304 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 18:35:05,167 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
