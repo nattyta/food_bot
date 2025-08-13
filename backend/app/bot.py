@@ -153,7 +153,9 @@ def handle_contact(message):
         
         # Validate Ethiopian format
         if not re.match(r'^251[79]\d{8}$', phone):
-            bot.reply_to(message, "❌ Invalid Ethiopian number format. Please use +251 followed by 7 or 9 and 8 digits.")
+            # REMOVE EMOJI TO AVOID FORMATTING ISSUES
+            bot.reply_to(message, "Invalid Ethiopian number format. Please use +251 followed by 7 or 9 and 8 digits.", 
+                         parse_mode="HTML")
             return
         
         # Save to database
@@ -172,12 +174,13 @@ def handle_contact(message):
                 )
                 conn.commit()
         
-        bot.reply_to(message, "✅ Phone number saved successfully!")
+        # Use HTML parse mode and remove problematic characters
+        bot.reply_to(message, "Phone number saved successfully!", parse_mode="HTML")
         
     except Exception as e:
         logger.error(f"Contact handling error: {str(e)}")
-        bot.reply_to(message, "⚠️ Failed to save phone. Please try again or contact support.")
-
+        # Use simple text without special characters
+        bot.reply_to(message, "Failed to save phone. Please try again.")
 
 
 
