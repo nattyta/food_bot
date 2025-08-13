@@ -142,19 +142,43 @@ def handle_contact(message):
     try:
         contact = message.contact
         user_id = message.from_user.id
-        phone = contact.phone_number
+        raw_phone = contact.phone_number
         
-        # Normalize phone number
-        phone = phone.replace('+', '').replace(' ', '')
+        # Remove all non-digit characters
+        phone = ''.join(filter(str.isdigit, raw_phone))
+        
+        # Normalization logic
         if phone.startswith('0'):
             phone = '251' + phone[1:]
+        elif len(phone) == 9 and phone.startswith(('7', '9')):
+            phone = '251' + phone
         elif not phone.startswith('251'):
             phone = '251' + phone
         
+        # Add international prefix
+        full_phone = '+' + phone
+        
         # Validate Ethiopian format
-        if not re.match(r'^251[79]\d{8}$', phone):
-            bot.reply_to(message, "❌ Invalid Ethiopian number format. Please use +251 followed by 7 or 9 and 8 digits.")
+        if not re.match(r'^\+251[79]\d{8}$', full_phone):
+            bot.reply_to(
+                message,
+                "❌ Invalid format. Use +251 followed by 7 or 9 and 8 digits\n"
+                "Example: +251912345678"
+            )
             return
+        
+        # Check if phone is same as existing
+        with psycopg.connect(os.getenv("DATABASE_URL")) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT phone FROM users WHERE chat_id = %s",
+                    (user_id,)
+                )
+                existing = cur.fetchone()
+                
+                if existing and existing[0] == full_phone:
+                    logger.info(f"Phone number unchanged for user {user_id}")
+                    return
         
         # Save to database
         with psycopg.connect(os.getenv("DATABASE_URL")) as conn:
@@ -166,18 +190,21 @@ def handle_contact(message):
                     ON CONFLICT (chat_id)
                     DO UPDATE SET
                         phone = EXCLUDED.phone,
-                        phone_source = EXCLUDED.phone_source
+                        phone_source = EXCLUDED.phone_source,
+                        updated_at = NOW()
                     """,
-                    (user_id, '+' + phone)
+                    (user_id, full_phone)
                 )
                 conn.commit()
         
-        bot.reply_to(message, "✅ Phone number saved successfully!")
-        logger.info("✅ Phone number saved successfully!")
+        logger.info(f"✅ Phone number saved for user {user_id}")
+        
     except Exception as e:
         logger.error(f"Contact handling error: {str(e)}")
-        bot.reply_to(message, "⚠️ Failed to save phone. Please try again or contact support.")
-
+        bot.reply_to(
+            message,
+            "⚠️ Failed to save phone. Please try again or contact support."
+        )
 
 if __name__ == "__main__":
     logger.info("Starting FoodBot...")

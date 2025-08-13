@@ -620,3 +620,9 @@ LINE 8:                         updated_at = NOW()
 2025-08-13 16:01:15,402 - __main__ - INFO - User 916638938 initialized
 2025-08-13 16:01:27,202 - __main__ - INFO - ✅ Phone number saved successfully!
 2025-08-13 16:17:25,709 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-13 17:27:52,489 - __main__ - INFO - Starting FoodBot...
+2025-08-13 17:27:54,250 - __main__ - INFO - Database connection successful
+2025-08-13 17:27:55,224 - __main__ - INFO - Webhook removed
+2025-08-13 17:27:59,879 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 17:27:59,880 - __main__ - INFO - User 916638938 initialized
+2025-08-13 17:28:10,697 - __main__ - INFO - ✅ Phone number saved successfully!
