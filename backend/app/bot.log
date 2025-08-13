@@ -522,3 +522,36 @@ LINE 3:     VALUES ($1, $2, $3)
 2025-08-13 14:17:42,881 - __main__ - INFO - Starting FoodBot...
 2025-08-13 14:17:44,730 - __main__ - INFO - Database connection successful
 2025-08-13 14:17:45,457 - __main__ - INFO - Webhook removed
+2025-08-13 14:23:51,201 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-13 14:29:38,873 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:29:40,848 - __main__ - INFO - Database connection successful
+2025-08-13 14:29:41,674 - __main__ - INFO - Webhook removed
+2025-08-13 14:29:46,389 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:29:46,390 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:31:44,774 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:31:46,709 - __main__ - INFO - Database connection successful
+2025-08-13 14:31:47,316 - __main__ - INFO - Webhook removed
+2025-08-13 14:31:59,705 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:31:59,707 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:32:08,926 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:32:22,242 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:32:47,217 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:32:47,219 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:32:59,804 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:33:05,959 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:33:24,706 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:33:26,575 - __main__ - INFO - Database connection successful
+2025-08-13 14:33:27,270 - __main__ - INFO - Webhook removed
+2025-08-13 14:33:39,702 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:33:39,704 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:33:51,554 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
