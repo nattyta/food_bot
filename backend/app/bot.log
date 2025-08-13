@@ -555,3 +555,44 @@ LINE 8:                         updated_at = NOW()
 2025-08-13 14:33:51,554 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
 LINE 8:                         updated_at = NOW()
                                 ^
+2025-08-13 14:35:08,653 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:35:10,684 - __main__ - INFO - Database connection successful
+2025-08-13 14:35:11,506 - __main__ - INFO - Webhook removed
+2025-08-13 14:36:17,343 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:36:17,346 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:36:24,305 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:36:24,307 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:36:34,910 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:36:42,469 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:41:10,806 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:41:13,664 - __main__ - ERROR - Contact handling error: column "updated_at" of relation "users" does not exist
+LINE 8:                         updated_at = NOW()
+                                ^
+2025-08-13 14:41:17,541 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:41:19,612 - __main__ - INFO - Database connection successful
+2025-08-13 14:41:20,439 - __main__ - INFO - Webhook removed
+2025-08-13 14:42:20,507 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:42:22,291 - __main__ - INFO - Database connection successful
+2025-08-13 14:42:23,102 - __main__ - INFO - Webhook removed
+2025-08-13 14:42:28,627 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:42:28,628 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:42:41,599 - __main__ - ERROR - Contact handling error: name 'loggerinfo' is not defined
+2025-08-13 14:43:28,747 - __main__ - INFO - Starting FoodBot...
+2025-08-13 14:43:30,782 - __main__ - INFO - Database connection successful
+2025-08-13 14:43:31,501 - __main__ - INFO - Webhook removed
+2025-08-13 14:43:36,618 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:43:36,620 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:44:10,478 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:44:10,479 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:44:19,333 - __main__ - INFO - ✅ Phone number saved successfully!
+2025-08-13 14:44:29,021 - __main__ - INFO - ✅ Phone number saved successfully!
+2025-08-13 14:45:45,898 - __main__ - INFO - Saved user 916638938 to database
+2025-08-13 14:45:45,900 - __main__ - INFO - User 916638938 initialized
+2025-08-13 14:45:57,477 - __main__ - INFO - ✅ Phone number saved successfully!
+2025-08-13 14:46:03,868 - __main__ - INFO - ✅ Phone number saved successfully!
