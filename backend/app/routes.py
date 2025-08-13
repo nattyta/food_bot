@@ -163,6 +163,22 @@ async def auth_endpoint(request: Request):
             }
         )
 
+
+
+
+@router.post("/request-contact")
+async def request_contact(
+    request: Request,
+    request_data: PhoneRequest,
+    chat_id: int = Depends(telegram_auth_dependency)
+):
+    # This will trigger the bot to send a contact request
+    # In a real implementation, you would store the request and have the bot handle it
+    return {
+        "status": "contact_requested",
+        "message": "Please share your phone number via the Telegram chat"
+    }
+
 @router.post("/save_user")
 def save_user(
     user_data: UserCreate,
@@ -269,7 +285,7 @@ async def update_phone(
             detail="Internal server error. Please try again later."
         )
 
-        
+
 # Modify orders endpoint
 @router.post("/orders")
 async def create_order(order: OrderCreate, request: Request):

@@ -204,7 +204,25 @@ def handle_contact(message):
             message,
             "⚠️ Failed to save phone. Please try again or contact support."
         )
+@bot.message_handler(commands=['get_contact'])
+def handle_contact_request(message):
+    try:
+        user_id = message.from_user.id
+        bot.send_message(
+            user_id,
+            "Please share your phone number for verification:",
+            reply_markup=types.ReplyKeyboardMarkup(
+                keyboard=[
+                    [types.KeyboardButton("Share Phone", request_contact=True)]
+                ],
+                resize_keyboard=True,
+                one_time_keyboard=True
+            )
+        )
+    except Exception as e:
+        logger.error(f"Contact request error: {str(e)}")
 
+        
 if __name__ == "__main__":
     logger.info("Starting FoodBot...")
     try:
