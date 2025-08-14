@@ -262,56 +262,57 @@ const processPhoneNumber = async (rawPhone, source) => {
 
 
   
-  const handleManualSubmit = async () => {
-    // Normalize phone number
-    let normalizedPhone = phone.replace(/\D/g, '');
-    if (normalizedPhone.startsWith('0')) {
-      normalizedPhone = '+251' + normalizedPhone.substring(1);
-    } else if (!normalizedPhone.startsWith('251')) {
-      normalizedPhone = '+251' + normalizedPhone;
+const handleManualSubmit = async () => {
+  // Normalize phone number
+  let normalizedPhone = phone.replace(/\D/g, '');
+  if (normalizedPhone.startsWith('0')) {
+    normalizedPhone = '+251' + normalizedPhone.substring(1);
+  } else if (!normalizedPhone.startsWith('251')) {
+    normalizedPhone = '+251' + normalizedPhone;
+  } else {
+    normalizedPhone = '+' + normalizedPhone;
+  }
+  
+  if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
+    if (window.Telegram.WebApp) {
+      window.Telegram.WebApp.showAlert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
     } else {
-      normalizedPhone = '+' + normalizedPhone;
+      alert('Please enter a valid Ethiopian phone number');
     }
-    
-    if (!/^\+251[79]\d{8}$/.test(normalizedPhone)) {
-      if (window.Telegram.WebApp) {
-        window.Telegram.WebApp.showAlert('Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9');
-      } else {
-        alert('Please enter a valid Ethiopian phone number');
-      }
-      return;
-    }
-    
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-    };
-    
-    if (telegramInitData) {
-      headers['x-telegram-init-data'] = telegramInitData;
-    }
-
-    try {
-      await fetch('/update-phone', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ 
-          phone: normalizedPhone,
-          source: 'manual' 
-        })
-      });
-      setMethod('manual');
-      onSave(normalizedPhone);
-      if (onClose) onClose();
-    } catch (error) {
-      console.error('Failed to save phone:', error);
-      if (window.Telegram.WebApp) {
-        window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
-      } else {
-        alert('Failed to save phone. Please try again.');
-      }
-    }
+    return;
+  }
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
   };
+  
+  if (telegramInitData) {
+    headers['x-telegram-init-data'] = telegramInitData;
+  }
+
+  try {
+    await fetch('/update-phone', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ 
+        phone: normalizedPhone,
+        source: 'manual' 
+      })
+    });
+    setMethod('manual');
+    onSave(normalizedPhone);
+    if (onClose) onClose();
+  } catch (error) {
+    console.error('Failed to save phone:', error);
+    if (window.Telegram.WebApp) {
+      window.Telegram.WebApp.showAlert('Failed to save phone. Please try again.');
+    } else {
+      alert('Failed to save phone. Please try again.');
+    }
+  }
+};
+
 
   return (
     <div className="phone-modal-overlay">

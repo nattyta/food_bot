@@ -678,3 +678,12 @@ LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
 2025-08-14 15:43:42,586 - __main__ - INFO - Saved user 916638938 to database
 2025-08-14 15:43:42,588 - __main__ - INFO - User 916638938 initialized
 2025-08-14 15:44:45,576 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-08-14 16:23:12,896 - __main__ - INFO - Saved user 916638938 to database
+2025-08-14 16:23:12,901 - __main__ - INFO - User 916638938 initialized
+2025-08-14 16:23:29,984 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-08-14 16:24:53,343 - __main__ - INFO - Saved user 916638938 to database
+2025-08-14 16:24:53,344 - __main__ - INFO - User 916638938 initialized
+2025-08-14 16:25:08,523 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-08-14 16:25:41,577 - __main__ - INFO - Saved user 6523397595 to database
+2025-08-14 16:25:41,579 - __main__ - INFO - User 6523397595 initialized
+2025-08-14 16:31:43,574 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
