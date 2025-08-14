@@ -14,6 +14,7 @@ const PhoneCaptureModal = ({
   const [isSaved, setIsSaved] = useState(false);
   const contactReceivedRef = useRef(false);
   const [pollingCount, setPollingCount] = useState(0);
+  const [statusMessage, setStatusMessage] = useState('');
   const pollingIntervalRef = useRef(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ const PhoneCaptureModal = ({
 useEffect(() => {
     if (isProcessing && !isSaved) {
         console.log("[DEBUG] Starting database polling");
+        setStatusMessage('Waiting for phone number to be saved...');
         
         // Clear any existing interval
         if (pollingIntervalRef.current) {
@@ -41,14 +43,17 @@ useEffect(() => {
         // Start polling
         pollingIntervalRef.current = setInterval(() => {
             console.log("[DEBUG] Polling database for saved phone");
+            setPollingCount(prev => prev + 1);
             checkPhoneStatus();
         }, 2000);
         
-        // Stop after 30 seconds
+        // Stop after 60 seconds
         const timeout = setTimeout(() => {
             console.warn("[WARN] Polling timeout - stopping");
+            setStatusMessage('Save timed out. Please try again or enter manually.');
             stopPolling();
-        }, 30000);
+            setIsProcessing(false);
+        }, 60000);
         
         return () => {
             clearTimeout(timeout);
@@ -75,7 +80,6 @@ const stopPolling = () => {
 const checkPhoneStatus = async () => {
     try {
         console.log("[DEBUG] Checking phone status via /me endpoint");
-        setPollingCount(prev => prev + 1);
         
         const response = await fetch('/me', {
             headers: {
@@ -95,13 +99,17 @@ const checkPhoneStatus = async () => {
             console.log("[DEBUG] Phone found in database:", userData.phone);
             setIsSaved(true);
             stopPolling();
+            setStatusMessage('✅ Phone number saved successfully!');
             
             // Update local state with the actual saved phone
             setPhone(userData.phone);
             if (onSave) onSave(userData.phone);
+        } else {
+            setStatusMessage(`Checking save status... (${pollingCount + 1})`);
         }
     } catch (error) {
         console.error("[ERROR] Phone status check failed:", error);
+        setStatusMessage('Error checking status. Please try again.');
     }
 };
 
@@ -112,17 +120,19 @@ const handleTelegramShare = () => {
     contactReceivedRef.current = false;
     setIsProcessing(true);
     setIsSaved(false);
+    setStatusMessage('');
     
     try {
         console.log("[DEBUG] Calling Telegram.WebApp.requestContact");
         
         window.Telegram.WebApp.requestContact(
-            async (result) => {
+            (result) => {
                 console.log("[DEBUG] Contact callback received:", result);
                 
                 // Handle intermediate state (true)
                 if (result === true) {
                     console.log("[DEBUG] Contact request initiated (intermediate state)");
+                    setStatusMessage('Please select a contact in Telegram...');
                     return;
                 }
                 
@@ -132,91 +142,31 @@ const handleTelegramShare = () => {
                 // Handle actual contact
                 if (result?.phone_number) {
                     console.log("[DEBUG] Received valid contact:", result);
-                    await processPhoneNumber(result.phone_number, 'telegram');
+                    processPhoneNumber(result.phone_number, 'telegram');
                 } 
                 // Handle cancellation
                 else if (result === false) {
                     console.log("[DEBUG] Contact sharing cancelled by user");
-                    window.Telegram.WebApp.showAlert('Contact sharing cancelled');
+                    setStatusMessage('Contact sharing cancelled');
                     setIsProcessing(false);
                 }
                 // Handle other cases
                 else {
                     console.warn("[WARN] Unexpected contact response:", result);
-                    window.Telegram.WebApp.showAlert(
-                        'Unexpected response. Please try again or enter manually.'
-                    );
+                    setStatusMessage('Unexpected response. Please try manually.');
                     setIsProcessing(false);
                 }
             },
             (error) => {
                 console.error("[ERROR] Contact request failed:", error);
-                window.Telegram.WebApp.showAlert(
-                    'Contact access denied. Please enter manually.'
-                );
+                setStatusMessage('Contact access denied. Please enter manually.');
                 setIsProcessing(false);
             }
         );
-        
-        // Fallback: Check if contact was received after 3 seconds
-        setTimeout(() => {
-            if (!contactReceivedRef.current && !isSaved) {
-                console.warn("[WARN] Contact not received. Using alternative method");
-                requestContactFromBot();
-            }
-        }, 3000);
-        
     } catch (error) {
         console.error("[ERROR] Phone share failed:", error);
-        window.Telegram.WebApp.showAlert('System error. Please enter manually.');
+        setStatusMessage('System error. Please enter manually.');
         setIsProcessing(false);
-    }
-};
-
-const requestContactFromBot = async () => {
-    console.log("[DEBUG] Requesting contact via bot endpoint");
-    
-    try {
-        // Prepare headers
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        };
-        
-        if (telegramInitData) {
-            headers['x-telegram-init-data'] = telegramInitData;
-        }
-
-        // Request contact via bot
-        const response = await fetch('/request-contact', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ via_bot: true })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to request contact');
-        }
-
-        const result = await response.json();
-        console.log("[DEBUG] Bot contact response:", result);
-        
-        // If bot returns phone immediately, process it
-        if (result.phone) {
-            await processPhoneNumber(result.phone, 'telegram');
-        } else {
-            console.log("[DEBUG] Waiting for bot to process contact");
-            // Polling will handle the rest
-        }
-        
-    } catch (error) {
-        console.error("[ERROR] Bot contact request failed:", error);
-        window.Telegram.WebApp.showAlert(
-            'Failed to get contact via bot. Please enter manually.'
-        );
-        setIsProcessing(false);
-        setMethod('manual');
     }
 };
 
@@ -282,7 +232,7 @@ const processPhoneNumber = async (rawPhone, source) => {
 
         const responseData = await response.json();
         console.log("[DEBUG] API success response:", responseData);
-
+        
         // For manual saves, we can close immediately
         if (source === 'manual') {
             setPhone(normalizedPhone);
@@ -291,12 +241,12 @@ const processPhoneNumber = async (rawPhone, source) => {
             setIsSaved(true);
         } else {
             // For Telegram saves, we'll wait for polling to confirm
-            console.log("[DEBUG] Waiting for polling to confirm save");
+            setStatusMessage('Verifying save status...');
         }
         
     } catch (error) {
         console.error("[ERROR] Save failed:", error);
-        window.Telegram.WebApp.showAlert(`Error: ${error.message}`);
+        setStatusMessage(`Error: ${error.message}`);
         setIsProcessing(false);
     }
 };

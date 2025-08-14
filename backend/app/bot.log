@@ -658,3 +658,16 @@ LINE 8:                         updated_at = NOW()
 2025-08-13 22:38:24,100 - __main__ - INFO - ✅ Phone number saved for user 916638938
 2025-08-13 22:38:27,466 - __main__ - INFO - Phone number unchanged for user 916638938
 2025-08-13 22:39:35,647 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-14 13:38:52,259 - __main__ - INFO - Starting FoodBot...
+2025-08-14 13:38:54,754 - __main__ - INFO - Database connection successful
+2025-08-14 13:38:56,592 - __main__ - INFO - Webhook removed
+2025-08-14 13:51:48,181 - __main__ - INFO - Saved user 916638938 to database
+2025-08-14 13:51:48,826 - __main__ - INFO - User 916638938 initialized
+2025-08-14 13:54:25,965 - __main__ - ERROR - Contact handling error: column "phone_source" of relation "users" does not exist
+LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
+                                                             ^
+2025-08-14 13:58:41,938 - __main__ - INFO - Starting FoodBot...
+2025-08-14 13:58:45,532 - __main__ - INFO - Database connection successful
+2025-08-14 13:58:47,338 - __main__ - INFO - Webhook removed
+2025-08-14 13:59:11,932 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-08-14 13:59:32,720 - __main__ - INFO - Phone number unchanged for user 916638938
