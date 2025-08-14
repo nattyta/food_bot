@@ -78,39 +78,46 @@ const stopPolling = () => {
 };
 
 const checkPhoneStatus = async () => {
-    try {
-        console.log("[DEBUG] Checking phone status via /me endpoint");
-        
-        const response = await fetch('/me', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-            }
-        });
-        
-        if (!response.ok) {
-            console.error("[ERROR] Failed to fetch user data");
-            return;
-        }
-        
-        const userData = await response.json();
-        console.log("[DEBUG] User data response:", userData);
-        
-        if (userData.phone) {
-            console.log("[DEBUG] Phone found in database:", userData.phone);
-            setIsSaved(true);
-            stopPolling();
-            setStatusMessage('✅ Phone number saved successfully!');
-            
-            // Update local state with the actual saved phone
-            setPhone(userData.phone);
-            if (onSave) onSave(userData.phone);
-        } else {
-            setStatusMessage(`Checking save status... (${pollingCount + 1})`);
-        }
-    } catch (error) {
-        console.error("[ERROR] Phone status check failed:", error);
-        setStatusMessage('Error checking status. Please try again.');
-    }
+  try {
+      console.log("[DEBUG] Checking phone status via /me endpoint");
+      setPollingCount(prev => prev + 1);
+      
+      // Prepare headers with Telegram initData
+      const headers = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+      };
+      
+      // Add Telegram initData if available
+      if (telegramInitData) {
+          headers['x-telegram-init-data'] = telegramInitData;
+      }
+
+      const response = await fetch('/me', {
+          headers
+      });
+      
+      if (!response.ok) {
+          console.error("[ERROR] Failed to fetch user data", response.status);
+          return;
+      }
+      
+      const userData = await response.json();
+      console.log("[DEBUG] User data response:", userData);
+      
+      if (userData.phone) {
+          console.log("[DEBUG] Phone found in database:", userData.phone);
+          setIsSaved(true);
+          stopPolling();
+          
+          // Update local state with the actual saved phone
+          setPhone(userData.phone);
+          if (onSave) onSave(userData.phone);
+      } else {
+          console.log("[DEBUG] Phone not yet saved");
+      }
+  } catch (error) {
+      console.error("[ERROR] Phone status check failed:", error);
+  }
 };
 
 const handleTelegramShare = () => {
