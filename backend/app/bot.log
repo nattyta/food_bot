@@ -687,3 +687,23 @@ LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
 2025-08-14 16:25:41,577 - __main__ - INFO - Saved user 6523397595 to database
 2025-08-14 16:25:41,579 - __main__ - INFO - User 6523397595 initialized
 2025-08-14 16:31:43,574 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-14 18:14:20,333 - __main__ - INFO - Starting FoodBot...
+2025-08-14 18:14:22,196 - __main__ - INFO - Database connection successful
+2025-08-14 18:14:23,020 - __main__ - INFO - Webhook removed
+2025-08-14 18:14:28,456 - __main__ - INFO - Saved user 6523397595 to database
+2025-08-14 18:14:28,456 - __main__ - INFO - User 6523397595 initialized
+2025-08-15 01:33:48,463 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-15 17:36:27,311 - __main__ - INFO - Starting FoodBot...
+2025-08-15 17:36:49,706 - __main__ - INFO - Database connection successful
+2025-08-15 17:36:50,748 - __main__ - INFO - Webhook removed
+2025-08-15 17:38:20,830 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-15 17:38:35,153 - __main__ - INFO - Starting FoodBot...
+2025-08-15 17:38:35,155 - __main__ - ERROR - Database connection failed: [Errno -3] Temporary failure in name resolution
+2025-08-15 17:38:35,155 - __main__ - CRITICAL - Bot crashed: [Errno -3] Temporary failure in name resolution
+2025-08-15 17:40:15,622 - __main__ - INFO - Starting FoodBot...
+2025-08-15 17:40:53,175 - __main__ - INFO - Database connection successful
+2025-08-15 17:40:53,786 - __main__ - INFO - Webhook removed
+2025-08-15 17:52:01,139 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-17 11:21:52,955 - __main__ - INFO - Starting FoodBot...
+2025-08-17 11:21:55,307 - __main__ - INFO - Database connection successful
+2025-08-17 11:21:56,130 - __main__ - INFO - Webhook removed

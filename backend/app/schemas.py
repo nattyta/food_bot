@@ -62,3 +62,27 @@ class OrderCreate(BaseModel):
     items: List[Dict]  # Changed to List[Dict] to match frontend
     total_price: float
     is_guest_order: bool = False
+
+    class OrderContactInfo(BaseModel):
+    phone: str
+    address: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    location_label: Optional[str] = None
+
+@router.post("/order-contact-info")
+async def save_order_contact_info(
+    contact_info: OrderContactInfo,
+    request: Request,
+    chat_id: int = Depends(telegram_auth_dependency)
+):
+    # Validate phone format
+    if not re.fullmatch(r'^\+251[79]\d{8}$', contact_info.phone):
+        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
+    
+    # This info will be stored with the order later
+    return {
+        "status": "success",
+        "message": "Contact info saved for order",
+        "contact_info": contact_info.dict()
+    }

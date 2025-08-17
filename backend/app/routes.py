@@ -163,10 +163,6 @@ async def auth_endpoint(request: Request):
             }
         )
 
-
-
-
-
 @router.post("/save_user")
 def save_user(
     user_data: UserCreate,
@@ -216,6 +212,98 @@ async def get_current_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+
+
+
+@router.post("/create-order")
+async def create_order_with_contact(
+    order_data: OrderContactInfo,
+    request: Request,
+    chat_id: int = Depends(telegram_auth_dependency)
+):
+    debug_info = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "client": request.client.host if request.client else None,
+        "headers": dict(request.headers),
+        "chat_id_from_auth": chat_id,
+        "order_data": order_data.dict()
+    }
+    
+    logger.info(f"📬 Create order request for chat_id: {chat_id}")
+    logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
+    
+    # Validate Ethiopian phone format
+    if not re.fullmatch(r'^\+251[79]\d{8}$', order_data.phone):
+        error_msg = "Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
+        logger.warning(f"📱 {error_msg}")
+        logger.debug(f"Received phone: {order_data.phone}")
+        raise HTTPException(status_code=400, detail=error_msg)
+    
+    try:
+        # Prepare location data
+        location_json = None
+        if order_data.location:
+            logger.debug(f"📍 Location data received: {order_data.location}")
+            location_json = json.dumps(order_data.location)
+        
+        # Get cart from request (you'll need to pass cart from frontend)
+        # This is just a placeholder - you'll need actual cart data
+        cart_items = []  
+        total_price = 0.0
+        
+        # Database operation to create order
+        with DatabaseManager() as db:
+            logger.debug("💾 Creating new order...")
+            
+            # Insert into orders table
+            order_result = db.execute(
+                """
+                INSERT INTO orders (
+                    user_id, 
+                    phone, 
+                    address, 
+                    location,
+                    items,
+                    total_price,
+                    order_status,
+                    created_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING order_id;
+                """,
+                (
+                    chat_id,
+                    order_data.phone,
+                    order_data.address,
+                    location_json,
+                    json.dumps(cart_items),  # Actual cart data goes here
+                    total_price,             # Actual total price
+                    'pending',
+                    datetime.utcnow()
+                )
+            )
+            
+            order_id = order_result.fetchone()[0]
+            logger.info(f"✅ Order created successfully. Order ID: {order_id}")
+        
+        return {
+            "status": "success", 
+            "order_id": order_id,
+            "total_amount": total_price
+        }
+        
+    except HTTPException as he:
+        logger.error(f"⛔ HTTPException: {he.detail}")
+        raise he
+    except Exception as e:
+        logger.error(f"🔥 Order creation failed: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error"
+        )
+
+
+
+        
 @router.post("/update-phone")
 async def update_phone(
     request_data: PhoneUpdateRequest,
@@ -229,10 +317,7 @@ async def update_phone(
     # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', request_data.phone):
         logger.error(f"❌ INVALID PHONE FORMAT: {request_data.phone}")
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and then 8 digits"
-        )
+        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
     
     # Validate source
     if request_data.source not in ['telegram', 'manual']:
@@ -241,38 +326,34 @@ async def update_phone(
     
     try:
         with DatabaseManager() as db:
-            # Atomic UPSERT operation
+            # Log before operation
+            logger.info(f"🔄 UPDATING USER {chat_id} PHONE: {request_data.phone}")
+            
+            # Execute update
             cursor, rowcount = db.execute(
-                """
-                INSERT INTO users (chat_id, phone, phone_source)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (chat_id) DO UPDATE SET
-                    phone = EXCLUDED.phone,
-                    phone_source = EXCLUDED.phone_source,
-                    updated_at = NOW()
-                RETURNING *;
-                """,
-                (chat_id, request_data.phone, request_data.source)
+                "UPDATE users SET phone = %s, phone_source = %s WHERE chat_id = %s",
+                (request_data.phone, request_data.source, chat_id)
             )
             
-            result = cursor.fetchone()
-            logger.info(f"✅ Database operation result: {result}")
+            logger.info(f"📝 UPDATE ROWS AFFECTED: {rowcount}")
             
-            if not result:
-                raise Exception("Database operation returned no results")
+            if rowcount == 0:
+                logger.info(f"ℹ️ NO USER FOUND, INSERTING NEW: {chat_id}")
+                db.execute(
+                    "INSERT INTO users (chat_id, phone, phone_source) VALUES (%s, %s, %s)",
+                    (chat_id, request_data.phone, request_data.source)
+                )
+            else:
+                logger.info(f"✅ SUCCESSFULLY UPDATED USER: {chat_id}")
         
-        return {"status": "success", "phone": request_data.phone}
+        return {"status": "success"}
     
     except HTTPException as he:
         logger.error(f"🚨 HTTP ERROR: {he.detail}")
         raise he
     except Exception as e:
         logger.exception(f"🔥 DATABASE ERROR: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail="Internal server error. Please try again later."
-        )
-
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # Modify orders endpoint
 @router.post("/orders")
@@ -323,3 +404,4 @@ async def health_check():
         "telegram_verified": bool(BOT_TOKEN),  # Set during startup
         "timestamp": int(time.time())
     }
+
