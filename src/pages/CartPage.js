@@ -121,18 +121,26 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         }
       }, (error) => tg.showAlert(`Error: ${error}`));
     } else {
-      // Fallback for browser testing
-      setOrderDetails(prev => ({
-        ...prev,
-        delivery: {
-          ...prev.delivery,
-          location: {
-            lat: 9.005401,  // Default Addis Ababa coordinates
-            lng: 38.763611
-          }
-        }
-      }));
-      alert("Location set to default (Addis Ababa) for testing");
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setOrderDetails(prev => ({
+              ...prev,
+              delivery: {
+                ...prev.delivery,
+                location: {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                }
+              }
+            }));
+            alert("Location saved!");
+          },
+          (error) => alert(`Error getting location: ${error.message}`)
+        );
+      } else {
+        alert("Geolocation is not supported by your browser");
+      }
     }
   };
 
@@ -145,9 +153,19 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       
       const inTelegram = isTelegramWebApp();
       
+      // Phone normalization
+      let phone = orderDetails.phone.replace(/\D/g, ''); // Remove non-digit characters
+      if (phone.startsWith('251')) {
+        phone = '+' + phone;
+      } else if (phone.startsWith('0')) {
+        phone = '+251' + phone.substring(1);
+      } else if (!phone.startsWith('+251')) {
+        phone = '+251' + phone;
+      }
+      
       // Validate phone number
-      if (!/^(\+251|0)[79]\d{8}$/.test(orderDetails.phone)) {
-        throw new Error("Please enter a valid Ethiopian phone number");
+      if (!/^\+251[79]\d{8}$/.test(phone)) {
+        throw new Error("Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9 and 8 digits");
       }
       
       // Validate delivery address if needed
@@ -162,18 +180,28 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   
       // Prepare order data for orders table
       const orderData = {
-        phone: orderDetails.phone,
+        phone: phone,
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
-        location: orderType === 'delivery' ? orderDetails.delivery.location : null,
-        // Add your actual cart items and total price here:
+        latitude: orderType === 'delivery' && orderDetails.delivery.location 
+                  ? orderDetails.delivery.location.lat 
+                  : null,
+        longitude: orderType === 'delivery' && orderDetails.delivery.location 
+                  ? orderDetails.delivery.location.lng 
+                  : null,
+        location_label: "", // Not currently collected
+        notes: "", 
         items: cart.map(item => ({
           id: item.id,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
-          // ... other item details
+          addOns: item.addOns || [],
+          extras: item.extras || [],
+          modifications: item.modifications || [],
+          specialInstruction: item.specialInstruction || ""
         })),
-        total_price: totalPrice
+        total_price: totalPrice,
+        is_guest_order: false
       };
   
       const headers = {
@@ -185,7 +213,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         headers['x-telegram-init-data'] = telegramInitData;
       }
   
-      const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/create-order`;
+      const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/orders`;
       
       // Create the order with contact info
       const response = await fetch(apiUrl, {
@@ -230,8 +258,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     } finally {
       setIsSubmitting(false);
     }
-};
-
+  };
 
   return (
     <div className="cart-page">

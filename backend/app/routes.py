@@ -303,7 +303,7 @@ async def create_order_with_contact(
 
 
 
-        
+
 @router.post("/update-phone")
 async def update_phone(
     request_data: PhoneUpdateRequest,
@@ -355,28 +355,28 @@ async def update_phone(
         logger.exception(f"🔥 DATABASE ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# Modify orders endpoint
 @router.post("/orders")
 async def create_order(order: OrderCreate, request: Request):
     init_data = request.headers.get("x-telegram-init-data")
     if not init_data:
         raise HTTPException(status_code=401, detail="Missing Telegram initData")
 
-    user_data = validate_init_data(init_data, BOT_TOKEN)
-    user_id = user_data["user"]["id"]
-    
-    # Phone validation
+    # Validate phone format
     if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
         raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
     
-    # Create order - FIXED INDENTATION
+    # Validate user authentication
+    user_data = validate_init_data(init_data, BOT_TOKEN)
+    user_id = user_data["user"]["id"]
+    
+    # Create order
     with DatabaseManager() as db:
         db.execute("""
             INSERT INTO orders (
                 user_id, items, total_price, order_status,
-                phone, latitude, longitude, location_label,
+                phone, address, latitude, longitude, location_label,
                 notes, is_guest_order, created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING order_id;
         """, (
             user_id,
@@ -384,6 +384,7 @@ async def create_order(order: OrderCreate, request: Request):
             order.total_price,
             'pending',
             order.phone,
+            order.address,
             order.latitude,
             order.longitude,
             order.location_label,
@@ -395,7 +396,6 @@ async def create_order(order: OrderCreate, request: Request):
         order_id = db.fetchone()[0]
     
     return {"status": "success", "order_id": order_id}
-
 
 @router.get("/health")
 async def health_check():

@@ -63,12 +63,3 @@ class OrderCreate(BaseModel):
     total_price: float
     is_guest_order: bool = False
 
-class OrderCreate(BaseModel):
-    phone: str
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    location_label: Optional[str] = None
-    notes: Optional[str] = None
-    items: List[Dict]  # Changed to List[Dict] to match frontend
-    total_price: float
-    is_guest_order: bool = False
