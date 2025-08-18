@@ -28,18 +28,34 @@ class DatabaseManager:
         self.conn = psycopg.connect(os.getenv("DATABASE_URL"))
         return self
     
-    
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.conn:
             self.conn.close()
 
     def execute(self, query: str, params: tuple = ()):
         try:
-            with self.conn.cursor() as cur:
-                cur.execute(query, params)
-                self.conn.commit()
-                # Return both cursor and rowcount
-                return cur, cur.rowcount
+            # Create cursor without context manager
+            cur = self.conn.cursor()
+            cur.execute(query, params)
+            self.conn.commit()
+            return cur, cur.rowcount  # Return OPEN cursor
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Database query failed: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Database operation failed: {str(e)}"
+            )
+    
+    def execute_returning(self, query: str, params: tuple = ()):
+        """Execute query and return single result row"""
+        try:
+            cur = self.conn.cursor()
+            cur.execute(query, params)
+            result = cur.fetchone()
+            self.conn.commit()
+            cur.close()  # Close cursor manually
+            return result
         except Exception as e:
             self.conn.rollback()
             logger.error(f"Database query failed: {str(e)}")
@@ -48,18 +64,31 @@ class DatabaseManager:
                 detail=f"Database operation failed: {str(e)}"
             )
 
-    
     def fetchone(self, query: str, params: tuple = ()):
         """Execute a query and fetch one result"""
-        with self.conn.cursor() as cur:
+        try:
+            cur = self.conn.cursor()
             cur.execute(query, params)
-            return cur.fetchone()
+            result = cur.fetchone()
+            cur.close()  # Close cursor manually
+            return result
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Database query failed: {str(e)}")
+            raise
     
     def fetchall(self, query: str, params: tuple = ()):
         """Execute a query and fetch all results"""
-        with self.conn.cursor() as cur:
+        try:
+            cur = self.conn.cursor()
             cur.execute(query, params)
-            return cur.fetchall()
+            result = cur.fetchall()
+            cur.close()  # Close cursor manually
+            return result
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Database query failed: {str(e)}")
+            raise
 
     def register_user(self, user: UserData) -> Dict[str, Any]:
         try:
