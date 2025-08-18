@@ -10,6 +10,7 @@ from .database import DatabaseManager
 from .schemas import UserCreate, UserContactUpdate, ProfileUpdate,OrderCreate
 from .crud import create_user, update_user_contact
 from .auth import validate_init_data
+from .security import PhoneEncryptor
 import hashlib
 import hmac
 import time
@@ -24,6 +25,7 @@ router = APIRouter()
 
 # Load bot token once globally
 BOT_TOKEN = os.getenv("Telegram_API", "").strip()
+encryptor = PhoneEncryptor.get_instance()
 
 if not BOT_TOKEN:
     logger.error("Telegram_API env var is not set!")
@@ -269,69 +271,31 @@ async def update_phone(
 
 @router.post("/orders")
 async def create_order(order: OrderCreate, request: Request):
-    init_data = request.headers.get("x-telegram-init-data")
-    if not init_data:
-        raise HTTPException(status_code=401, detail="Missing Telegram initData")
-
-    # Validate phone format (STRICT +251 format)
-    if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
-        obfuscated = encryptor.obfuscate(order.phone)
-        logger.warning(f"Invalid order phone: {obfuscated}")
-        raise HTTPException(
-            status_code=400, 
-            detail="Phone must be in +251 format: +251 followed by 7 or 9 and 8 digits"
-        )
-    
-    # Validate user authentication
-    user_data = validate_init_data(init_data, BOT_TOKEN)
-    user_id = user_data["user"]["id"]
-    
-    # Encrypt and obfuscate phone
-    encrypted_phone = encryptor.encrypt(order.phone)
-    obfuscated_phone = encryptor.obfuscate(order.phone)
-    
-    # Create order
-    with DatabaseManager() as db:
-        # Get user's profile phone for reference
-        profile_result = db.execute(
-            "SELECT phone FROM users WHERE chat_id = %s",
-            (user_id,)
-        )
-        profile_phone = profile_result.fetchone()[0] if profile_result.rowcount > 0 else None
+    try:
+        # Validate phone format (STRICT +251 format)
+        if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
+            obfuscated = encryptor.obfuscate(order.phone)
+            logger.warning(f"Invalid order phone: {obfuscated}")
+            raise HTTPException(
+                status_code=400, 
+                detail="Phone must be in +251 format: +251 followed by 7 or 9 and 8 digits"
+            )
         
-        # Insert order with contact snapshot
-        db.execute("""
-            INSERT INTO orders (
-                user_id, items, total_price, order_status,
-                phone, encrypted_phone, address, 
-                latitude, longitude, location_label,
-                notes, is_guest_order, created_at,
-                profile_phone
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING order_id;
-        """, (
-            user_id,
-            json.dumps(order.items),
-            order.total_price,
-            'pending',
-            obfuscated_phone,  # Storing partial for display
-            encrypted_phone,   # Encrypted for real use
-            order.address,
-            order.latitude,
-            order.longitude,
-            order.location_label,
-            order.notes,
-            order.is_guest_order,
-            datetime.utcnow(),
-            profile_phone
-        ))
+        # Validate user authentication
+        user_data = validate_init_data(init_data, BOT_TOKEN)
+        user_id = user_data["user"]["id"]
         
-        order_id = db.fetchone()[0]
-    
-    logger.info(f"Order created: {order_id} for user: {obfuscated_phone}")
-    return {"status": "success", "order_id": order_id}
+        # Encrypt and obfuscate phone
+        encrypted_phone = encryptor.encrypt(order.phone)
+        obfuscated_phone = encryptor.obfuscate(order.phone)
+        
+        # ... rest of your order creation code ...
+        
+    except Exception as e:
+        logger.exception("Critical error in order creation")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
-    
+
 @router.get("/health")
 async def health_check():
     return {
