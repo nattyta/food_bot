@@ -313,7 +313,8 @@ async def create_order(
                     encrypted_phone,
                     obfuscated_phone,
                     order_date,
-                    status
+                    status,
+                    tottal_price
                 ) VALUES (%s, %s, %s, %s, %s, 'pending')
                 RETURNING order_id
                 """,
@@ -322,7 +323,8 @@ async def create_order(
                     json.dumps(order.items),  # Serialize items list
                     encrypted_phone,
                     obfuscated_phone,
-                    order_date
+                    order_date,
+                    tottal_price
                 )
             )
             
@@ -337,6 +339,7 @@ async def create_order(
         return {
             "status": "success",
             "order_id": order_id,
+            "tottal_price": tottal_price,
             "message": "Order received! We're preparing your food."
         }
         
