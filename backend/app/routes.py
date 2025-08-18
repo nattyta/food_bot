@@ -314,8 +314,8 @@ async def create_order(
                     obfuscated_phone,
                     order_date,
                     status,
-                    tottal_price
-                ) VALUES (%s, %s, %s, %s, %s, 'pending')
+                    total_price
+                ) VALUES (%s, %s, %s, %s, %s, 'pending',%s)
                 RETURNING order_id
                 """,
                 (
@@ -339,7 +339,7 @@ async def create_order(
         return {
             "status": "success",
             "order_id": order_id,
-            "tottal_price": tottal_price,
+            "total_price": total_price,
             "message": "Order received! We're preparing your food."
         }
         
