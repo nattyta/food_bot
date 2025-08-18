@@ -273,21 +273,23 @@ async def create_order(order: OrderCreate, request: Request):
     if not init_data:
         raise HTTPException(status_code=401, detail="Missing Telegram initData")
 
-    # Validate phone format with business logic flexibility
-    if not re.fullmatch(r'^(\+251|0)[79]\d{8}$', order.phone):
-        logger.warning(f"Invalid order phone: {obfuscate_phone(order.phone)}")
+    # Validate phone format (STRICT +251 format)
+    if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
+        obfuscated = encryptor.obfuscate(order.phone)
+        logger.warning(f"Invalid order phone: {obfuscated}")
         raise HTTPException(
             status_code=400, 
-            detail="Phone must be Ethiopian format: +251... or 0..."
+            detail="Phone must be in +251 format: +251 followed by 7 or 9 and 8 digits"
         )
     
     # Validate user authentication
     user_data = validate_init_data(init_data, BOT_TOKEN)
     user_id = user_data["user"]["id"]
     
-    # Encrypt sensitive data before storage
-    encrypted_phone = encrypt_phone(order.phone)
+    # Encrypt and obfuscate phone
+    encrypted_phone = encryptor.encrypt(order.phone)
     obfuscated_phone = encryptor.obfuscate(order.phone)
+    
     # Create order
     with DatabaseManager() as db:
         # Get user's profile phone for reference
@@ -312,8 +314,8 @@ async def create_order(order: OrderCreate, request: Request):
             json.dumps(order.items),
             order.total_price,
             'pending',
-            obfuscate_phone(order.phone),  # Storing partial for display
-            encrypted_phone,               # Encrypted for real use
+            obfuscated_phone,  # Storing partial for display
+            encrypted_phone,   # Encrypted for real use
             order.address,
             order.latitude,
             order.longitude,
@@ -321,14 +323,15 @@ async def create_order(order: OrderCreate, request: Request):
             order.notes,
             order.is_guest_order,
             datetime.utcnow(),
-            profile_phone                  # For marketing reference
+            profile_phone
         ))
         
         order_id = db.fetchone()[0]
     
-    logger.info(f"Order created: {order_id} for user: {obfuscate_phone(order.phone)}")
+    logger.info(f"Order created: {order_id} for user: {obfuscated_phone}")
     return {"status": "success", "order_id": order_id}
 
+    
 @router.get("/health")
 async def health_check():
     return {
