@@ -147,9 +147,7 @@ def payment_webhook(data: dict, background_tasks: BackgroundTasks):
 # Mock function to update order status in DB
 def update_order_status(order_id: str):
     print(f"Updating order {order_id} to 'Paid'")  # Replace with actual DB update logic
-
-
-
+    
 
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
 
