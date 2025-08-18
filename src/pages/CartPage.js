@@ -149,47 +149,39 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     setIsSubmitting(true);
     
     try {
-      console.log("Starting order confirmation...");
-      
-      const inTelegram = isTelegramWebApp();
-      
       // Phone normalization
-      let phone = orderDetails.phone.replace(/\D/g, ''); // Remove non-digit characters
+      let phone = orderDetails.phone.replace(/\D/g, '');
       if (phone.startsWith('251')) {
-        phone = '+' + phone;
+        phone = `+${phone}`;
       } else if (phone.startsWith('0')) {
-        phone = '+251' + phone.substring(1);
+        phone = `+251${phone.substring(1)}`;
       } else if (!phone.startsWith('+251')) {
-        phone = '+251' + phone;
+        phone = `+251${phone}`;
       }
       
-      // Validate phone number
+      // Validate phone (strictly +251 format)
       if (!/^\+251[79]\d{8}$/.test(phone)) {
-        throw new Error("Please enter a valid Ethiopian phone number starting with +251 followed by 7 or 9 and 8 digits");
+        throw new Error("Valid Ethiopian phone required: +251 followed by 7 or 9 and then 8 digits");
       }
       
-      // Validate delivery address if needed
+      // Delivery validation
       if (orderType === "delivery" && !orderDetails.delivery.address.trim()) {
-        throw new Error("Please enter a delivery address");
+        throw new Error("Delivery address required");
       }
   
       const authToken = localStorage.getItem('auth_token');
-      if (!authToken) {
-        throw new Error("Authentication token missing. Please refresh the page.");
-      }
+      if (!authToken) throw new Error("Authentication expired. Refresh page.");
   
-      // Prepare order data for orders table
+      // Prepare order data
       const orderData = {
-        phone: phone,
+        phone: phone,  // Full phone for encryption
         address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
         latitude: orderType === 'delivery' && orderDetails.delivery.location 
-                  ? orderDetails.delivery.location.lat 
-                  : null,
+                  ? orderDetails.delivery.location.lat : null,
         longitude: orderType === 'delivery' && orderDetails.delivery.location 
-                  ? orderDetails.delivery.location.lng 
-                  : null,
+                  ? orderDetails.delivery.location.lng : null,
         location_label: "", // Not currently collected
-        notes: "", 
+        notes: "", // Not collected in form
         items: cart.map(item => ({
           id: item.id,
           name: item.name,
@@ -213,53 +205,51 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         headers['x-telegram-init-data'] = telegramInitData;
       }
   
+      // Create order directly
       const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/orders`;
-      
-      // Create the order with contact info
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: headers,
+        headers,
         body: JSON.stringify(orderData)
       });
-      
+  
       if (!response.ok) {
-        let errorDetail = `HTTP ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorDetail = errorData.detail || errorDetail;
-        } catch {}
-        throw new Error(`Order creation failed: ${errorDetail}`);
+        const errorText = await response.text();
+        // Scrub any numbers from the error text
+        const errorSafe = errorText.replace(/\d{4,}/g, '***');
+        throw new Error(`Order failed: ${response.status} - ${errorSafe.slice(0, 50)}`);
       }
   
       const result = await response.json();
-      console.log("Order creation response:", result);
-      
-      if (result.status === "success") {
-        console.log("Order created successfully, navigating to payment");
-        navigate('/payment', { 
-          state: { 
-            orderId: result.order_id,
-            totalAmount: result.total_amount
-          }
-        });
-      } else {
-        throw new Error("Unexpected response from server");
-      }
+      navigate('/payment', { 
+        state: { 
+          orderId: result.order_id,
+          phone: obfuscatePhone(phone)  // Only partial to frontend
+        }
+      });
       
     } catch (error) {
-      console.error('Order confirmation failed:', error);
-      const errorMessage = `Error: ${error.message}`;
-      
+      console.error('Order failed:', error);
+      // Scrub any numbers from the error message
+      const safeError = error.message.replace(/\d{4,}/g, '***');
       if (isTelegramWebApp()) {
-        window.Telegram.WebApp.showAlert(errorMessage);
+        window.Telegram.WebApp.showAlert(safeError);
       } else {
-        alert(errorMessage);
+        alert(safeError);
       }
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  // Helper to show partial phone (first 5 and last 3 digits)
+  function obfuscatePhone(phone) {
+    if (!phone) return "";
+    return `${phone.substring(0, 5)}****${phone.substring(phone.length - 3)}`;
+  }
 
+
+  
   return (
     <div className="cart-page">
       <button className="back-button" onClick={() => navigate(-1)}>

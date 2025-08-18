@@ -17,6 +17,7 @@ from .auth import get_current_user, telegram_auth
 from app.routes import router
 from fastapi.middleware.cors import CORSMiddleware
 import time
+
 # Load environment variables
 load_dotenv()
 

@@ -55,11 +55,12 @@ class PhoneUpdateRequest(BaseModel):
 
 class OrderCreate(BaseModel):
     phone: str
+    address: str  # Added for order-specific address
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     location_label: Optional[str] = None
     notes: Optional[str] = None
-    items: List[Dict]  # Changed to List[Dict] to match frontend
+    items: List[Dict]  
     total_price: float
     is_guest_order: bool = False
 

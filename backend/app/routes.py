@@ -16,7 +16,7 @@ import time
 from .schemas import PhoneUpdateRequest
 import uuid
 from datetime import datetime
-
+from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
 
@@ -215,91 +215,6 @@ async def get_current_user(
 
 
 
-@router.post("/create-order")
-async def create_order_with_contact(
-    order_data: OrderContactInfo,
-    request: Request,
-    chat_id: int = Depends(telegram_auth_dependency)
-):
-    debug_info = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "client": request.client.host if request.client else None,
-        "headers": dict(request.headers),
-        "chat_id_from_auth": chat_id,
-        "order_data": order_data.dict()
-    }
-    
-    logger.info(f"📬 Create order request for chat_id: {chat_id}")
-    logger.debug(f"🔍 Request debug info: {json.dumps(debug_info, indent=2)}")
-    
-    # Validate Ethiopian phone format
-    if not re.fullmatch(r'^\+251[79]\d{8}$', order_data.phone):
-        error_msg = "Invalid Ethiopian phone format. Must be +251 followed by 7 or 9 and 8 digits"
-        logger.warning(f"📱 {error_msg}")
-        logger.debug(f"Received phone: {order_data.phone}")
-        raise HTTPException(status_code=400, detail=error_msg)
-    
-    try:
-        # Prepare location data
-        location_json = None
-        if order_data.location:
-            logger.debug(f"📍 Location data received: {order_data.location}")
-            location_json = json.dumps(order_data.location)
-        
-        # Get cart from request (you'll need to pass cart from frontend)
-        # This is just a placeholder - you'll need actual cart data
-        cart_items = []  
-        total_price = 0.0
-        
-        # Database operation to create order
-        with DatabaseManager() as db:
-            logger.debug("💾 Creating new order...")
-            
-            # Insert into orders table
-            order_result = db.execute(
-                """
-                INSERT INTO orders (
-                    user_id, 
-                    phone, 
-                    address, 
-                    location,
-                    items,
-                    total_price,
-                    order_status,
-                    created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING order_id;
-                """,
-                (
-                    chat_id,
-                    order_data.phone,
-                    order_data.address,
-                    location_json,
-                    json.dumps(cart_items),  # Actual cart data goes here
-                    total_price,             # Actual total price
-                    'pending',
-                    datetime.utcnow()
-                )
-            )
-            
-            order_id = order_result.fetchone()[0]
-            logger.info(f"✅ Order created successfully. Order ID: {order_id}")
-        
-        return {
-            "status": "success", 
-            "order_id": order_id,
-            "total_amount": total_price
-        }
-        
-    except HTTPException as he:
-        logger.error(f"⛔ HTTPException: {he.detail}")
-        raise he
-    except Exception as e:
-        logger.error(f"🔥 Order creation failed: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Internal server error"
-        )
 
 
 
@@ -355,46 +270,67 @@ async def update_phone(
         logger.exception(f"🔥 DATABASE ERROR: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @router.post("/orders")
 async def create_order(order: OrderCreate, request: Request):
     init_data = request.headers.get("x-telegram-init-data")
     if not init_data:
         raise HTTPException(status_code=401, detail="Missing Telegram initData")
 
-    # Validate phone format
-    if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
-        raise HTTPException(status_code=400, detail="Invalid Ethiopian phone format")
+    # Validate phone format with business logic flexibility
+    if not re.fullmatch(r'^(\+251|0)[79]\d{8}$', order.phone):
+        logger.warning(f"Invalid order phone: {obfuscate_phone(order.phone)}")
+        raise HTTPException(
+            status_code=400, 
+            detail="Phone must be Ethiopian format: +251... or 0..."
+        )
     
     # Validate user authentication
     user_data = validate_init_data(init_data, BOT_TOKEN)
     user_id = user_data["user"]["id"]
     
+    # Encrypt sensitive data before storage
+    encrypted_phone = encrypt_phone(order.phone)
+    obfuscated_phone = encryptor.obfuscate(order.phone)
     # Create order
     with DatabaseManager() as db:
+        # Get user's profile phone for reference
+        profile_result = db.execute(
+            "SELECT phone FROM users WHERE chat_id = %s",
+            (user_id,)
+        )
+        profile_phone = profile_result.fetchone()[0] if profile_result.rowcount > 0 else None
+        
+        # Insert order with contact snapshot
         db.execute("""
             INSERT INTO orders (
                 user_id, items, total_price, order_status,
-                phone, address, latitude, longitude, location_label,
-                notes, is_guest_order, created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                phone, encrypted_phone, address, 
+                latitude, longitude, location_label,
+                notes, is_guest_order, created_at,
+                profile_phone
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING order_id;
         """, (
             user_id,
             json.dumps(order.items),
             order.total_price,
             'pending',
-            order.phone,
+            obfuscate_phone(order.phone),  # Storing partial for display
+            encrypted_phone,               # Encrypted for real use
             order.address,
             order.latitude,
             order.longitude,
             order.location_label,
             order.notes,
             order.is_guest_order,
-            datetime.utcnow()
+            datetime.utcnow(),
+            profile_phone                  # For marketing reference
         ))
         
         order_id = db.fetchone()[0]
     
+    logger.info(f"Order created: {order_id} for user: {obfuscate_phone(order.phone)}")
     return {"status": "success", "order_id": order_id}
 
 @router.get("/health")
