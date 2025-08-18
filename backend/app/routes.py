@@ -292,8 +292,12 @@ async def create_order(
                 detail="Order must contain at least one item"
             )
         
-        # Calculate total price (FIXED TYPO)
-        total_price = sum(item.price * item.quantity for item in order.items)
+        # Debug: log the type of items
+        logger.info(f"📦 Type of order.items: {type(order.items)}")
+        logger.info(f"📦 Type of first item: {type(order.items[0])}")
+        
+        # Calculate total price using dictionary access
+        total_price = sum(item['price'] * item['quantity'] for item in order.items)
         
         # Log for debugging
         logger.info(f"🛒 Order items: {order.items}")
@@ -327,7 +331,7 @@ async def create_order(
                     encrypted_phone,
                     obfuscated_phone,
                     order_date,
-                    total_price  # CORRECT SPELLING
+                    total_price
                 )
             )
             
@@ -349,8 +353,11 @@ async def create_order(
         # Re-raise HTTP exceptions
         raise he
         
+    except KeyError as e:
+        logger.error(f"🔑 Missing key in order item: {str(e)}")
+        raise HTTPException(400, f"Invalid item structure: missing {str(e)}")
+        
     except TypeError as e:
-        # Correct exception for JSON serialization errors
         logger.error(f"🔠 JSON encoding error: {str(e)}")
         raise HTTPException(500, "Invalid order data format")
         
@@ -358,7 +365,6 @@ async def create_order(
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
 
-        
 
 
 @router.get("/health")
