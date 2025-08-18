@@ -215,10 +215,6 @@ async def get_current_user(
 
 
 
-
-
-
-
 @router.post("/update-phone")
 async def update_phone(
     request_data: PhoneUpdateRequest,
