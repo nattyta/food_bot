@@ -346,73 +346,56 @@ async def create_order(
         encrypted_phone = encryptor.encrypt(order.phone)
         obfuscated_phone = encryptor.obfuscate(order.phone)
         
-        # Database operation - FIXED SECTION
+        # Database operation with manual connection management
+        order_date = datetime.utcnow()
         order_id = None
-        retry_count = 0
-        max_retries = 2
+        conn = None
         
-        while retry_count <= max_retries:
-            try:
-                with DatabaseManager() as db:
-                    order_date = datetime.utcnow()
-                    
-                    # Use the connection directly with a context manager
-                    with db.conn.cursor() as cursor:
-                        cursor.execute(
-                            """
-                            INSERT INTO orders (
-                                user_id, 
-                                items, 
-                                encrypted_phone,
-                                obfuscated_phone,
-                                order_date,
-                                status,
-                                total_price
-                            ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
-                            RETURNING order_id
-                            """,
-                            (
-                                chat_id,
-                                json.dumps(order.items),
-                                encrypted_phone,
-                                obfuscated_phone,
-                                order_date,
-                                total_price
-                            )
-                        )
-                        
-                        # Immediately fetch the result
-                        result_row = cursor.fetchone()
-                        db.conn.commit()
-                        
-                        if not result_row:
-                            logger.error(f"❌ Order insertion failed for user {chat_id}")
-                            raise HTTPException(500, "Order creation failed")
-                        
-                        order_id = result_row[0]
-                        logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
-                        break  # Break out of retry loop on success
-                    
-            except psycopg.InterfaceError as e:
-                retry_count += 1
-                if retry_count <= max_retries:
-                    logger.warning(f"🔄 Database connection error, retrying ({retry_count}/{max_retries}): {str(e)}")
-                    continue
-                else:
-                    logger.error(f"🔥 Failed after {max_retries} retries for user {chat_id}: {str(e)}")
-                    raise HTTPException(500, "Database connection failed after retries")
-            except psycopg.OperationalError as e:
-                retry_count += 1
-                if retry_count <= max_retries:
-                    logger.warning(f"🔄 Database operational error, retrying ({retry_count}/{max_retries}): {str(e)}")
-                    continue
-                else:
-                    logger.error(f"🔥 Failed after {max_retries} retries for user {chat_id}: {str(e)}")
-                    raise HTTPException(500, "Database operation failed after retries")
-        
-        if not order_id:
-            logger.error(f"❌ Order creation failed after retries for user {chat_id}")
-            raise HTTPException(500, "Order creation failed")
+        try:
+            # Create direct connection
+            conn = psycopg.connect(os.getenv("DATABASE_URL"))
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO orders (
+                        user_id, 
+                        items, 
+                        encrypted_phone,
+                        obfuscated_phone,
+                        order_date,
+                        status,
+                        total_price
+                    ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
+                    RETURNING order_id
+                    """,
+                    (
+                        chat_id,
+                        json.dumps(order.items),
+                        encrypted_phone,
+                        obfuscated_phone,
+                        order_date,
+                        total_price
+                    )
+                )
+                
+                # Fetch result immediately
+                result_row = cursor.fetchone()
+                conn.commit()
+                
+                if not result_row:
+                    logger.error(f"❌ Order insertion failed for user {chat_id}")
+                    raise HTTPException(500, "Order creation failed")
+                
+                order_id = result_row[0]
+                logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
+                
+        except (psycopg.InterfaceError, psycopg.OperationalError) as e:
+            logger.error(f"🔄 Database connection error: {str(e)}")
+            raise HTTPException(500, "Temporary database issue")
+        finally:
+            # Ensure connection is always closed
+            if conn:
+                conn.close()
         
         return {
             "status": "success",
@@ -435,6 +418,8 @@ async def create_order(
     except Exception as e:
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
+
+        
 
 @router.get("/health")
 async def health_check():
