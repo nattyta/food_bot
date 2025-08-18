@@ -315,7 +315,7 @@ async def create_order(
                     order_date,
                     status
                 ) VALUES (%s, %s, %s, %s, %s, 'pending')
-                RETURNING id
+                RETURNING order_id
                 """,
                 (
                     chat_id,
