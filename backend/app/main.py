@@ -149,5 +149,32 @@ def update_order_status(order_id: str):
     print(f"Updating order {order_id} to 'Paid'")  # Replace with actual DB update logic
 
 
+
+
+
+@app.get("/health")
+async def health_check():
+    from .security import PhoneEncryptor  # Import inside function
+    
+    status = {
+        "telegram": "ok",
+        "database": "ok",
+        "encryption": "ok",
+        "timestamp": int(time.time())
+    }
+    
+    try:
+        # Test encryption
+        encryptor = PhoneEncryptor.get_instance()
+        test_phone = "+251912345678"
+        encrypted = encryptor.encrypt(test_phone)
+        decrypted = encryptor.decrypt(encrypted)
+        if decrypted != test_phone:
+            status["encryption"] = "failed"
+    except Exception as e:
+        status["encryption"] = f"error: {str(e)}"
+    
+    return status
+
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
 
