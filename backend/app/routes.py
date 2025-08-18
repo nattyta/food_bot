@@ -272,22 +272,19 @@ async def update_phone(
 @router.post("/orders", response_model=dict)
 async def create_order(
     order: OrderCreate,
-    chat_id: int = Depends(telegram_auth_dependency)  # Authentication via dependency
+    chat_id: int = Depends(telegram_auth_dependency)
 ):
-    """
-    Create a new food order with strict validation and security measures
-    """
     try:
-        # ===== [1] PHONE VALIDATION =====
+        # Validate phone format
         if not re.fullmatch(r'^\+251(7|9)\d{8}$', order.phone):
             obfuscated = encryptor.obfuscate(order.phone)
             logger.warning(f"🚫 Invalid phone format for user {chat_id}: {obfuscated}")
             raise HTTPException(
-                status_code=400,
-                detail="Phone must be in Ethiopian format: +2517xxxxxxxx or +2519xxxxxxxx"
+                status_code=400, 
+                detail="Phone must be in +251 format: +2517xxxxxxxx or +2519xxxxxxxx"
             )
         
-        # ===== [2] ITEMS VALIDATION =====
+        # Validate items
         if not order.items or len(order.items) == 0:
             logger.warning(f"🛒 Empty order attempt by user {chat_id}")
             raise HTTPException(
@@ -295,16 +292,22 @@ async def create_order(
                 detail="Order must contain at least one item"
             )
         
-        # ===== [3] PHONE ENCRYPTION =====
+        # Calculate total price (FIXED TYPO)
+        total_price = sum(item.price * item.quantity for item in order.items)
+        
+        # Log for debugging
+        logger.info(f"🛒 Order items: {order.items}")
+        logger.info(f"💰 Calculated total price: {total_price}")
+        
+        # Encrypt phone
         encrypted_phone = encryptor.encrypt(order.phone)
         obfuscated_phone = encryptor.obfuscate(order.phone)
         
-        # ===== [4] DATABASE OPERATION =====
+        # Database operation
         with DatabaseManager() as db:
-            # Get current timestamp
             order_date = datetime.utcnow()
             
-            # Insert order
+            # Include total_price in INSERT
             result = db.execute(
                 """
                 INSERT INTO orders (
@@ -315,26 +318,25 @@ async def create_order(
                     order_date,
                     status,
                     total_price
-                ) VALUES (%s, %s, %s, %s, %s, 'pending',%s)
+                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
                 RETURNING order_id
                 """,
                 (
                     chat_id,
-                    json.dumps(order.items),  # Serialize items list
+                    json.dumps(order.items),
                     encrypted_phone,
                     obfuscated_phone,
                     order_date,
-                    tottal_price
+                    total_price  # CORRECT SPELLING
                 )
             )
             
-            order_id = result[0][0] if result and result[0] else None
-            
-            if not order_id:
+            if not result or not result[0]:
                 logger.error(f"❌ Order insertion failed for user {chat_id}")
                 raise HTTPException(500, "Order creation failed")
-        
-        # ===== [5] SUCCESS RESPONSE =====
+            
+            order_id = result[0][0]
+            
         logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
         return {
             "status": "success",
@@ -343,17 +345,20 @@ async def create_order(
             "message": "Order received! We're preparing your food."
         }
         
-    except HTTPException:
-        # Re-raise known HTTP exceptions
-        raise
+    except HTTPException as he:
+        # Re-raise HTTP exceptions
+        raise he
         
-    except json.JSONEncodeError as e:
+    except TypeError as e:
+        # Correct exception for JSON serialization errors
         logger.error(f"🔠 JSON encoding error: {str(e)}")
         raise HTTPException(500, "Invalid order data format")
         
     except Exception as e:
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
+
+        
 
 
 @router.get("/health")
