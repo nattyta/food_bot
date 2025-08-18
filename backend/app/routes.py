@@ -335,11 +335,7 @@ async def create_order(
                 detail="Order must contain at least one item"
             )
         
-        # Debug: log the type of items
-        logger.info(f"📦 Type of order.items: {type(order.items)}")
-        logger.info(f"📦 Type of first item: {type(order.items[0])}")
-        
-        # Calculate total price using dictionary access
+        # Calculate total price
         total_price = sum(item['price'] * item['quantity'] for item in order.items)
         
         # Log for debugging
@@ -350,39 +346,58 @@ async def create_order(
         encrypted_phone = encryptor.encrypt(order.phone)
         obfuscated_phone = encryptor.obfuscate(order.phone)
         
-        # Database operation
+        # Database operation - FIXED SECTION
         with DatabaseManager() as db:
             order_date = datetime.utcnow()
             
-            # Include total_price in INSERT
-            result = db.execute(
-                """
-                INSERT INTO orders (
-                    user_id, 
-                    items, 
-                    encrypted_phone,
-                    obfuscated_phone,
-                    order_date,
-                    status,
-                    total_price
-                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
-                RETURNING order_id
-                """,
-                (
-                    chat_id,
-                    json.dumps(order.items),
-                    encrypted_phone,
-                    obfuscated_phone,
-                    order_date,
-                    total_price
+            # Create cursor explicitly
+            cursor = db.conn.cursor()
+            try:
+                cursor.execute(
+                    """
+                    INSERT INTO orders (
+                        user_id, 
+                        items, 
+                        encrypted_phone,
+                        obfuscated_phone,
+                        order_date,
+                        status,
+                        total_price
+                    ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
+                    RETURNING order_id
+                    """,
+                    (
+                        chat_id,
+                        json.dumps(order.items),
+                        encrypted_phone,
+                        obfuscated_phone,
+                        order_date,
+                        total_price
+                    )
                 )
-            )
-            
-            if not result or not result[0]:
-                logger.error(f"❌ Order insertion failed for user {chat_id}")
-                raise HTTPException(500, "Order creation failed")
-            
-            order_id = result[0][0]
+                
+                # Fetch result before closing cursor
+                result_row = cursor.fetchone()
+                db.conn.commit()
+                
+                if not result_row:
+                    logger.error(f"❌ Order insertion failed for user {chat_id}")
+                    raise HTTPException(500, "Order creation failed")
+                
+                order_id = result_row[0]
+            except psycopg.InterfaceError as e:
+                logger.error(f"🔄 Cursor error, retrying: {str(e)}")
+                # Recreate cursor and retry once
+                cursor = db.conn.cursor()
+                cursor.execute(
+                    # Same INSERT query as above
+                )
+                result_row = cursor.fetchone()
+                db.conn.commit()
+                order_id = result_row[0]
+            finally:
+                # Ensure cursor is always closed
+                cursor.close()
             
         logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
         return {
@@ -393,7 +408,6 @@ async def create_order(
         }
         
     except HTTPException as he:
-        # Re-raise HTTP exceptions
         raise he
         
     except KeyError as e:
@@ -407,7 +421,6 @@ async def create_order(
     except Exception as e:
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
-
 
 
 @router.get("/health")
