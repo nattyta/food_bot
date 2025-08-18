@@ -347,59 +347,73 @@ async def create_order(
         obfuscated_phone = encryptor.obfuscate(order.phone)
         
         # Database operation - FIXED SECTION
-        with DatabaseManager() as db:
-            order_date = datetime.utcnow()
-            
-            # Create cursor explicitly
-            cursor = db.conn.cursor()
+        order_id = None
+        retry_count = 0
+        max_retries = 2
+        
+        while retry_count <= max_retries:
             try:
-                cursor.execute(
-                    """
-                    INSERT INTO orders (
-                        user_id, 
-                        items, 
-                        encrypted_phone,
-                        obfuscated_phone,
-                        order_date,
-                        status,
-                        total_price
-                    ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
-                    RETURNING order_id
-                    """,
-                    (
-                        chat_id,
-                        json.dumps(order.items),
-                        encrypted_phone,
-                        obfuscated_phone,
-                        order_date,
-                        total_price
-                    )
-                )
-                
-                # Fetch result before closing cursor
-                result_row = cursor.fetchone()
-                db.conn.commit()
-                
-                if not result_row:
-                    logger.error(f"❌ Order insertion failed for user {chat_id}")
-                    raise HTTPException(500, "Order creation failed")
-                
-                order_id = result_row[0]
+                with DatabaseManager() as db:
+                    order_date = datetime.utcnow()
+                    
+                    # Use the connection directly with a context manager
+                    with db.conn.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            INSERT INTO orders (
+                                user_id, 
+                                items, 
+                                encrypted_phone,
+                                obfuscated_phone,
+                                order_date,
+                                status,
+                                total_price
+                            ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
+                            RETURNING order_id
+                            """,
+                            (
+                                chat_id,
+                                json.dumps(order.items),
+                                encrypted_phone,
+                                obfuscated_phone,
+                                order_date,
+                                total_price
+                            )
+                        )
+                        
+                        # Immediately fetch the result
+                        result_row = cursor.fetchone()
+                        db.conn.commit()
+                        
+                        if not result_row:
+                            logger.error(f"❌ Order insertion failed for user {chat_id}")
+                            raise HTTPException(500, "Order creation failed")
+                        
+                        order_id = result_row[0]
+                        logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
+                        break  # Break out of retry loop on success
+                    
             except psycopg.InterfaceError as e:
-                logger.error(f"🔄 Cursor error, retrying: {str(e)}")
-                # Recreate cursor and retry once
-                cursor = db.conn.cursor()
-                cursor.execute(
-                    # Same INSERT query as above
-                )
-                result_row = cursor.fetchone()
-                db.conn.commit()
-                order_id = result_row[0]
-            finally:
-                # Ensure cursor is always closed
-                cursor.close()
-            
-        logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
+                retry_count += 1
+                if retry_count <= max_retries:
+                    logger.warning(f"🔄 Database connection error, retrying ({retry_count}/{max_retries}): {str(e)}")
+                    continue
+                else:
+                    logger.error(f"🔥 Failed after {max_retries} retries for user {chat_id}: {str(e)}")
+                    raise HTTPException(500, "Database connection failed after retries")
+            except psycopg.OperationalError as e:
+                retry_count += 1
+                if retry_count <= max_retries:
+                    logger.warning(f"🔄 Database operational error, retrying ({retry_count}/{max_retries}): {str(e)}")
+                    continue
+                else:
+                    logger.error(f"🔥 Failed after {max_retries} retries for user {chat_id}: {str(e)}")
+                    raise HTTPException(500, "Database operation failed after retries")
+        
+        if not order_id:
+            logger.error(f"❌ Order creation failed after retries for user {chat_id}")
+            raise HTTPException(500, "Order creation failed")
+        
         return {
             "status": "success",
             "order_id": order_id,
@@ -421,7 +435,6 @@ async def create_order(
     except Exception as e:
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
-
 
 @router.get("/health")
 async def health_check():
