@@ -468,7 +468,7 @@ async def create_order(
 
 
 
-@app.post("/create-payment")
+@router.post("/create-payment")
 async def create_payment(payment: PaymentRequest, request: Request):
     """Initiates direct USSD payment with comprehensive logging"""
     # Get client IP for logging
