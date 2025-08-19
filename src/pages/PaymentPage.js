@@ -52,8 +52,8 @@ const Payment = () => {
         console.log("Payment method:", method);
         console.log("Amount:", totalPrice);
         
-        const apiUrl = process.env.REACT_APP_API_BASE || "https://your-backend-url.com";
-        const endpoint = `${apiUrl}/create-payment`;
+        // Use relative path to avoid CORS issues
+        const endpoint = "/create-payment";
         
         console.log("API endpoint:", endpoint);
         
@@ -81,7 +81,15 @@ const Payment = () => {
         if (!response.ok) {
           const errorData = await response.json();
           console.error("Payment failed:", errorData);
-          throw new Error(errorData.detail || "Payment initiation failed");
+          
+          // Show detailed error in Telegram
+          if (window.Telegram?.WebApp?.showAlert) {
+            window.Telegram.WebApp.showAlert(`Payment failed: ${errorData.detail || "Unknown error"}`);
+          } else {
+            alert(`Payment failed: ${errorData.detail || "Unknown error"}`);
+          }
+          
+          return;
         }
     
         const data = await response.json();
@@ -92,7 +100,7 @@ const Payment = () => {
           const ussdMessage = `Dial ${data.ussd_code} on your phone to complete payment`;
           console.log("USSD instruction:", ussdMessage);
           
-          // Show USSD prompt in Telegram or browser
+          // Show USSD prompt in Telegram
           if (window.Telegram?.WebApp?.showAlert) {
             window.Telegram.WebApp.showAlert(ussdMessage);
           } else {
@@ -101,6 +109,11 @@ const Payment = () => {
           
           // Show on-screen instruction
           setUssdCode(data.ussd_code);
+          
+          // Redirect to confirmation page after 5 seconds
+          setTimeout(() => {
+            navigate("/confirmation", { state: { orderId } });
+          }, 5000);
         } 
         // Redirect flow (if needed)
         else if (data.checkout_url) {
@@ -112,17 +125,33 @@ const Payment = () => {
           }
         }
         
-        // Track payment initiation
         console.log("Payment request sent successfully");
         
       } catch (error) {
         console.error("Payment error:", error);
-        alert(`Payment failed: ${error.message}`);
+        
+        // Handle CORS error specifically
+        if (error.message.includes("Failed to fetch")) {
+          const errorMsg = "Connection to payment server failed. Please check your internet connection.";
+          if (window.Telegram?.WebApp?.showAlert) {
+            window.Telegram.WebApp.showAlert(errorMsg);
+          } else {
+            alert(errorMsg);
+          }
+        } else {
+          const errorMsg = `Payment failed: ${error.message || "Unknown error"}`;
+          if (window.Telegram?.WebApp?.showAlert) {
+            window.Telegram.WebApp.showAlert(errorMsg);
+          } else {
+            alert(errorMsg);
+          }
+        }
       } finally {
         setLoading(false);
       }
     };
-  
+
+    
   return (
     <div className="payment-container">
       <button className="back-button" onClick={() => navigate(-1)}>Back</button>

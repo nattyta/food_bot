@@ -37,7 +37,9 @@ app.include_router(router)
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot"],
+    allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot",
+        "https://telegram.me",
+        "https://web.telegram.org"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -108,6 +110,21 @@ CHAPA_SECRET_KEY = os.getenv("Chapa_API", "").strip()
 if not CHAPA_SECRET_KEY:
     logger.critical("❌ Chapa_API environment variable not set!")
     
+
+
+@app.options("/create-payment", include_in_schema=False)
+async def options_create_payment():
+    return JSONResponse(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Access-Control-Max-Age": "86400",
+        }
+    )
+
+
 @app.post("/create-payment")
 async def create_payment(payment: PaymentRequest, request: Request):
     """Initiates direct USSD payment with comprehensive logging"""

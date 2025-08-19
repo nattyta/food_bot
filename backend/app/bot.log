@@ -731,3 +731,6 @@ LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
 2025-08-18 23:10:21,946 - __main__ - INFO - Database connection successful
 2025-08-18 23:10:23,282 - __main__ - INFO - Webhook removed
 2025-08-18 23:40:58,656 - __main__ - CRITICAL - Bot crashed: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2025-08-19 10:30:51,436 - __main__ - INFO - Starting FoodBot...
+2025-08-19 10:30:54,416 - __main__ - INFO - Database connection successful
+2025-08-19 10:30:55,398 - __main__ - INFO - Webhook removed
