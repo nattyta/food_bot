@@ -18,12 +18,14 @@ from .auth import get_current_user, telegram_auth
 from app.routes import router
 from fastapi.middleware.cors import CORSMiddleware
 import time
+from app.security import PhoneEncryptor
+
 
 # Load environment variables
 load_dotenv()
-
+encryptor = PhoneEncryptor.get_instance()
 CHAPA_SECRET_KEY = os.getenv("Chapa_API")
-CHAPA_BASE_URL = "https://api.chapa.co/v1/transaction"
+CHAPA_BASE_URL = "https://api.chapa.co/v1/transaction/initialize"
 
 app = FastAPI()
 
