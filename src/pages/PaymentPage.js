@@ -93,7 +93,7 @@ const Payment = () => {
         console.log("API endpoint:", endpoint);
         
         const paymentData = {
-          order_id: orderId,
+          order_id: orderId.toString(),  // Convert to string
           amount: totalPrice,
           phone: phone,  // Full phone for payment processing
           payment_method: method,
@@ -113,124 +113,124 @@ const Payment = () => {
     
         console.log("Payment response status:", response.status);
         console.log("Payment response headers:", Object.fromEntries([...response.headers]));
-        
-        // Get the response text first to handle both JSON and non-JSON responses
-        const responseText = await response.text();
-        console.log("Payment response text:", responseText);
-        
-        if (!response.ok) {
-          let errorData;
-          try {
-            errorData = JSON.parse(responseText);
-            console.error("Payment failed - server response:", errorData);
-            
-            // Extract the actual error message with better handling
-            let errorMessage = "Unknown error occurred";
-            
-            if (typeof errorData === 'string') {
-              errorMessage = errorData;
-            } else if (errorData.detail) {
-              if (typeof errorData.detail === 'string') {
-                errorMessage = errorData.detail;
-              } else if (Array.isArray(errorData.detail)) {
-                errorMessage = errorData.detail.map(e => e.msg || JSON.stringify(e)).join(', ');
-              } else {
-                errorMessage = JSON.stringify(errorData.detail);
-              }
-            } else if (errorData.message) {
-              errorMessage = errorData.message;
-            } else {
-              errorMessage = JSON.stringify(errorData);
-            }
-            
-            console.error("Extracted error message:", errorMessage);
-            
-            // Show detailed error in Telegram
-            if (window.Telegram?.WebApp?.showAlert) {
-              window.Telegram.WebApp.showAlert(`Payment failed: ${errorMessage}`);
-            } else {
-              alert(`Payment failed: ${errorMessage}`);
-            }
-          } catch (parseError) {
-            console.error("Failed to parse error response:", parseError);
-            const errorMsg = `Payment failed with status ${response.status}: ${responseText.substring(0, 100)}...`;
-            if (window.Telegram?.WebApp?.showAlert) {
-              window.Telegram.WebApp.showAlert(errorMsg);
-            } else {
-              alert(errorMsg);
-            }
-          }
-          return;
-        }
     
-        // Parse the successful response
-        let data;
-        try {
-          data = JSON.parse(responseText);
-          console.log("Payment response data:", data);
-        } catch (parseError) {
-          console.error("Failed to parse success response:", parseError);
-          throw new Error("Invalid response from server");
-        }
+    // Get the response text first to handle both JSON and non-JSON responses
+    const responseText = await response.text();
+    console.log("Payment response text:", responseText);
+    
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = JSON.parse(responseText);
+        console.error("Payment failed - server response:", errorData);
         
-        // USSD Flow
-        if (data.ussd_code) {
-          const ussdMessage = `Dial ${data.ussd_code} on your phone to complete payment`;
-          console.log("USSD instruction:", ussdMessage);
-          
-          // Show USSD prompt in Telegram
-          if (window.Telegram?.WebApp?.showAlert) {
-            window.Telegram.WebApp.showAlert(ussdMessage);
+        // Extract the actual error message with better handling
+        let errorMessage = "Unknown error occurred";
+        
+        if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          } else if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail.map(e => e.msg || JSON.stringify(e)).join(', ');
           } else {
-            alert(ussdMessage);
+            errorMessage = JSON.stringify(errorData.detail);
           }
-          
-          // Show on-screen instruction
-          setUssdCode(data.ussd_code);
-          
-          // Redirect to confirmation page after 5 seconds
-          setTimeout(() => {
-            navigate("/confirmation", { state: { orderId } });
-          }, 5000);
-        } 
-        // Redirect flow (if needed)
-        else if (data.checkout_url) {
-          console.log("Redirecting to checkout:", data.checkout_url);
-          if (window.Telegram?.WebApp?.openLink) {
-            window.Telegram.WebApp.openLink(data.checkout_url);
-          } else {
-            window.open(data.checkout_url, '_blank');
-          }
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
         } else {
-          console.error("Unexpected response format:", data);
-          throw new Error("Unexpected response from payment service");
+          errorMessage = JSON.stringify(errorData);
         }
         
-        console.log("Payment request sent successfully");
+        console.error("Extracted error message:", errorMessage);
         
-      } catch (error) {
-        console.error("Payment error:", error);
-        
-        // Handle CORS error specifically
-        if (error.message.includes("Failed to fetch") || error.message.includes("CORS")) {
-          const errorMsg = "Connection to payment server failed. Please check your internet connection.";
-          if (window.Telegram?.WebApp?.showAlert) {
-            window.Telegram.WebApp.showAlert(errorMsg);
-          } else {
-            alert(errorMsg);
-          }
+        // Show detailed error in Telegram
+        if (window.Telegram?.WebApp?.showAlert) {
+          window.Telegram.WebApp.showAlert(`Payment failed: ${errorMessage}`);
         } else {
-          const errorMsg = `Payment failed: ${error.message || "Unknown error"}`;
-          if (window.Telegram?.WebApp?.showAlert) {
-            window.Telegram.WebApp.showAlert(errorMsg);
-          } else {
-            alert(errorMsg);
-          }
+          alert(`Payment failed: ${errorMessage}`);
         }
-      } finally {
-        setLoading(false);
+      } catch (parseError) {
+        console.error("Failed to parse error response:", parseError);
+        const errorMsg = `Payment failed with status ${response.status}: ${responseText.substring(0, 100)}...`;
+        if (window.Telegram?.WebApp?.showAlert) {
+          window.Telegram.WebApp.showAlert(errorMsg);
+        } else {
+          alert(errorMsg);
+        }
       }
-    };
+      return;
+    }
+
+    // Parse the successful response
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log("Payment response data:", data);
+    } catch (parseError) {
+      console.error("Failed to parse success response:", parseError);
+      throw new Error("Invalid response from server");
+    }
+    
+    // USSD Flow
+    if (data.ussd_code) {
+      const ussdMessage = `Dial ${data.ussd_code} on your phone to complete payment`;
+      console.log("USSD instruction:", ussdMessage);
+      
+      // Show USSD prompt in Telegram
+      if (window.Telegram?.WebApp?.showAlert) {
+        window.Telegram.WebApp.showAlert(ussdMessage);
+      } else {
+        alert(ussdMessage);
+      }
+      
+      // Show on-screen instruction
+      setUssdCode(data.ussd_code);
+      
+      // Redirect to confirmation page after 5 seconds
+      setTimeout(() => {
+        navigate("/confirmation", { state: { orderId } });
+      }, 5000);
+    } 
+    // Redirect flow (if needed)
+    else if (data.checkout_url) {
+      console.log("Redirecting to checkout:", data.checkout_url);
+      if (window.Telegram?.WebApp?.openLink) {
+        window.Telegram.WebApp.openLink(data.checkout_url);
+      } else {
+        window.open(data.checkout_url, '_blank');
+      }
+    } else {
+      console.error("Unexpected response format:", data);
+      throw new Error("Unexpected response from payment service");
+    }
+    
+    console.log("Payment request sent successfully");
+    
+  } catch (error) {
+    console.error("Payment error:", error);
+    
+    // Handle CORS error specifically
+    if (error.message.includes("Failed to fetch") || error.message.includes("CORS")) {
+      const errorMsg = "Connection to payment server failed. Please check your internet connection.";
+      if (window.Telegram?.WebApp?.showAlert) {
+        window.Telegram.WebApp.showAlert(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    } else {
+      const errorMsg = `Payment failed: ${error.message || "Unknown error"}`;
+      if (window.Telegram?.WebApp?.showAlert) {
+        window.Telegram.WebApp.showAlert(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
     
     return (
