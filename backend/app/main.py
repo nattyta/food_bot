@@ -142,9 +142,9 @@ async def create_payment(payment: PaymentRequest, request: Request):
 
         # Retrieve the order from database to get the encrypted phone
         with DatabaseManager() as db:
-            order_row = db.execute_query(
-                "SELECT encrypted_phone FROM orders WHERE order_id = %s",
-                (payment.order_id,)
+            order_row = db.fetchone(
+             "SELECT encrypted_phone FROM orders WHERE order_id = %s",
+             (payment.order_id,)
             )
             
             if not order_row:
