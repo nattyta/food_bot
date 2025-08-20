@@ -38,7 +38,7 @@ app.include_router(router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot",
-       bmnm,  "https://telegram.me",
+         "https://telegram.me",
         "https://web.telegram.org"],
     allow_credentials=True,
     allow_methods=["*"],
