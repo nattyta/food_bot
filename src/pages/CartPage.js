@@ -29,6 +29,17 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     }
   }, [setCart]);
 
+
+  const totalPrice = useMemo(() => {
+    return cart.reduce((acc, item) => {
+      // Item price already includes add-ons and extras
+      const itemPrice = parseFloat(item.price) || 0;
+      const quantity = parseFloat(item.quantity) || 1;
+      
+      return acc + (itemPrice * quantity);
+    }, 0);
+  }, [cart]);
+
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     if (cart.length > 0) {
@@ -54,16 +65,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     }
   };
 
-  // FIXED: Correct price calculation (no double counting)
-  const totalPrice = useMemo(() => {
-    return cart.reduce((acc, item) => {
-      // Item price already includes add-ons and extras
-      const itemPrice = parseFloat(item.price) || 0;
-      const quantity = parseFloat(item.quantity) || 1;
-      
-      return acc + (itemPrice * quantity);
-    }, 0);
-  }, [cart]);
+
 
   const handleOrderClick = () => {
     if (cart.length === 0) {
