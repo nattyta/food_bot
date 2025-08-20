@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 import requests
 from .database import DatabaseManager
 import os
