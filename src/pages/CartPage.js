@@ -33,12 +33,14 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   useEffect(() => {
     if (cart.length > 0) {
       localStorage.setItem('cart', JSON.stringify(cart));
-      console.debug("Saved cart to localStorage:", cart);
+      localStorage.setItem('cartTotal', totalPrice.toString());
+      console.debug("Saved cart and total to localStorage:", cart, totalPrice);
     } else {
       localStorage.removeItem('cart');
+      localStorage.removeItem('cartTotal');
       console.debug("Cleared cart from localStorage");
     }
-  }, [cart]);
+  }, [cart, totalPrice]);
 
   // Define Telegram WebApp detection function at top level
   const isTelegramWebApp = () => {
@@ -224,7 +226,8 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       navigate('/payment', { 
         state: { 
           orderId: result.order_id,
-          phone: obfuscatePhone(phone)  // Only partial to frontend
+          phone: obfuscatePhone(phone),
+          totalPrice: totalPrice
         }
       });
       
