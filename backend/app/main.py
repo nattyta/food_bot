@@ -155,10 +155,21 @@ async def create_payment(payment: PaymentRequest, request: Request):
                 
             encrypted_phone = order_row[0]
             
-            # Convert to string if it's an integer
-            if isinstance(encrypted_phone, int):
+            # Handle different data types returned from database
+            if isinstance(encrypted_phone, bytes):
+                # Convert bytes to string
+                encrypted_phone = encrypted_phone.decode('utf-8')
+                logger.info(f"🔧 Converted encrypted phone from bytes to string: {encrypted_phone}")
+            elif isinstance(encrypted_phone, int):
+                # Convert integer to string
                 encrypted_phone = str(encrypted_phone)
                 logger.info(f"🔧 Converted encrypted phone from int to string: {encrypted_phone}")
+            elif isinstance(encrypted_phone, str):
+                # Already a string, no conversion needed
+                logger.info(f"🔧 Encrypted phone is already a string: {encrypted_phone}")
+            else:
+                logger.error(f"❌ Unexpected encrypted phone type: {type(encrypted_phone)}")
+                raise HTTPException(500, "Unexpected data format for encrypted phone")
             
         # Decrypt the phone number
         try:
