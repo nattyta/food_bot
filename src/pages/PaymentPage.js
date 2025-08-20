@@ -95,7 +95,6 @@ const Payment = () => {
         const paymentData = {
           order_id: orderId.toString(),  // Convert to string
           amount: totalPrice,
-          phone: phone,  // Full phone for payment processing
           payment_method: method,
           currency: "ETB"
         };

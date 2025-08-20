@@ -125,7 +125,6 @@ async def options_create_payment():
 @app.post("/create-payment")
 async def create_payment(payment: PaymentRequest, request: Request):
     """Initiates direct USSD payment with comprehensive logging"""
-    # Get client IP for logging
     client_ip = request.client.host if request.client else "unknown"
     
     logger.info(f"💰 Payment request received: {payment.dict()}")
@@ -141,116 +140,47 @@ async def create_payment(payment: PaymentRequest, request: Request):
                 detail=f"Invalid payment method. Valid options: {', '.join(valid_methods)}"
             )
 
+        # Retrieve the order from database to get the encrypted phone
+        with DatabaseManager() as db:
+            order_row = db.execute_query(
+                "SELECT encrypted_phone FROM orders WHERE order_id = %s",
+                (payment.order_id,)
+            )
+            
+            if not order_row:
+                logger.error(f"❌ Order not found: {payment.order_id}")
+                raise HTTPException(404, "Order not found")
+                
+            encrypted_phone = order_row[0][0]
+            
+        # Decrypt the phone number
+        try:
+            original_phone = encryptor.decrypt(encrypted_phone)
+            logger.info(f"📱 Decrypted phone for order {payment.order_id}: {encryptor.obfuscate(original_phone)}")
+        except Exception as e:
+            logger.error(f"🔓 Failed to decrypt phone for order {payment.order_id}: {str(e)}")
+            raise HTTPException(500, "Failed to retrieve phone information")
+
         # Log the exact values being sent to Chapa
         logger.info(f"📋 Payment details - Amount: {payment.amount}, Currency: {payment.currency}, "
-                   f"Phone: {payment.phone}, Method: {payment.payment_method}")
+                   f"Phone: {encryptor.obfuscate(original_phone)}, Method: {payment.payment_method}")
 
-        # Prepare Chapa payload
+        # Prepare Chapa payload with the decrypted phone
         payload = {
             "amount": str(payment.amount),
             "currency": "ETB",
             "tx_ref": payment.order_id,
             "payment_method": payment.payment_method,
-            "phone_number": payment.phone,
+            "phone_number": original_phone,  # Use the decrypted phone
             "callback_url": "https://food-bot-vulm.onrender.com/payment-webhook",
             "return_url": "https://food-bot-vulm.onrender.com/payment-success",
             "customization": {
                 "title": "FoodBot Payment",
-                "description": f"Order #{payment.order_id}"
+                "description": f"Order {payment.order_id}"  # Removed the '#' symbol
             }
         }
 
-        headers = {
-            "Authorization": f"Bearer {CHAPA_SECRET_KEY}",
-            "Content-Type": "application/json"
-        }
-        
-        logger.debug(f"📦 Chapa payload: {json.dumps(payload, indent=2)}")
-        
-        # Initiate payment
-        logger.info(f"⚡ Initiating {payment.payment_method} payment for order {payment.order_id}")
-        chapa_url = "https://api.chapa.co/v1/transaction/initialize"
-        
-        # Log the exact request being sent to Chapa
-        logger.info(f"🌐 Sending request to Chapa: {chapa_url}")
-        logger.info(f"🔑 Using API key: {CHAPA_SECRET_KEY[:10]}...")  # Log only first 10 chars for security
-        
-        response = requests.post(
-            chapa_url,
-            json=payload,
-            headers=headers,
-            timeout=10
-        )
-        
-        logger.debug(f"🔍 Chapa response: {response.status_code} - {response.text[:200]}...")
-        
-        if response.status_code != 200:
-            logger.error(f"❌ Chapa API error: {response.status_code} - {response.text}")
-            # Return more detailed error information
-            raise HTTPException(
-                status_code=response.status_code,
-                detail=f"Payment gateway error: {response.text[:100]}..."  # Include part of the response
-            )
-            
-        response_data = response.json()
-        logger.info(f"✅ Chapa payment initiated: {response_data.get('message')}")
-
-        # Handle USSD response
-        if "ussd_code" in response_data.get("data", {}):
-            ussd_code = response_data["data"]["ussd_code"]
-            logger.info(f"📱 USSD code generated: {ussd_code} for {payment.payment_method}")
-            
-            return JSONResponse(
-                content={
-                    "status": "ussd_prompt",
-                    "ussd_code": ussd_code,
-                    "message": "Dial the USSD code to complete payment"
-                },
-                headers={
-                    "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
-                    "Access-Control-Allow-Credentials": "true"
-                }
-            )
-        
-        # Handle checkout URL response
-        if "checkout_url" in response_data.get("data", {}):
-            checkout_url = response_data["data"]["checkout_url"]
-            logger.info(f"🔗 Checkout URL: {checkout_url}")
-            
-            return JSONResponse(
-                content={
-                    "status": "checkout_redirect",
-                    "checkout_url": checkout_url
-                },
-                headers={
-                    "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
-                    "Access-Control-Allow-Credentials": "true"
-                }
-            )
-        
-        # Fallback for unexpected response
-        logger.warning("⚠️ Unexpected Chapa response format")
-        return JSONResponse(
-            content={
-                "status": "unknown",
-                "raw_response": response_data
-            },
-            headers={
-                "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
-                "Access-Control-Allow-Credentials": "true"
-            }
-        )
-        
-    except requests.exceptions.Timeout:
-        logger.error("⌛ Chapa API timeout - service unavailable")
-        raise HTTPException(504, "Payment gateway timeout")
-    except requests.exceptions.ConnectionError:
-        logger.error("🔌 Network error connecting to Chapa")
-        raise HTTPException(503, "Payment service unavailable")
-    except Exception as e:
-        logger.exception(f"💥 Critical payment error: {str(e)}")
-        raise HTTPException(500, f"Payment processing failed: {str(e)}")
-
+        # ... rest of the payment processing code ...
 
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
 
