@@ -78,7 +78,7 @@ const Payment = () => {
         alert("Invalid order total. Please go back and try again.");
         return;
       }
-  
+    
       setLoading(true);
       setPaymentMethod(method);
       
@@ -99,7 +99,7 @@ const Payment = () => {
           payment_method: method,
           currency: "ETB"
         };
-  
+    
         console.log("Payment payload:", paymentData);
         
         const response = await fetch(endpoint, {
@@ -110,29 +110,45 @@ const Payment = () => {
           },
           body: JSON.stringify(paymentData),
         });
-  
+    
         console.log("Payment response status:", response.status);
         
         if (!response.ok) {
           let errorData;
           try {
             errorData = await response.json();
-          } catch (e) {
-            errorData = { detail: `Server error: ${response.status}` };
+            console.error("Payment failed - server response:", errorData);
+            
+            // Extract the actual error message
+            let errorMessage = "Unknown error";
+            if (errorData.detail) {
+              errorMessage = errorData.detail;
+            } else if (typeof errorData === 'string') {
+              errorMessage = errorData;
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            } else {
+              errorMessage = JSON.stringify(errorData);
+            }
+            
+            // Show detailed error in Telegram
+            if (window.Telegram?.WebApp?.showAlert) {
+              window.Telegram.WebApp.showAlert(`Payment failed: ${errorMessage}`);
+            } else {
+              alert(`Payment failed: ${errorMessage}`);
+            }
+          } catch (parseError) {
+            console.error("Failed to parse error response:", parseError);
+            const errorMsg = `Payment failed with status: ${response.status}`;
+            if (window.Telegram?.WebApp?.showAlert) {
+              window.Telegram.WebApp.showAlert(errorMsg);
+            } else {
+              alert(errorMsg);
+            }
           }
-          
-          console.error("Payment failed:", errorData);
-          
-          // Show detailed error in Telegram
-          if (window.Telegram?.WebApp?.showAlert) {
-            window.Telegram.WebApp.showAlert(`Payment failed: ${errorData.detail || "Unknown error"}`);
-          } else {
-            alert(`Payment failed: ${errorData.detail || "Unknown error"}`);
-          }
-          
           return;
         }
-  
+    
         const data = await response.json();
         console.log("Payment response data:", data);
         
