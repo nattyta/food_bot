@@ -228,6 +228,7 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       navigate('/payment', { 
         state: { 
           orderId: result.order_id,
+          phone: obfuscatePhone(phone),
           totalPrice: totalPrice
         }
       });
