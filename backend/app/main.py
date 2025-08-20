@@ -169,7 +169,7 @@ async def create_payment(payment: PaymentRequest, request: Request):
         
         # Initiate payment
         logger.info(f"⚡ Initiating {payment.payment_method} payment for order {payment.order_id}")
-        chapa_url = "https://api.chapa.co/v1/transaction/mobile/initiate"
+        chapa_url = "https://api.chapa.co/v1/transaction/initialize"
         
         # Log the exact request being sent to Chapa
         logger.info(f"🌐 Sending request to Chapa: {chapa_url}")
