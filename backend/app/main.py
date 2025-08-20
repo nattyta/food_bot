@@ -180,7 +180,97 @@ async def create_payment(payment: PaymentRequest, request: Request):
             }
         }
 
-        # ... rest of the payment processing code ...
+        headers = {
+            "Authorization": f"Bearer {CHAPA_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        logger.debug(f"📦 Chapa payload: {json.dumps(payload, indent=2)}")
+        
+        # Initiate payment
+        logger.info(f"⚡ Initiating {payment.payment_method} payment for order {payment.order_id}")
+        chapa_url = "https://api.chapa.co/v1/transaction/initialize"
+        
+        # Log the exact request being sent to Chapa
+        logger.info(f"🌐 Sending request to Chapa: {chapa_url}")
+        logger.info(f"🔑 Using API key: {CHAPA_SECRET_KEY[:10]}...")  # Log only first 10 chars for security
+        
+        response = requests.post(
+            chapa_url,
+            json=payload,
+            headers=headers,
+            timeout=10
+        )
+        
+        logger.debug(f"🔍 Chapa response: {response.status_code} - {response.text[:200]}...")
+        
+        if response.status_code != 200:
+            logger.error(f"❌ Chapa API error: {response.status_code} - {response.text}")
+            # Return more detailed error information
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Payment gateway error: {response.text[:100]}..."  # Include part of the response
+            )
+            
+        response_data = response.json()
+        logger.info(f"✅ Chapa payment initiated: {response_data.get('message')}")
+
+        # Handle USSD response
+        if "ussd_code" in response_data.get("data", {}):
+            ussd_code = response_data["data"]["ussd_code"]
+            logger.info(f"📱 USSD code generated: {ussd_code} for {payment.payment_method}")
+            
+            return JSONResponse(
+                content={
+                    "status": "ussd_prompt",
+                    "ussd_code": ussd_code,
+                    "message": "Dial the USSD code to complete payment"
+                },
+                headers={
+                    "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+                    "Access-Control-Allow-Credentials": "true"
+                }
+            )
+        
+        # Handle checkout URL response
+        if "checkout_url" in response_data.get("data", {}):
+            checkout_url = response_data["data"]["checkout_url"]
+            logger.info(f"🔗 Checkout URL: {checkout_url}")
+            
+            return JSONResponse(
+                content={
+                    "status": "checkout_redirect",
+                    "checkout_url": checkout_url
+                },
+                headers={
+                    "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+                    "Access-Control-Allow-Credentials": "true"
+                }
+            )
+        
+        # Fallback for unexpected response
+        logger.warning("⚠️ Unexpected Chapa response format")
+        return JSONResponse(
+            content={
+                "status": "unknown",
+                "raw_response": response_data
+            },
+            headers={
+                "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
+        
+    except requests.exceptions.Timeout:
+        logger.error("⌛ Chapa API timeout - service unavailable")
+        raise HTTPException(504, "Payment gateway timeout")
+    except requests.exceptions.ConnectionError:
+        logger.error("🔌 Network error connecting to Chapa")
+        raise HTTPException(503, "Payment service unavailable")
+    except Exception as e:
+        logger.exception(f"💥 Critical payment error: {str(e)}")
+        raise HTTPException(500, f"Payment processing failed: {str(e)}")
+
 
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
 
