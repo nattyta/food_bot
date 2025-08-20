@@ -7,6 +7,8 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   const [expandedItems, setExpandedItems] = useState({});
   const [showOrderPopup, setShowOrderPopup] = useState(false);
   const [orderType, setOrderType] = useState("pickup");
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [tempLocation, setTempLocation] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderDetails, setOrderDetails] = useState({
     phone: "", 
@@ -109,43 +111,58 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   const handleShareLocation = () => {
     if (isTelegramWebApp()) {
       const tg = window.Telegram.WebApp;
-      tg.requestLocation((location) => {
-        if (location) {
-          setOrderDetails(prev => ({
-            ...prev,
-            delivery: {
-              ...prev.delivery,
-              location: {
-                lat: location.latitude,
-                lng: location.longitude
-              }
-            }
-          }));
-          tg.showAlert("Location saved!");
+      const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
+      
+      tg.showMap(
+        { 
+          latitude: initialLocation.lat, 
+          longitude: initialLocation.lng 
+        },
+        (selectedLocation) => {
+          if (selectedLocation) {
+            setTempLocation({
+              lat: selectedLocation.latitude,
+              lng: selectedLocation.longitude
+            });
+            setShowLocationModal(true);
+          }
         }
-      }, (error) => tg.showAlert(`Error: ${error}`));
+      );
     } else {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            setOrderDetails(prev => ({
-              ...prev,
-              delivery: {
-                ...prev.delivery,
-                location: {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                }
-              }
-            }));
-            alert("Location saved!");
+            setTempLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            setShowLocationModal(true);
           },
-          (error) => alert(`Error getting location: ${error.message}`)
+          (error) => {
+            alert(`Error getting location: ${error.message}`);
+            // Fallback: still show modal for manual notes
+            setShowLocationModal(true);
+          }
         );
       } else {
         alert("Geolocation is not supported by your browser");
+        // Fallback: still show modal for manual notes
+        setShowLocationModal(true);
       }
     }
+  };
+
+  const handleLocationConfirm = () => {
+    if (tempLocation) {
+      setOrderDetails(prev => ({
+        ...prev,
+        delivery: {
+          ...prev.delivery,
+          location: tempLocation
+        }
+      }));
+    }
+    setShowLocationModal(false);
   };
 
   const handleConfirmOrder = async () => {
@@ -428,6 +445,8 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
                       }
                     })}
                     required
+                    placeholder="Example: Behind Ethiopian Hotel, 3rd floor, blue door. Call when arriving."
+                    rows="3"
                   />
                 </label>
                 <button 
@@ -436,6 +455,15 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
                 >
                   📍 Share Location
                 </button>
+
+                {orderDetails.delivery.location && (
+                  <p className="location-status">
+                    Location set: {orderDetails.delivery.location.lat.toFixed(6)}, {orderDetails.delivery.location.lng.toFixed(6)}
+                  </p>
+                )}
+
+
+
               </div>
             )}
 
@@ -456,6 +484,41 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           </div>
         </div>
       )}
+
+
+      {/* Location Confirmation Modal */}
+      {showLocationModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Location Confirmation</h3>
+            <p>Your location has been set. Please confirm to continue.</p>
+            {tempLocation && (
+              <p className="location-coordinates">
+                Coordinates: {tempLocation.lat.toFixed(6)}, {tempLocation.lng.toFixed(6)}
+              </p>
+            )}
+            <div className="modal-buttons">
+              <button 
+                onClick={() => setShowLocationModal(false)}
+                className="cancel-button"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleLocationConfirm}
+                className="confirm-button"
+              >
+                Confirm Location
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
+
     </div>
   );
 };

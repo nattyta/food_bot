@@ -291,5 +291,71 @@ async def create_payment(payment: PaymentRequest, request: Request):
         raise HTTPException(500, f"Payment processing failed: {str(e)}")
 
 
+@app.post("/payment-webhook")
+async def chapa_webhook(request: Request):
+    """Handle Chapa payment confirmation webhooks"""
+    try:
+        # Get the raw request body
+        body = await request.body()
+        
+        # Verify the signature (important for security!)
+        signature = request.headers.get("Chapa-Signature")
+        if not verify_chapa_signature(body, signature):
+            logger.warning("⚠️ Invalid webhook signature")
+            raise HTTPException(403, "Invalid signature")
+        
+        # Parse the webhook data
+        webhook_data = await request.json()
+        logger.info(f"📩 Webhook received: {webhook_data}")
+        
+        # Extract important information
+        tx_ref = webhook_data.get("tx_ref")  # This should be your order_id
+        status = webhook_data.get("status")
+        chapa_transaction_id = webhook_data.get("id")
+        
+        if not tx_ref:
+            logger.error("❌ No tx_ref in webhook data")
+            return {"status": "error", "message": "No transaction reference"}
+        
+        # Update order status in database
+        with DatabaseManager() as db:
+            if status == "success":
+                db.execute(
+                    "UPDATE orders SET status = 'completed', chapa_transaction_id = %s WHERE order_id = %s",
+                    (chapa_transaction_id, tx_ref)
+                )
+                logger.info(f"✅ Payment successful for order {tx_ref}")
+            elif status == "failed":
+                db.execute(
+                    "UPDATE orders SET status = 'failed' WHERE order_id = %s",
+                    (tx_ref,)
+                )
+                logger.warning(f"❌ Payment failed for order {tx_ref}")
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        logger.exception(f"💥 Webhook processing error: {str(e)}")
+        raise HTTPException(500, "Webhook processing failed")
+
+def verify_chapa_signature(payload: bytes, signature: str) -> bool:
+    """Verify Chapa webhook signature"""
+    # Get your webhook secret from Chapa dashboard
+    webhook_secret = os.getenv("CHAPA_WEBHOOK_SECRET")
+    
+    if not webhook_secret or not signature:
+        return False
+    
+    # Compute expected signature
+    expected_signature = hmac.new(
+        webhook_secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(expected_signature, signature)
+
+    
+
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
 
