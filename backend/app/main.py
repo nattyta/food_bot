@@ -141,6 +141,10 @@ async def create_payment(payment: PaymentRequest, request: Request):
                 detail=f"Invalid payment method. Valid options: {', '.join(valid_methods)}"
             )
 
+        # Log the exact values being sent to Chapa
+        logger.info(f"📋 Payment details - Amount: {payment.amount}, Currency: {payment.currency}, "
+                   f"Phone: {payment.phone}, Method: {payment.payment_method}")
+
         # Prepare Chapa payload
         payload = {
             "amount": str(payment.amount),
@@ -166,6 +170,11 @@ async def create_payment(payment: PaymentRequest, request: Request):
         # Initiate payment
         logger.info(f"⚡ Initiating {payment.payment_method} payment for order {payment.order_id}")
         chapa_url = "https://api.chapa.co/v1/transaction/mobile/initiate"
+        
+        # Log the exact request being sent to Chapa
+        logger.info(f"🌐 Sending request to Chapa: {chapa_url}")
+        logger.info(f"🔑 Using API key: {CHAPA_SECRET_KEY[:10]}...")  # Log only first 10 chars for security
+        
         response = requests.post(
             chapa_url,
             json=payload,
@@ -177,9 +186,10 @@ async def create_payment(payment: PaymentRequest, request: Request):
         
         if response.status_code != 200:
             logger.error(f"❌ Chapa API error: {response.status_code} - {response.text}")
+            # Return more detailed error information
             raise HTTPException(
                 status_code=response.status_code,
-                detail="Payment gateway error"
+                detail=f"Payment gateway error: {response.text[:100]}..."  # Include part of the response
             )
             
         response_data = response.json()
@@ -239,8 +249,7 @@ async def create_payment(payment: PaymentRequest, request: Request):
         raise HTTPException(503, "Payment service unavailable")
     except Exception as e:
         logger.exception(f"💥 Critical payment error: {str(e)}")
-        raise HTTPException(500, "Payment processing failed")
-
+        raise HTTPException(500, f"Payment processing failed: {str(e)}")
 
 
 app.mount("/", StaticFiles(directory="app/build", html=True), name="static")

@@ -100,7 +100,7 @@ const Payment = () => {
           currency: "ETB"
         };
     
-        console.log("Payment payload:", paymentData);
+        console.log("Payment payload:", JSON.stringify(paymentData, null, 2));
         
         const response = await fetch(endpoint, {
           method: "POST",
@@ -112,24 +112,38 @@ const Payment = () => {
         });
     
         console.log("Payment response status:", response.status);
+        console.log("Payment response headers:", Object.fromEntries([...response.headers]));
+        
+        // Get the response text first to handle both JSON and non-JSON responses
+        const responseText = await response.text();
+        console.log("Payment response text:", responseText);
         
         if (!response.ok) {
           let errorData;
           try {
-            errorData = await response.json();
+            errorData = JSON.parse(responseText);
             console.error("Payment failed - server response:", errorData);
             
-            // Extract the actual error message
-            let errorMessage = "Unknown error";
-            if (errorData.detail) {
-              errorMessage = errorData.detail;
-            } else if (typeof errorData === 'string') {
+            // Extract the actual error message with better handling
+            let errorMessage = "Unknown error occurred";
+            
+            if (typeof errorData === 'string') {
               errorMessage = errorData;
+            } else if (errorData.detail) {
+              if (typeof errorData.detail === 'string') {
+                errorMessage = errorData.detail;
+              } else if (Array.isArray(errorData.detail)) {
+                errorMessage = errorData.detail.map(e => e.msg || JSON.stringify(e)).join(', ');
+              } else {
+                errorMessage = JSON.stringify(errorData.detail);
+              }
             } else if (errorData.message) {
               errorMessage = errorData.message;
             } else {
               errorMessage = JSON.stringify(errorData);
             }
+            
+            console.error("Extracted error message:", errorMessage);
             
             // Show detailed error in Telegram
             if (window.Telegram?.WebApp?.showAlert) {
@@ -139,7 +153,7 @@ const Payment = () => {
             }
           } catch (parseError) {
             console.error("Failed to parse error response:", parseError);
-            const errorMsg = `Payment failed with status: ${response.status}`;
+            const errorMsg = `Payment failed with status ${response.status}: ${responseText.substring(0, 100)}...`;
             if (window.Telegram?.WebApp?.showAlert) {
               window.Telegram.WebApp.showAlert(errorMsg);
             } else {
@@ -149,8 +163,15 @@ const Payment = () => {
           return;
         }
     
-        const data = await response.json();
-        console.log("Payment response data:", data);
+        // Parse the successful response
+        let data;
+        try {
+          data = JSON.parse(responseText);
+          console.log("Payment response data:", data);
+        } catch (parseError) {
+          console.error("Failed to parse success response:", parseError);
+          throw new Error("Invalid response from server");
+        }
         
         // USSD Flow
         if (data.ussd_code) {
@@ -180,6 +201,9 @@ const Payment = () => {
           } else {
             window.open(data.checkout_url, '_blank');
           }
+        } else {
+          console.error("Unexpected response format:", data);
+          throw new Error("Unexpected response from payment service");
         }
         
         console.log("Payment request sent successfully");
