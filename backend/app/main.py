@@ -145,8 +145,8 @@ async def create_payment(payment: PaymentRequest, request: Request):
         # Retrieve the order from database to get the encrypted phone
         with DatabaseManager() as db:
             order_row = db.fetchone(
-             "SELECT encrypted_phone FROM orders WHERE order_id = %s",
-             (payment.order_id,)
+                "SELECT encrypted_phone FROM orders WHERE order_id = %s",
+                (payment.order_id,)
             )
             
             if not order_row:
@@ -154,7 +154,11 @@ async def create_payment(payment: PaymentRequest, request: Request):
                 raise HTTPException(404, "Order not found")
                 
             encrypted_phone = order_row[0]
-            logger.info(f"🔍 Retrieved encrypted phone: {encrypted_phone}, type: {type(encrypted_phone)}")
+            
+            # Convert to string if it's an integer
+            if isinstance(encrypted_phone, int):
+                encrypted_phone = str(encrypted_phone)
+                logger.info(f"🔧 Converted encrypted phone from int to string: {encrypted_phone}")
             
         # Decrypt the phone number
         try:
@@ -162,8 +166,6 @@ async def create_payment(payment: PaymentRequest, request: Request):
             logger.info(f"📱 Decrypted phone for order {payment.order_id}: {encryptor.obfuscate(original_phone)}")
         except Exception as e:
             logger.error(f"🔓 Failed to decrypt phone for order {payment.order_id}: {str(e)}")
-            # Add more detailed error information
-            logger.error(f"🔍 Encrypted phone value: {encrypted_phone}, type: {type(encrypted_phone)}")
             raise HTTPException(500, "Failed to retrieve phone information")
 
         # Log the exact values being sent to Chapa
