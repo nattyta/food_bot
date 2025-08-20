@@ -35,8 +35,8 @@ class PhoneEncryptor:
             logger.error(f"🔒 Encryption failed: {str(e)}")
             raise RuntimeError("Encryption error")
     
-    def decrypt(self, encrypted) -> str:
-     try:
+def decrypt(self, encrypted) -> str:
+    try:
         # Convert to string if it's an integer
         if isinstance(encrypted, int):
             encrypted = str(encrypted)
@@ -47,7 +47,8 @@ class PhoneEncryptor:
     except Exception as e:
         logger.error(f"🔓 Decryption failed: {str(e)}")
         raise RuntimeError("Decryption error")
-    
+
+
     def obfuscate(self, phone: str) -> str:
         try:
             return f"{phone[:5]}****{phone[-3:]}" if phone else ""
