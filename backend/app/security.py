@@ -35,9 +35,9 @@ class PhoneEncryptor:
             logger.error(f"🔒 Encryption failed: {str(e)}")
             raise RuntimeError("Encryption error")
     
-def decrypt(self, encrypted) -> str:
+def decrypt(self, encrypted: str) -> str:
     try:
-        # Convert to string if it's an integer
+        # Handle both string and integer inputs
         if isinstance(encrypted, int):
             encrypted = str(encrypted)
         return self.cipher.decrypt(encrypted.encode()).decode()
