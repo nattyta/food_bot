@@ -36,7 +36,7 @@ class PhoneEncryptor:
             raise RuntimeError("Encryption error")
     
     def decrypt(self, encrypted) -> str:
-    try:
+     try:
         # Convert to string if it's an integer
         if isinstance(encrypted, int):
             encrypted = str(encrypted)
