@@ -18,6 +18,21 @@ const Payment = () => {
   const [userName, setUserName] = useState("Telegram User");
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [ussdCode, setUssdCode] = useState(null);
+
+
+
+  const bankDisplayNames = {
+    'telebirr': 'Telebirr',
+    'cbe': 'Commercial Bank of Ethiopia', 
+    'awash': 'Awash Bank',
+    'cbebirr': 'CBE Birr',
+    'abisinia': 'Abisinia Bank',
+    'boa': 'Bank of Abyssinia',
+    'dashen': 'Dashen Bank'
+  };
+
+
+
   useEffect(() => {
     // Get user info from Telegram WebApp
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
@@ -30,7 +45,20 @@ const Payment = () => {
       const storedTotal = parseFloat(localStorage.getItem("cartTotal")) || 0;
       setTotalPrice(storedTotal);
     }
-  }, [initialTotal]);
+    
+    // Ensure we have a valid total price
+    if (totalPrice <= 0) {
+      console.error("Invalid total price:", totalPrice);
+      // Try to get from localStorage as fallback
+      const storedTotal = parseFloat(localStorage.getItem("cartTotal")) || 0;
+      if (storedTotal > 0) {
+        setTotalPrice(storedTotal);
+      } else {
+        alert("Invalid order total. Please go back and try again.");
+        navigate(-1);
+      }
+    }
+  }, [initialTotal, totalPrice, navigate]);
 
   // Obfuscate phone for display (first 5 and last 3 digits)
   const obfuscatedPhone = phone ? 
@@ -43,7 +71,14 @@ const Payment = () => {
         alert("Missing order information. Please go back and try again.");
         return;
       }
-    
+      
+      // Validate total price
+      if (totalPrice <= 0) {
+        console.error("Invalid total price:", totalPrice);
+        alert("Invalid order total. Please go back and try again.");
+        return;
+      }
+  
       setLoading(true);
       setPaymentMethod(method);
       
@@ -52,8 +87,8 @@ const Payment = () => {
         console.log("Payment method:", method);
         console.log("Amount:", totalPrice);
         
-        // Use relative path to avoid CORS issues
-        const endpoint = "/create-payment";
+        // Use the correct endpoint URL
+        const endpoint = `${window.location.origin}/create-payment`;
         
         console.log("API endpoint:", endpoint);
         
@@ -64,7 +99,7 @@ const Payment = () => {
           payment_method: method,
           currency: "ETB"
         };
-    
+  
         console.log("Payment payload:", paymentData);
         
         const response = await fetch(endpoint, {
@@ -75,11 +110,17 @@ const Payment = () => {
           },
           body: JSON.stringify(paymentData),
         });
-    
+  
         console.log("Payment response status:", response.status);
         
         if (!response.ok) {
-          const errorData = await response.json();
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { detail: `Server error: ${response.status}` };
+          }
+          
           console.error("Payment failed:", errorData);
           
           // Show detailed error in Telegram
@@ -91,7 +132,7 @@ const Payment = () => {
           
           return;
         }
-    
+  
         const data = await response.json();
         console.log("Payment response data:", data);
         
@@ -131,7 +172,7 @@ const Payment = () => {
         console.error("Payment error:", error);
         
         // Handle CORS error specifically
-        if (error.message.includes("Failed to fetch")) {
+        if (error.message.includes("Failed to fetch") || error.message.includes("CORS")) {
           const errorMsg = "Connection to payment server failed. Please check your internet connection.";
           if (window.Telegram?.WebApp?.showAlert) {
             window.Telegram.WebApp.showAlert(errorMsg);
@@ -152,69 +193,82 @@ const Payment = () => {
     };
 
     
-  return (
-    <div className="payment-container">
-      <button className="back-button" onClick={() => navigate(-1)}>Back</button>
-      
-      <h2 className="title">Payment</h2>
-      
-      {/* Order Summary */}
-      <div className="order-summary">
-        <p><strong>Order ID:</strong> {orderId || 'N/A'}</p>
-        <p><strong>Total:</strong> {totalPrice.toFixed(2)} ETB</p>
-      </div>
-      
-      {/* Virtual Card with Phone Number */}
-      <div className="virtual-card">
-        <div className="card-chip"></div>
-        <p className="card-number">{obfuscatedPhone}</p>
-        <p className="card-name">{userName}</p>
-        <p className="card-amount">Amount: {totalPrice.toFixed(2)} ETB</p>
-      </div>
-      
-      <div className="payment-methods">
-        <button 
-          className={`pay-btn ${paymentMethod === 'telebirr' ? 'active' : ''}`}
-          onClick={() => handlePayment("telebirr")}
-        > 
-          <img src={telebirrLogo} alt="Telebirr" className="pay-logo"/> 
-          <span>Telebirr</span>
-        </button>
+    return (
+      <div className="payment-container">
+        <button className="back-button" onClick={() => navigate(-1)}>Back</button>
         
-        <button 
-          className={`pay-btn ${paymentMethod === 'cbe' ? 'active' : ''}`}
-          onClick={() => handlePayment("cbe")}
-        > 
-          <img src={cbeLogo} alt="CBE" className="pay-logo"/> 
-          <span>CBE</span>
-        </button>
+        <h2 className="title">Payment</h2>
         
-        <button 
-          className={`pay-btn ${paymentMethod === 'abisinia' ? 'active' : ''}`}
-          onClick={() => handlePayment("abisinia")}
-        > 
-          <img src={abisiniaLogo} alt="Abisinia" className="pay-logo"/> 
-          <span>Abisinia</span>
-        </button>
-        
-        <button 
-          className={`pay-btn ${paymentMethod === 'cbe_birr' ? 'active' : ''}`}
-          onClick={() => handlePayment("cbe_birr")}
-        > 
-          <img src={cbebirrLogo} alt="CBE Birr" className="pay-logo"/> 
-          <span>CBE Birr</span>
-        </button>
-      </div>
-
-      {loading && (
-        <div className="payment-loading">
-          <p>Processing payment via {paymentMethod}...</p>
-          <div className="spinner"></div>
-          <p className="hint">Check your phone for payment prompt</p>
+        {/* Order Summary */}
+        <div className="order-summary">
+          <p><strong>Order ID:</strong> {orderId || 'N/A'}</p>
+          <p><strong>Total:</strong> {totalPrice.toFixed(2)} ETB</p>
         </div>
-      )}
-    </div>
-  );
-};
-
-export default Payment;
+        
+        {/* Virtual Card with Phone Number */}
+        <div className="virtual-card">
+          <div className="card-chip"></div>
+          <p className="card-number">{obfuscatedPhone}</p>
+          <p className="card-name">{userName}</p>
+          <p className="card-amount">Amount: {totalPrice.toFixed(2)} ETB</p>
+        </div>
+        
+        <div className="payment-methods">
+          <button 
+            className={`pay-btn ${paymentMethod === 'telebirr' ? 'active' : ''}`}
+            onClick={() => handlePayment("telebirr")}
+            disabled={loading}
+          > 
+            <img src={telebirrLogo} alt="Telebirr" className="pay-logo"/> 
+            <span>Telebirr</span>
+          </button>
+          
+          <button 
+            className={`pay-btn ${paymentMethod === 'cbe' ? 'active' : ''}`}
+            onClick={() => handlePayment("cbe")}
+            disabled={loading}
+          > 
+            <img src={cbeLogo} alt="CBE" className="pay-logo"/> 
+            <span>CBE</span>
+          </button>
+          
+          <button 
+            className={`pay-btn ${paymentMethod === 'awash' ? 'active' : ''}`}
+            onClick={() => handlePayment("awash")}
+            disabled={loading}
+          > 
+            <img src={abisiniaLogo} alt="Awash Bank" className="pay-logo"/> 
+            <span>Awash Bank</span>
+          </button>
+          
+          <button 
+            className={`pay-btn ${paymentMethod === 'cbebirr' ? 'active' : ''}`}
+            onClick={() => handlePayment("cbebirr")}
+            disabled={loading}
+          > 
+            <img src={cbebirrLogo} alt="CBE Birr" className="pay-logo"/> 
+            <span>CBE Birr</span>
+          </button>
+        </div>
+  
+        {loading && (
+          <div className="payment-loading">
+            <p>Processing payment via {bankDisplayNames[paymentMethod] || paymentMethod}...</p>
+            <div className="spinner"></div>
+            <p className="hint">Check your phone for payment prompt</p>
+          </div>
+        )}
+  
+        {ussdCode && (
+          <div className="ussd-instruction">
+            <h3>Payment Instruction</h3>
+            <p>Dial this USSD code on your phone:</p>
+            <div className="ussd-code">{ussdCode}</div>
+            <p>You will be redirected to confirmation shortly...</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  export default Payment;

@@ -38,7 +38,7 @@ app.include_router(router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot",
-        "https://telegram.me",
+       bmnm,  "https://telegram.me",
         "https://web.telegram.org"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -109,8 +109,6 @@ async def verify_telegram_connection():
 CHAPA_SECRET_KEY = os.getenv("Chapa_API", "").strip()
 if not CHAPA_SECRET_KEY:
     logger.critical("❌ Chapa_API environment variable not set!")
-    
-
 
 @app.options("/create-payment", include_in_schema=False)
 async def options_create_payment():
@@ -124,7 +122,6 @@ async def options_create_payment():
         }
     )
 
-
 @app.post("/create-payment")
 async def create_payment(payment: PaymentRequest, request: Request):
     """Initiates direct USSD payment with comprehensive logging"""
@@ -136,7 +133,7 @@ async def create_payment(payment: PaymentRequest, request: Request):
 
     try:
         # Validate payment method
-        valid_methods = ["telebirr", "cbe", "abisinia", "cbe_birr"]
+        valid_methods = ["telebirr", "cbe", "awash", "cbebirr", "dashen", "boa"]
         if payment.payment_method not in valid_methods:
             logger.warning(f"🚫 Invalid payment method: {payment.payment_method}")
             raise HTTPException(
@@ -193,28 +190,46 @@ async def create_payment(payment: PaymentRequest, request: Request):
             ussd_code = response_data["data"]["ussd_code"]
             logger.info(f"📱 USSD code generated: {ussd_code} for {payment.payment_method}")
             
-            return {
-                "status": "ussd_prompt",
-                "ussd_code": ussd_code,
-                "message": "Dial the USSD code to complete payment"
-            }
+            return JSONResponse(
+                content={
+                    "status": "ussd_prompt",
+                    "ussd_code": ussd_code,
+                    "message": "Dial the USSD code to complete payment"
+                },
+                headers={
+                    "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+                    "Access-Control-Allow-Credentials": "true"
+                }
+            )
         
         # Handle checkout URL response
         if "checkout_url" in response_data.get("data", {}):
             checkout_url = response_data["data"]["checkout_url"]
             logger.info(f"🔗 Checkout URL: {checkout_url}")
             
-            return {
-                "status": "checkout_redirect",
-                "checkout_url": checkout_url
-            }
+            return JSONResponse(
+                content={
+                    "status": "checkout_redirect",
+                    "checkout_url": checkout_url
+                },
+                headers={
+                    "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+                    "Access-Control-Allow-Credentials": "true"
+                }
+            )
         
         # Fallback for unexpected response
         logger.warning("⚠️ Unexpected Chapa response format")
-        return {
-            "status": "unknown",
-            "raw_response": response_data
-        }
+        return JSONResponse(
+            content={
+                "status": "unknown",
+                "raw_response": response_data
+            },
+            headers={
+                "Access-Control-Allow-Origin": "https://food-bot-vulm.onrender.com",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )
         
     except requests.exceptions.Timeout:
         logger.error("⌛ Chapa API timeout - service unavailable")
@@ -225,7 +240,6 @@ async def create_payment(payment: PaymentRequest, request: Request):
     except Exception as e:
         logger.exception(f"💥 Critical payment error: {str(e)}")
         raise HTTPException(500, "Payment processing failed")
-
 
 
 
