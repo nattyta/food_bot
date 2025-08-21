@@ -18,7 +18,7 @@ from .schemas import PhoneUpdateRequest
 import uuid
 from datetime import datetime
 from cryptography.fernet import Fernet
-from math import sin, cos, sqrt, atan2, radian
+from math import sin, cos, sqrt, atan2, radians
 
 
 logger = logging.getLogger(__name__)

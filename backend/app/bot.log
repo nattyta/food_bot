@@ -758,3 +758,6 @@ LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
 2025-08-21 01:26:52,867 - __main__ - INFO - Database connection successful
 2025-08-21 01:26:53,559 - __main__ - INFO - Webhook removed
 2025-08-21 03:37:20,848 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-08-21 17:40:51,618 - __main__ - INFO - Starting FoodBot...
+2025-08-21 17:40:53,731 - __main__ - INFO - Database connection successful
+2025-08-21 17:40:56,780 - __main__ - INFO - Webhook removed
