@@ -18,6 +18,8 @@ from .schemas import PhoneUpdateRequest
 import uuid
 from datetime import datetime
 from cryptography.fernet import Fernet
+from math import sin, cos, sqrt, atan2, radian
+
 
 logger = logging.getLogger(__name__)
 
@@ -404,6 +406,35 @@ async def create_order(
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
 
+
+
+
+
+RESTAURANT_LAT = 9.005  # Example: Addis Ababa coordinates
+RESTAURANT_LON = 38.763
+MAX_DELIVERY_DISTANCE_KM = 10  # Example: 10 km radius
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Calculate the great-circle distance between two points in kilometers
+    R = 6371  # Earth's radius in km
+    lat1_rad = radians(lat1)
+    lon1_rad = radians(lon1)
+    lat2_rad = radians(lat2)
+    lon2_rad = radians(lon2)
+    dlon = lon2_rad - lon1_rad
+    dlat = lat2_rad - lat1_rad
+    a = sin(dlat / 2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+
+@router.get("/validate-location")
+async def validate_location(lat: float, lng: float):
+    distance = calculate_distance(RESTAURANT_LAT, RESTAURANT_LON, lat, lng)
+    within_zone = distance <= MAX_DELIVERY_DISTANCE_KM
+    return {
+        "within_zone": within_zone,
+        "distance": distance
+    }
 
 
 

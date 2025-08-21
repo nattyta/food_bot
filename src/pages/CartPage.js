@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./cart.css";
 
 const CartPage = ({ cart, setCart, telegramInitData }) => {
@@ -17,7 +18,15 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       location: null
     }
   });
+  const [address, setAddress] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
+
+  function obfuscatePhone(phone) {
+    if (!phone) return "";
+    return `${phone.substring(0, 5)}****${phone.substring(phone.length - 3)}`;
+  }
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -109,166 +118,223 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   };
 
   const handleShareLocation = () => {
-    if (isTelegramWebApp()) {
-      const tg = window.Telegram.WebApp;
-      const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
-      
-      tg.showMap(
-        { 
-          latitude: initialLocation.lat, 
-          longitude: initialLocation.lng 
-        },
-        (selectedLocation) => {
-          if (selectedLocation) {
-            setTempLocation({
-              lat: selectedLocation.latitude,
-              lng: selectedLocation.longitude
-            });
-            setShowLocationModal(true);
+  if (isTelegramWebApp()) {
+    const tg = window.Telegram.WebApp;
+    const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
+    
+    tg.showMap(
+      { 
+        latitude: initialLocation.lat, 
+        longitude: initialLocation.lng 
+      },
+      async (selectedLocation) => {
+        if (selectedLocation) {
+          setTempLocation({
+            lat: selectedLocation.latitude,
+            lng: selectedLocation.longitude
+          });
+          setIsGeocoding(true);
+          
+          // Reverse geocoding to get address using OpenStreetMap Nominatim
+          try {
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLocation.latitude}&lon=${selectedLocation.longitude}&zoom=18&addressdetails=1`
+            );
+            const displayName = response.data.display_name;
+            setAddress(displayName);
+          } catch (error) {
+            console.error("Geocoding error:", error);
+            setAddress("Address not found. Please describe your location in the notes.");
+          } finally {
+            setIsGeocoding(false);
           }
+          
+          setShowLocationModal(true);
+        }
+      }
+    );
+  } else {
+    // Fallback for non-Telegram environment
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          setTempLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+          setIsGeocoding(true);
+          
+          try {
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+            );
+            const displayName = response.data.display_name;
+            setAddress(displayName);
+          } catch (error) {
+            console.error("Geocoding error:", error);
+            setAddress("Address not found. Please describe your location in the notes.");
+          } finally {
+            setIsGeocoding(false);
+          }
+          
+          setShowLocationModal(true);
+        },
+        (error) => {
+          alert(`Error getting location: ${error.message}`);
+          // Fallback: still show modal for manual notes
+          setShowLocationModal(true);
         }
       );
     } else {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setTempLocation({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
-            setShowLocationModal(true);
-          },
-          (error) => {
-            alert(`Error getting location: ${error.message}`);
-            // Fallback: still show modal for manual notes
-            setShowLocationModal(true);
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by your browser");
-        // Fallback: still show modal for manual notes
-        setShowLocationModal(true);
+      alert("Geolocation is not supported by your browser");
+      setShowLocationModal(true);
+    }
+  }
+};
+
+const handleLocationConfirm = () => {
+  if (tempLocation) {
+    setOrderDetails(prev => ({
+      ...prev,
+      delivery: {
+        ...prev.delivery,
+        location: tempLocation,
+        address: address, // Save the geocoded address
+        notes: notes // Save the notes
       }
-    }
-  };
+    }));
+  }
+  setShowLocationModal(false);
+  setNotes(''); // Reset notes for next time
+  setAddress(''); // Reset address
+};
 
-  const handleLocationConfirm = () => {
-    if (tempLocation) {
-      setOrderDetails(prev => ({
-        ...prev,
-        delivery: {
-          ...prev.delivery,
-          location: tempLocation
-        }
-      }));
+const handleConfirmOrder = async () => {
+  if (isSubmitting) return;
+  setIsSubmitting(true);
+  
+  try {
+    // Phone normalization
+    let phone = orderDetails.phone.replace(/\D/g, '');
+    if (phone.startsWith('251')) {
+      phone = `+${phone}`;
+    } else if (phone.startsWith('0')) {
+      phone = `+251${phone.substring(1)}`;
+    } else if (!phone.startsWith('+251')) {
+      phone = `+251${phone}`;
     }
-    setShowLocationModal(false);
-  };
-
-  const handleConfirmOrder = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
     
-    try {
-      // Phone normalization
-      let phone = orderDetails.phone.replace(/\D/g, '');
-      if (phone.startsWith('251')) {
-        phone = `+${phone}`;
-      } else if (phone.startsWith('0')) {
-        phone = `+251${phone.substring(1)}`;
-      } else if (!phone.startsWith('+251')) {
-        phone = `+251${phone}`;
-      }
-      
-      // Validate phone (strictly +251 format)
-      if (!/^\+251[79]\d{8}$/.test(phone)) {
-        throw new Error("Valid Ethiopian phone required: +251 followed by 7 or 9 and then 8 digits");
-      }
-      
-      // Delivery validation
-      if (orderType === "delivery" && !orderDetails.delivery.address.trim()) {
+    // Validate phone (strictly +251 format)
+    if (!/^\+251[79]\d{8}$/.test(phone)) {
+      throw new Error("Valid Ethiopian phone required: +251 followed by 7 or 9 and then 8 digits");
+    }
+    
+    // Delivery validation
+    if (orderType === "delivery") {
+      if (!orderDetails.delivery.address.trim()) {
         throw new Error("Delivery address required");
       }
-  
+      if (!orderDetails.delivery.location) {
+        throw new Error("Please share your location for delivery");
+      }
+      
+      // Validate delivery zone with backend
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) throw new Error("Authentication expired. Refresh page.");
-  
-      // Prepare order data
-      const orderData = {
-        phone: phone,  // Full phone for encryption
-        address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
-        latitude: orderType === 'delivery' && orderDetails.delivery.location 
-                  ? orderDetails.delivery.location.lat : null,
-        longitude: orderType === 'delivery' && orderDetails.delivery.location 
-                  ? orderDetails.delivery.location.lng : null,
-        location_label: "", // Not currently collected
-        notes: "", // Not collected in form
-        items: cart.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          addOns: item.addOns || [],
-          extras: item.extras || [],
-          modifications: item.modifications || [],
-          specialInstruction: item.specialInstruction || ""
-        })),
-        total_price: totalPrice,
-        is_guest_order: false
-      };
-  
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
-      };
-  
-      if (telegramInitData) {
-        headers['x-telegram-init-data'] = telegramInitData;
-      }
-  
-      // Create order directly
-      const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/orders`;
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(orderData)
-      });
-  
-      if (!response.ok) {
-        const errorText = await response.text();
-        // Scrub any numbers from the error text
-        const errorSafe = errorText.replace(/\d{4,}/g, '***');
-        throw new Error(`Order failed: ${response.status} - ${errorSafe.slice(0, 50)}`);
-      }
-  
-      const result = await response.json();
-      navigate('/payment', { 
-        state: { 
-          orderId: result.order_id,
-          phone: obfuscatePhone(phone),
-          totalPrice: totalPrice
+
+      const validationResponse = await fetch(
+        `${process.env.REACT_APP_API_BASE || ''}/validate-location?lat=${orderDetails.delivery.location.lat}&lng=${orderDetails.delivery.location.lng}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
         }
-      });
+      );
       
-    } catch (error) {
-      console.error('Order failed:', error);
-      // Scrub any numbers from the error message
-      const safeError = error.message.replace(/\d{4,}/g, '***');
-      if (isTelegramWebApp()) {
-        window.Telegram.WebApp.showAlert(safeError);
-      } else {
-        alert(safeError);
+      if (!validationResponse.ok) {
+        const errorText = await validationResponse.text();
+        throw new Error(`Location validation failed: ${errorText}`);
       }
-    } finally {
-      setIsSubmitting(false);
+      
+      const validationResult = await validationResponse.json();
+      if (!validationResult.within_zone) {
+        throw new Error(`Sorry, we don't deliver to your area yet. You are ${validationResult.distance.toFixed(2)} km away.`);
+      }
     }
-  };
-  
-  // Helper to show partial phone (first 5 and last 3 digits)
-  function obfuscatePhone(phone) {
-    if (!phone) return "";
-    return `${phone.substring(0, 5)}****${phone.substring(phone.length - 3)}`;
+
+    const authToken = localStorage.getItem('auth_token');
+    if (!authToken) throw new Error("Authentication expired. Refresh page.");
+
+    // Prepare order data
+    const orderData = {
+      phone: phone,  // Full phone for encryption
+      address: orderType === 'delivery' ? orderDetails.delivery.address : 'Pickup',
+      latitude: orderType === 'delivery' && orderDetails.delivery.location 
+                ? orderDetails.delivery.location.lat : null,
+      longitude: orderType === 'delivery' && orderDetails.delivery.location 
+                ? orderDetails.delivery.location.lng : null,
+      location_label: "", // Not currently collected
+      notes: orderType === 'delivery' ? orderDetails.delivery.notes : "", // Add notes if available
+      items: cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        addOns: item.addOns || [],
+        extras: item.extras || [],
+        modifications: item.modifications || [],
+        specialInstruction: item.specialInstruction || ""
+      })),
+      total_price: totalPrice,
+      is_guest_order: false
+    };
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`
+    };
+
+    if (telegramInitData) {
+      headers['x-telegram-init-data'] = telegramInitData;
+    }
+
+    // Create order directly
+    const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/orders`;
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(orderData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Scrub any numbers from the error text
+      const errorSafe = errorText.replace(/\d{4,}/g, '***');
+      throw new Error(`Order failed: ${response.status} - ${errorSafe.slice(0, 50)}`);
+    }
+
+    const result = await response.json();
+    navigate('/payment', { 
+      state: { 
+        orderId: result.order_id,
+        phone: obfuscatePhone(phone),
+        totalPrice: totalPrice
+      }
+    });
+    
+  } catch (error) {
+    console.error('Order failed:', error);
+    // Scrub any numbers from the error message
+    const safeError = error.message.replace(/\d{4,}/g, '***');
+    if (isTelegramWebApp()) {
+      window.Telegram.WebApp.showAlert(safeError);
+    } else {
+      alert(safeError);
+    }
+  } finally {
+    setIsSubmitting(false);
   }
+};
 
 
   
@@ -486,34 +552,55 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
       )}
 
 
-      {/* Location Confirmation Modal */}
-      {showLocationModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Location Confirmation</h3>
-            <p>Your location has been set. Please confirm to continue.</p>
-            {tempLocation && (
-              <p className="location-coordinates">
-                Coordinates: {tempLocation.lat.toFixed(6)}, {tempLocation.lng.toFixed(6)}
-              </p>
-            )}
-            <div className="modal-buttons">
-              <button 
-                onClick={() => setShowLocationModal(false)}
-                className="cancel-button"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleLocationConfirm}
-                className="confirm-button"
-              >
-                Confirm Location
-              </button>
-            </div>
+{showLocationModal && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h3>Confirm Your Delivery Location</h3>
+      <p>Please verify your address and add any delivery notes.</p>
+      
+      {isGeocoding ? (
+        <p>Loading address...</p>
+      ) : (
+        <>
+          {tempLocation && (
+            <p className="location-coordinates">
+              Coordinates: {tempLocation.lat.toFixed(6)}, {tempLocation.lng.toFixed(6)}
+            </p>
+          )}
+          <div className="address-display">
+            <p><strong>Address:</strong> {address || "Not available"}</p>
           </div>
-        </div>
+          <label>
+            Delivery Notes (e.g., floor, landmark, gate color):
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Example: Behind Ethiopian Hotel, 3rd floor, blue door. Call when arriving."
+              rows="3"
+              className="notes-textarea"
+            />
+          </label>
+        </>
       )}
+      
+      <div className="modal-buttons">
+        <button 
+          onClick={() => setShowLocationModal(false)}
+          className="cancel-button"
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={handleLocationConfirm}
+          className="confirm-button"
+          disabled={isGeocoding}
+        >
+          Confirm Location
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 
 
