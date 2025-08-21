@@ -118,79 +118,79 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   };
 
   const handleShareLocation = () => {
-  if (isTelegramWebApp()) {
-    const tg = window.Telegram.WebApp;
-    const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
-    
-    tg.showMap(
-      { 
-        latitude: initialLocation.lat, 
-        longitude: initialLocation.lng 
-      },
-      async (selectedLocation) => {
-        if (selectedLocation) {
-          setTempLocation({
-            lat: selectedLocation.latitude,
-            lng: selectedLocation.longitude
-          });
-          setIsGeocoding(true);
-          
-          // Reverse geocoding to get address using OpenStreetMap Nominatim
-          try {
-            const response = await axios.get(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLocation.latitude}&lon=${selectedLocation.longitude}&zoom=18&addressdetails=1`
-            );
-            const displayName = response.data.display_name;
-            setAddress(displayName);
-          } catch (error) {
-            console.error("Geocoding error:", error);
-            setAddress("Address not found. Please describe your location in the notes.");
-          } finally {
-            setIsGeocoding(false);
+    if (isTelegramWebApp()) {
+      const tg = window.Telegram.WebApp;
+      const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
+      
+      // Use openMap instead of showMap
+      tg.openMap(
+        initialLocation.lat, 
+        initialLocation.lng,
+        {}, // options (empty object)
+        async (selectedLocation) => {
+          if (selectedLocation) {
+            setTempLocation({
+              lat: selectedLocation.latitude,
+              lng: selectedLocation.longitude
+            });
+            setIsGeocoding(true);
+            
+            // Reverse geocoding to get address using OpenStreetMap Nominatim
+            try {
+              const response = await axios.get(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLocation.latitude}&lon=${selectedLocation.longitude}&zoom=18&addressdetails=1`
+              );
+              const displayName = response.data.display_name;
+              setAddress(displayName);
+            } catch (error) {
+              console.error("Geocoding error:", error);
+              setAddress("Address not found. Please describe your location in the notes.");
+            } finally {
+              setIsGeocoding(false);
+            }
+            
+            setShowLocationModal(true);
           }
-          
-          setShowLocationModal(true);
-        }
-      }
-    );
-  } else {
-    // Fallback for non-Telegram environment
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          setTempLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setIsGeocoding(true);
-          
-          try {
-            const response = await axios.get(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
-            );
-            const displayName = response.data.display_name;
-            setAddress(displayName);
-          } catch (error) {
-            console.error("Geocoding error:", error);
-            setAddress("Address not found. Please describe your location in the notes.");
-          } finally {
-            setIsGeocoding(false);
-          }
-          
-          setShowLocationModal(true);
-        },
-        (error) => {
-          alert(`Error getting location: ${error.message}`);
-          // Fallback: still show modal for manual notes
-          setShowLocationModal(true);
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser");
-      setShowLocationModal(true);
+      // Fallback for non-Telegram environment
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            setTempLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+            setIsGeocoding(true);
+            
+            try {
+              const response = await axios.get(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+              );
+              const displayName = response.data.display_name;
+              setAddress(displayName);
+            } catch (error) {
+              console.error("Geocoding error:", error);
+              setAddress("Address not found. Please describe your location in the notes.");
+            } finally {
+              setIsGeocoding(false);
+            }
+            
+            setShowLocationModal(true);
+          },
+          (error) => {
+            alert(`Error getting location: ${error.message}`);
+            // Fallback: still show modal for manual notes
+            setShowLocationModal(true);
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser");
+        setShowLocationModal(true);
+      }
     }
-  }
-};
+  };
 
 const handleLocationConfirm = () => {
   if (tempLocation) {
