@@ -120,41 +120,105 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   const handleShareLocation = () => {
     if (isTelegramWebApp()) {
       const tg = window.Telegram.WebApp;
-      const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
       
-      // Use openMap instead of showMap
-      tg.openMap(
-        initialLocation.lat, 
-        initialLocation.lng,
-        {}, // options (empty object)
-        async (selectedLocation) => {
-          if (selectedLocation) {
-            setTempLocation({
-              lat: selectedLocation.latitude,
-              lng: selectedLocation.longitude
-            });
-            setIsGeocoding(true);
-            
-            // Reverse geocoding to get address using OpenStreetMap Nominatim
-            try {
-              const response = await axios.get(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLocation.latitude}&lon=${selectedLocation.longitude}&zoom=18&addressdetails=1`
-              );
-              const displayName = response.data.display_name;
-              setAddress(displayName);
-            } catch (error) {
-              console.error("Geocoding error:", error);
-              setAddress("Address not found. Please describe your location in the notes.");
-            } finally {
-              setIsGeocoding(false);
+      // Check which location methods are available
+      if (typeof tg.openMap === 'function') {
+        // Method 1: Use openMap if available
+        const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
+        
+        tg.openMap(
+          initialLocation.lat, 
+          initialLocation.lng,
+          {}, // options (empty object)
+          async (selectedLocation) => {
+            if (selectedLocation) {
+              handleLocationSelection(selectedLocation);
             }
-            
-            setShowLocationModal(true);
           }
+        );
+      } else if (typeof tg.showPopup === 'function') {
+        // Method 2: Use showPopup to request location
+        tg.showPopup({
+          title: "Location Required",
+          message: "Please share your location for delivery",
+          buttons: [{
+            type: "default",
+            text: "Share Location",
+            id: "share_location"
+          }]
+        }, (buttonId) => {
+          if (buttonId === "share_location") {
+            // Request location permission
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                  setTempLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                  });
+                  setIsGeocoding(true);
+                  
+                  try {
+                    const response = await axios.get(
+                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+                    );
+                    const displayName = response.data.display_name;
+                    setAddress(displayName);
+                  } catch (error) {
+                    console.error("Geocoding error:", error);
+                    setAddress("Address not found. Please describe your location in the notes.");
+                  } finally {
+                    setIsGeocoding(false);
+                  }
+                  
+                  setShowLocationModal(true);
+                },
+                (error) => {
+                  alert(`Error getting location: ${error.message}`);
+                  setShowLocationModal(true);
+                }
+              );
+            }
+          }
+        });
+      } else {
+        // Method 3: Direct browser geolocation fallback
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              setTempLocation({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              });
+              setIsGeocoding(true);
+              
+              try {
+                const response = await axios.get(
+                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
+                );
+                const displayName = response.data.display_name;
+                setAddress(displayName);
+              } catch (error) {
+                console.error("Geocoding error:", error);
+                setAddress("Address not found. Please describe your location in the notes.");
+              } finally {
+                setIsGeocoding(false);
+              }
+              
+              setShowLocationModal(true);
+            },
+            (error) => {
+              alert(`Error getting location: ${error.message}`);
+              setShowLocationModal(true);
+            }
+          );
+        } else {
+          alert("Geolocation is not supported by your browser");
+          setShowLocationModal(true);
         }
-      );
+      }
     } else {
-      // Fallback for non-Telegram environment
+      // Non-Telegram environment
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
@@ -181,7 +245,6 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
           },
           (error) => {
             alert(`Error getting location: ${error.message}`);
-            // Fallback: still show modal for manual notes
             setShowLocationModal(true);
           }
         );
@@ -190,6 +253,30 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
         setShowLocationModal(true);
       }
     }
+  };
+  
+  // Helper function to handle location selection
+  const handleLocationSelection = async (selectedLocation) => {
+    setTempLocation({
+      lat: selectedLocation.latitude,
+      lng: selectedLocation.longitude
+    });
+    setIsGeocoding(true);
+    
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLocation.latitude}&lon=${selectedLocation.longitude}&zoom=18&addressdetails=1`
+      );
+      const displayName = response.data.display_name;
+      setAddress(displayName);
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      setAddress("Address not found. Please describe your location in the notes.");
+    } finally {
+      setIsGeocoding(false);
+    }
+    
+    setShowLocationModal(true);
   };
 
 const handleLocationConfirm = () => {
