@@ -121,127 +121,56 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     if (isTelegramWebApp()) {
       const tg = window.Telegram.WebApp;
       
-      // Check which location methods are available
-      if (typeof tg.openMap === 'function') {
-        // Method 1: Use openMap if available
-        const initialLocation = orderDetails.delivery.location || { lat: 9.005, lng: 38.763 };
-        
-        tg.openMap(
-          initialLocation.lat, 
-          initialLocation.lng,
-          {}, // options (empty object)
-          async (selectedLocation) => {
-            if (selectedLocation) {
-              handleLocationSelection(selectedLocation);
-            }
-          }
-        );
-      } else if (typeof tg.showPopup === 'function') {
-        // Method 2: Use showPopup to request location
+      // First, try to use Telegram's native location sharing
+      if (tg && tg.showPopup && tg.requestLocation) {
         tg.showPopup({
-          title: "Location Required",
-          message: "Please share your location for delivery",
-          buttons: [{
-            type: "default",
-            text: "Share Location",
-            id: "share_location"
-          }]
+          title: "Share Location",
+          message: "Please share your location for accurate delivery",
+          buttons: [
+            {type: "default", text: "Share Location", id: "share"},
+            {type: "cancel", text: "Cancel", id: "cancel"}
+          ]
         }, (buttonId) => {
-          if (buttonId === "share_location") {
-            // Request location permission
-            if (navigator.geolocation) {
-              navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                  setTempLocation({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                  });
-                  setIsGeocoding(true);
-                  
-                  try {
-                    const response = await axios.get(
-                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
-                    );
-                    const displayName = response.data.display_name;
-                    setAddress(displayName);
-                  } catch (error) {
-                    console.error("Geocoding error:", error);
-                    setAddress("Address not found. Please describe your location in the notes.");
-                  } finally {
-                    setIsGeocoding(false);
-                  }
-                  
-                  setShowLocationModal(true);
-                },
-                (error) => {
-                  alert(`Error getting location: ${error.message}`);
-                  setShowLocationModal(true);
-                }
-              );
-            }
+          if (buttonId === "share") {
+            tg.requestLocation((location) => {
+              if (location) {
+                handleLocationSelection({
+                  latitude: location.latitude,
+                  longitude: location.longitude
+                });
+              }
+            });
           }
         });
+      } 
+      // Fallback to browser geolocation
+      else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            handleLocationSelection({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
+            });
+          },
+          (error) => {
+            alert(`Error getting location: ${error.message}`);
+            // Still show the modal for manual address entry
+            setShowLocationModal(true);
+          }
+        );
       } else {
-        // Method 3: Direct browser geolocation fallback
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              setTempLocation({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-              });
-              setIsGeocoding(true);
-              
-              try {
-                const response = await axios.get(
-                  `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
-                );
-                const displayName = response.data.display_name;
-                setAddress(displayName);
-              } catch (error) {
-                console.error("Geocoding error:", error);
-                setAddress("Address not found. Please describe your location in the notes.");
-              } finally {
-                setIsGeocoding(false);
-              }
-              
-              setShowLocationModal(true);
-            },
-            (error) => {
-              alert(`Error getting location: ${error.message}`);
-              setShowLocationModal(true);
-            }
-          );
-        } else {
-          alert("Geolocation is not supported by your browser");
-          setShowLocationModal(true);
-        }
+        alert("Geolocation is not supported by your browser");
+        setShowLocationModal(true);
       }
     } else {
       // Non-Telegram environment
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
-            setTempLocation({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
+            handleLocationSelection({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
             });
-            setIsGeocoding(true);
-            
-            try {
-              const response = await axios.get(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`
-              );
-              const displayName = response.data.display_name;
-              setAddress(displayName);
-            } catch (error) {
-              console.error("Geocoding error:", error);
-              setAddress("Address not found. Please describe your location in the notes.");
-            } finally {
-              setIsGeocoding(false);
-            }
-            
-            setShowLocationModal(true);
           },
           (error) => {
             alert(`Error getting location: ${error.message}`);
@@ -256,16 +185,16 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   };
   
   // Helper function to handle location selection
-  const handleLocationSelection = async (selectedLocation) => {
+  const handleLocationSelection = async (location) => {
     setTempLocation({
-      lat: selectedLocation.latitude,
-      lng: selectedLocation.longitude
+      lat: location.latitude,
+      lng: location.longitude
     });
     setIsGeocoding(true);
     
     try {
       const response = await axios.get(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLocation.latitude}&lon=${selectedLocation.longitude}&zoom=18&addressdetails=1`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.latitude}&lon=${location.longitude}&zoom=18&addressdetails=1`
       );
       const displayName = response.data.display_name;
       setAddress(displayName);
