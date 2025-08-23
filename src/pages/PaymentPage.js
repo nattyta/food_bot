@@ -242,11 +242,6 @@ const Payment = () => {
         
         <h2 className="title">Payment</h2>
         
-        {/* Order Summary */}
-        <div className="order-summary">
-          <p><strong>Order ID:</strong> {orderId || 'N/A'}</p>
-          <p><strong>Total:</strong> {totalPrice.toFixed(2)} ETB</p>
-        </div>
         
         {/* Virtual Card with Phone Number */}
         <div className="virtual-card">
