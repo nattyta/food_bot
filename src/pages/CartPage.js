@@ -337,7 +337,8 @@ const handleConfirmOrder = async () => {
         specialInstruction: item.specialInstruction || ""
       })),
       total_price: totalPrice,
-      is_guest_order: false
+      is_guest_order: false,
+      order_type: orderType
     };
 
     const headers = {
@@ -365,7 +366,7 @@ const handleConfirmOrder = async () => {
     }
 
     setCart([]);
-    
+
     const result = await response.json();
     navigate('/payment', { 
       state: { 

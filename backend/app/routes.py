@@ -268,8 +268,9 @@ async def create_order(
                     longitude,
                     address,
                     notes,
-                    location_label
-                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s)
+                    location_label,
+                    order_type  -- NEW COLUMN
+                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s, %s)
                 RETURNING order_id
                 """,
                 (
@@ -283,7 +284,8 @@ async def create_order(
                     order.longitude,
                     order.address,
                     order.notes,
-                    order.location_label
+                    order.location_label,
+                    order.order_type  # NEW VALUE
                 )
             )
             

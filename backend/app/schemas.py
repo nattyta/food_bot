@@ -62,4 +62,5 @@ class OrderCreate(BaseModel):
     items: List[Dict]  
     total_price: float
     is_guest_order: bool = False
+    order_type: str = "pickup"
 
