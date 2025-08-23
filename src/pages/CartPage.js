@@ -1,5 +1,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import axios from "axios";
 import "./cart.css";
 
@@ -21,12 +24,19 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
-
+  const [showMapModal, setShowMapModal] = useState(false);
 
   function obfuscatePhone(phone) {
     if (!phone) return "";
     return `${phone.substring(0, 5)}****${phone.substring(phone.length - 3)}`;
   }
+
+  delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -121,64 +131,84 @@ const CartPage = ({ cart, setCart, telegramInitData }) => {
     if (isTelegramWebApp()) {
       const tg = window.Telegram.WebApp;
       
-      // First, try to use Telegram's native location sharing
-      if (tg && tg.showPopup && tg.requestLocation) {
-        tg.showPopup({
-          title: "Share Location",
-          message: "Please share your location for accurate delivery",
-          buttons: [
-            {type: "default", text: "Share Location", id: "share"},
-            {type: "cancel", text: "Cancel", id: "cancel"}
-          ]
-        }, (buttonId) => {
-          if (buttonId === "share") {
-            tg.requestLocation((location) => {
-              if (location) {
-                handleLocationSelection({
-                  latitude: location.latitude,
-                  longitude: location.longitude
-                });
+      // First, try to use Telegram's built-in location request
+      if (tg && tg.showConfirm) {
+        tg.showConfirm(
+          "Share your location for accurate delivery",
+          async (confirmed) => {
+            if (confirmed) {
+              // Request location permission
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  async (position) => {
+                    // Now show the map for pin adjustment
+                    if (typeof tg.openMap === 'function') {
+                      tg.openMap(
+                        position.coords.latitude,
+                        position.coords.longitude,
+                        { zoom: 15 }, // Zoom level for better precision
+                        async (selectedLocation) => {
+                          if (selectedLocation) {
+                            await handleLocationSelection(selectedLocation);
+                          }
+                        }
+                      );
+                    } else {
+                      // Fallback: just use the current location
+                      await handleLocationSelection({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                      });
+                    }
+                  },
+                  (error) => {
+                    console.error("Location error:", error);
+                    // If location access is denied, still show the modal
+                    setShowLocationModal(true);
+                  }
+                );
+              } else {
+                // Geolocation not supported
+                setShowLocationModal(true);
               }
-            });
-          }
-        });
-      } 
-      // Fallback to browser geolocation
-      else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            handleLocationSelection({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            });
-          },
-          (error) => {
-            alert(`Error getting location: ${error.message}`);
-            // Still show the modal for manual address entry
-            setShowLocationModal(true);
+            }
           }
         );
       } else {
-        alert("Geolocation is not supported by your browser");
-        setShowLocationModal(true);
+        // Fallback for older Telegram versions
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              await handleLocationSelection({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              });
+            },
+            (error) => {
+              console.error("Location error:", error);
+              setShowLocationModal(true);
+            }
+          );
+        } else {
+          setShowLocationModal(true);
+        }
       }
     } else {
       // Non-Telegram environment
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
-            handleLocationSelection({
+            await handleLocationSelection({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude
             });
           },
           (error) => {
-            alert(`Error getting location: ${error.message}`);
+            console.error("Location error:", error);
             setShowLocationModal(true);
           }
         );
       } else {
-        alert("Geolocation is not supported by your browser");
         setShowLocationModal(true);
       }
     }
@@ -568,48 +598,37 @@ const handleConfirmOrder = async () => {
       )}
 
 
-{showLocationModal && (
+{showMapModal && (
   <div className="modal-overlay">
-    <div className="modal-content">
-      <h3>Confirm Your Delivery Location</h3>
-      <p>Please verify your address and add any delivery notes.</p>
+    <div className="modal-content" style={{ width: '90vw', height: '70vh' }}>
+      <h3>Select Your Location</h3>
+      <p>Drag the pin to your exact delivery location</p>
       
-      {isGeocoding ? (
-        <p>Loading address...</p>
-      ) : (
-        <>
-          {tempLocation && (
-            <p className="location-coordinates">
-              Coordinates: {tempLocation.lat.toFixed(6)}, {tempLocation.lng.toFixed(6)}
-            </p>
-          )}
-          <div className="address-display">
-            <p><strong>Address:</strong> {address || "Not available"}</p>
-          </div>
-          <label>
-            Delivery Notes (e.g., floor, landmark, gate color):
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Example: Behind Ethiopian Hotel, 3rd floor, blue door. Call when arriving."
-              rows="3"
-              className="notes-textarea"
-            />
-          </label>
-        </>
-      )}
+      {/* You would need to implement a map component here */}
+      <div style={{ width: '100%', height: '60%', background: '#f0f0f0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p>Map would be displayed here</p>
+        {/* 
+          For a real implementation, you would use a library like Leaflet:
+          <MapContainer center={[tempLocation.lat, tempLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <Marker position={[tempLocation.lat, tempLocation.lng]} draggable={true} />
+          </MapContainer>
+        */}
+      </div>
       
       <div className="modal-buttons">
         <button 
-          onClick={() => setShowLocationModal(false)}
+          onClick={() => setShowMapModal(false)}
           className="cancel-button"
         >
           Cancel
         </button>
         <button 
-          onClick={handleLocationConfirm}
+          onClick={() => {
+            setShowMapModal(false);
+            setShowLocationModal(true);
+          }}
           className="confirm-button"
-          disabled={isGeocoding}
         >
           Confirm Location
         </button>
