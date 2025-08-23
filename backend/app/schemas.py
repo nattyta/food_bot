@@ -17,8 +17,7 @@ class OrderItem(BaseModel):
 
 class UserCreate(BaseModel):
     chat_id: int
-    session# Add this new class
-_token: str
+    session_token: str
     phone: Optional[str] = None
     address: Optional[str] = None
 
