@@ -6,7 +6,11 @@ import "./cart.css";
 
 
 
+// Fix for Leaflet marker icons in React
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix default icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -14,7 +18,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Create a custom component to handle map clicks
+// Default map center (Addis Ababa coordinates)
+const DEFAULT_MAP_CENTER = [9.005401, 38.763611];
+
 function LocationMarker({ onLocationSelect, initialPosition }) {
   const [position, setPosition] = useState(initialPosition);
   const markerRef = useRef(null);
@@ -46,6 +52,7 @@ function LocationMarker({ onLocationSelect, initialPosition }) {
     </Marker>
   );
 }
+
 
 
 
@@ -184,40 +191,49 @@ L.Icon.Default.mergeOptions({
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
-          setMapLocation(coords);
+          setMapLocation([coords.lat, coords.lng]);
           setShowMapModal(true);
         },
         (error) => {
           console.error("Location error:", error);
-          setShowLocationModal(true);
+          setMapLocation(DEFAULT_MAP_CENTER);
+          setShowMapModal(true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
         }
       );
     } else {
-      setShowLocationModal(true);
+      setMapLocation(DEFAULT_MAP_CENTER);
+      setShowMapModal(true);
     }
   };
 
   const handleMapLocationSelect = (latlng) => {
-    setMapLocation({
-      lat: latlng.lat,
-      lng: latlng.lng
-    });
+    setMapLocation([latlng.lat, latlng.lng]);
   };
 
   const handleMapConfirm = async () => {
     if (mapLocation) {
-      setTempLocation(mapLocation);
+      const locationObj = {
+        lat: mapLocation[0],
+        lng: mapLocation[1]
+      };
+      
+      setTempLocation(locationObj);
       setIsGeocoding(true);
       
       try {
         const response = await axios.get(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${mapLocation.lat}&lon=${mapLocation.lng}&zoom=18&addressdetails=1`
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${locationObj.lat}&lon=${locationObj.lng}&zoom=18&addressdetails=1`
         );
         const displayName = response.data.display_name;
         setAddress(displayName);
       } catch (error) {
         console.error("Geocoding error:", error);
-        setAddress("");
+        setAddress(`Location at ${locationObj.lat.toFixed(6)}, ${locationObj.lng.toFixed(6)}`);
       } finally {
         setIsGeocoding(false);
       }
@@ -240,6 +256,7 @@ L.Icon.Default.mergeOptions({
     setShowLocationModal(false);
     setNotes('');
     setAddress('');
+    setShowOrderPopup(true);
   };
 
 
@@ -583,15 +600,17 @@ const handleConfirmOrder = async () => {
       )}
 
 
-{showMapModal && mapLocation && (
-        <div className="modal-overlay" style={{zIndex: 1000}}>
-          <div className="modal-content" style={{width: '90vw', height: '70vh', padding: '10px'}}>
-            <h3>Select Your Delivery Location</h3>
-            <p>Click anywhere on the map or drag the pin to your exact delivery location</p>
+{showMapModal && (
+        <div className="map-modal-overlay">
+          <div className="map-modal-content">
+            <div className="map-modal-header">
+              <h3>Select Your Delivery Location</h3>
+              <p>Click anywhere on the map or drag the pin to your exact delivery location</p>
+            </div>
             
-            <div style={{width: '100%', height: '60%', marginBottom: '10px'}}>
+            <div className="map-container">
               <MapContainer 
-                center={[mapLocation.lat, mapLocation.lng]} 
+                center={mapLocation} 
                 zoom={15} 
                 style={{height: '100%', width: '100%'}}
               >
@@ -601,25 +620,28 @@ const handleConfirmOrder = async () => {
                 />
                 <LocationMarker 
                   onLocationSelect={handleMapLocationSelect} 
-                  initialPosition={[mapLocation.lat, mapLocation.lng]}
+                  initialPosition={mapLocation}
                 />
               </MapContainer>
             </div>
             
-            <div style={{marginBottom: '10px'}}>
-              <p><strong>Selected Coordinates:</strong> {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}</p>
+            <div className="coordinates-display">
+              <p><strong>Selected Coordinates:</strong> {mapLocation[0].toFixed(6)}, {mapLocation[1].toFixed(6)}</p>
             </div>
             
-            <div className="modal-buttons">
+            <div className="map-modal-buttons">
               <button 
-                onClick={() => setShowMapModal(false)}
-                className="cancel-button"
+                onClick={() => {
+                  setShowMapModal(false);
+                  setShowOrderPopup(true);
+                }}
+                className="map-cancel-button"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleMapConfirm}
-                className="confirm-button"
+                className="map-confirm-button"
               >
                 Confirm Location
               </button>
@@ -630,14 +652,16 @@ const handleConfirmOrder = async () => {
 
       {/* Location Confirmation Modal */}
       {showLocationModal && (
-        <div className="modal-overlay" style={{zIndex: 1000}}>
-          <div className="modal-content">
-            <h3>Confirm Your Delivery Location</h3>
+        <div className="location-modal-overlay">
+          <div className="location-modal-content">
+            <div className="location-modal-header">
+              <h3>Confirm Your Delivery Location</h3>
+            </div>
             
             {isGeocoding ? (
               <div className="loading-container">
-                <p>Getting your location...</p>
                 <div className="loading-spinner"></div>
+                <p>Getting your location address...</p>
               </div>
             ) : (
               <>
@@ -678,7 +702,7 @@ const handleConfirmOrder = async () => {
               </>
             )}
             
-            <div className="modal-buttons">
+            <div className="location-modal-buttons">
               <button 
                 onClick={() => {
                   setShowLocationModal(false);
@@ -686,14 +710,14 @@ const handleConfirmOrder = async () => {
                   setNotes('');
                   setShowOrderPopup(true);
                 }}
-                className="cancel-button"
+                className="location-cancel-button"
                 disabled={isGeocoding}
               >
                 Cancel
               </button>
               <button 
                 onClick={handleLocationConfirm}
-                className="confirm-button"
+                className="location-confirm-button"
                 disabled={isGeocoding || !address.trim()}
               >
                 {isGeocoding ? 'Loading...' : 'Confirm Location'}
