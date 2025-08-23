@@ -128,7 +128,9 @@ L.Icon.Default.mergeOptions({
   };
 
   const handleShareLocation = () => {
-    // Always use browser geolocation first
+    // Show a loading state immediately
+    setIsGeocoding(true);
+    
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -139,7 +141,6 @@ L.Icon.Default.mergeOptions({
           };
           
           setTempLocation(coords);
-          setIsGeocoding(true);
           
           try {
             // Try to get address from coordinates
@@ -160,12 +161,19 @@ L.Icon.Default.mergeOptions({
         },
         (error) => {
           console.error("Location error:", error);
+          setIsGeocoding(false);
           // If location access is denied or fails, still show the modal for manual entry
           setShowLocationModal(true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
         }
       );
     } else {
       // Geolocation not supported
+      setIsGeocoding(false);
       setShowLocationModal(true);
     }
   };
@@ -194,22 +202,20 @@ L.Icon.Default.mergeOptions({
     setShowLocationModal(true);
   };
 
-const handleLocationConfirm = () => {
-  if (tempLocation) {
+  const handleLocationConfirm = () => {
     setOrderDetails(prev => ({
       ...prev,
       delivery: {
         ...prev.delivery,
         location: tempLocation,
-        address: address, // Save the geocoded address
+        address: address, // Use the address from the textarea
         notes: notes // Save the notes
       }
     }));
-  }
-  setShowLocationModal(false);
-  setNotes(''); // Reset notes for next time
-  setAddress(''); // Reset address
-};
+    setShowLocationModal(false);
+    setNotes(''); // Reset notes for next time
+    setAddress(''); // Reset address
+  };
 
 const handleConfirmOrder = async () => {
   if (isSubmitting) return;
@@ -554,39 +560,72 @@ const handleConfirmOrder = async () => {
       )}
 
 
-{showMapModal && (
+{showLocationModal && (
   <div className="modal-overlay">
-    <div className="modal-content" style={{ width: '90vw', height: '70vh' }}>
-      <h3>Select Your Location</h3>
-      <p>Drag the pin to your exact delivery location</p>
+    <div className="modal-content">
+      <h3>Confirm Your Delivery Location</h3>
       
-      {/* You would need to implement a map component here */}
-      <div style={{ width: '100%', height: '60%', background: '#f0f0f0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <p>Map would be displayed here</p>
-        {/* 
-          For a real implementation, you would use a library like Leaflet:
-          <MapContainer center={[tempLocation.lat, tempLocation.lng]} zoom={15} style={{ height: '100%', width: '100%' }}>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <Marker position={[tempLocation.lat, tempLocation.lng]} draggable={true} />
-          </MapContainer>
-        */}
-      </div>
+      {isGeocoding ? (
+        <div className="loading-container">
+          <p>Getting your location...</p>
+          <div className="loading-spinner"></div>
+        </div>
+      ) : (
+        <>
+          {tempLocation && (
+            <div className="location-info">
+              <p className="location-coordinates">
+                <strong>Coordinates:</strong> {tempLocation.lat.toFixed(6)}, {tempLocation.lng.toFixed(6)}
+              </p>
+            </div>
+          )}
+          
+          <div className="address-section">
+            <label>
+              Delivery Address:
+              <textarea
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Enter your full delivery address"
+                rows="3"
+                className="address-textarea"
+              />
+            </label>
+          </div>
+          
+          <div className="notes-section">
+            <label>
+              Delivery Notes (e.g., floor, landmark, gate color):
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Example: Behind Ethiopian Hotel, 3rd floor, blue door. Call when arriving."
+                rows="3"
+                className="notes-textarea"
+              />
+            </label>
+          </div>
+        </>
+      )}
       
       <div className="modal-buttons">
         <button 
-          onClick={() => setShowMapModal(false)}
+          onClick={() => {
+            setShowLocationModal(false);
+            setAddress('');
+            setNotes('');
+          }}
           className="cancel-button"
+          disabled={isGeocoding}
         >
           Cancel
         </button>
         <button 
-          onClick={() => {
-            setShowMapModal(false);
-            setShowLocationModal(true);
-          }}
+          onClick={handleLocationConfirm}
           className="confirm-button"
+          disabled={isGeocoding || (!tempLocation && !address.trim())}
         >
-          Confirm Location
+          {isGeocoding ? 'Loading...' : 'Confirm Location'}
         </button>
       </div>
     </div>
