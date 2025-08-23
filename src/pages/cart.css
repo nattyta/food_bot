@@ -388,25 +388,117 @@
   cursor: not-allowed;
 }
 
+/* Add these styles to your cart.css file */
 
-.leaflet-container {
-  height: 100%;
-  width: 100%;
-  border-radius: 5px;
+/* Map Modal Styling */
+.map-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
 }
 
-.modal-content {
+.map-modal-content {
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 500px;
+  border-radius: 16px;
   width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  height: 80vh;
+  max-height: 600px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
-.modal-overlay {
+.map-modal-header {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.map-modal-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  color: #2d3436;
+}
+
+.map-modal-header p {
+  margin: 0;
+  color: #636e72;
+  font-size: 0.9rem;
+}
+
+.map-container {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  border: 1px solid #dfe6e9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.coordinates-display {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-family: monospace;
+  text-align: center;
+  border: 1px solid #e9ecef;
+}
+
+.coordinates-display strong {
+  color: #2d3436;
+}
+
+.map-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.map-cancel-button,
+.map-confirm-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.map-cancel-button {
+  background-color: #e9ecef;
+  color: #6c757d;
+}
+
+.map-cancel-button:hover {
+  background-color: #dee2e6;
+}
+
+.map-confirm-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.map-confirm-button:hover {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* Location Confirmation Modal Styling */
+.location-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -416,22 +508,134 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 2000;
 }
 
+.location-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.location-modal-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.location-modal-header h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+  color: #2d3436;
+}
+
+.location-info {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.location-coordinates {
+  margin: 0;
+  font-family: monospace;
+  text-align: center;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.form-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 5px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.location-modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.location-cancel-button,
+.location-confirm-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.location-cancel-button {
+  background-color: #e9ecef;
+  color: #6c757d;
+}
+
+.location-cancel-button:hover {
+  background-color: #dee2e6;
+}
+
+.location-confirm-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.location-confirm-button:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.location-confirm-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Loading animation */
 .loading-container {
   text-align: center;
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .loading-spinner {
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
+  border-top: 4px solid #4caf50;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
-  margin: 10px auto;
+  margin: 0 auto 20px;
 }
 
 @keyframes spin {
@@ -439,57 +643,42 @@
   100% { transform: rotate(360deg); }
 }
 
-.location-info {
-  background-color: #f8f9fa;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 15px;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .map-modal-content,
+  .location-modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .map-modal-buttons,
+  .location-modal-buttons {
+    flex-direction: column;
+  }
+  
+  .map-cancel-button,
+  .map-confirm-button,
+  .location-cancel-button,
+  .location-confirm-button {
+    width: 100%;
+  }
 }
 
-.form-section {
-  margin-bottom: 15px;
+/* Custom Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
 }
 
-.form-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-family: inherit;
-  resize: vertical;
-  margin-top: 5px;
+.leaflet-popup-content {
+  margin: 10px;
+  font-size: 14px;
+  text-align: center;
 }
 
-.modal-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
-.cancel-button,
-.confirm-button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.cancel-button {
-  background-color: #e0e0e0;
-}
-
-.confirm-button {
-  background-color: #4caf50;
-  color: white;
-}
-
-.confirm-button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-/* Ensure order popup has lower z-index */
-.order-popup {
-  z-index: 900;
+/* Custom marker icon if needed */
+.custom-marker-icon {
+  border-radius: 50%;
+  background: #4caf50;
+  border: 3px solid white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
