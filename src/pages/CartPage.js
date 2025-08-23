@@ -128,89 +128,45 @@ L.Icon.Default.mergeOptions({
   };
 
   const handleShareLocation = () => {
-    if (isTelegramWebApp()) {
-      const tg = window.Telegram.WebApp;
-      
-      // First, try to use Telegram's built-in location request
-      if (tg && tg.showConfirm) {
-        tg.showConfirm(
-          "Share your location for accurate delivery",
-          async (confirmed) => {
-            if (confirmed) {
-              // Request location permission
-              if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                  async (position) => {
-                    // Now show the map for pin adjustment
-                    if (typeof tg.openMap === 'function') {
-                      tg.openMap(
-                        position.coords.latitude,
-                        position.coords.longitude,
-                        { zoom: 15 }, // Zoom level for better precision
-                        async (selectedLocation) => {
-                          if (selectedLocation) {
-                            await handleLocationSelection(selectedLocation);
-                          }
-                        }
-                      );
-                    } else {
-                      // Fallback: just use the current location
-                      await handleLocationSelection({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude
-                      });
-                    }
-                  },
-                  (error) => {
-                    console.error("Location error:", error);
-                    // If location access is denied, still show the modal
-                    setShowLocationModal(true);
-                  }
-                );
-              } else {
-                // Geolocation not supported
-                setShowLocationModal(true);
-              }
-            }
+    // Always use browser geolocation first
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          // Get coordinates
+          const coords = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          
+          setTempLocation(coords);
+          setIsGeocoding(true);
+          
+          try {
+            // Try to get address from coordinates
+            const response = await axios.get(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}&zoom=18&addressdetails=1`
+            );
+            const displayName = response.data.display_name;
+            setAddress(displayName);
+          } catch (error) {
+            console.error("Geocoding error:", error);
+            setAddress("Address not found. Please enter your address manually.");
+          } finally {
+            setIsGeocoding(false);
           }
-        );
-      } else {
-        // Fallback for older Telegram versions
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              await handleLocationSelection({
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-              });
-            },
-            (error) => {
-              console.error("Location error:", error);
-              setShowLocationModal(true);
-            }
-          );
-        } else {
+          
+          // Show the confirmation modal
+          setShowLocationModal(true);
+        },
+        (error) => {
+          console.error("Location error:", error);
+          // If location access is denied or fails, still show the modal for manual entry
           setShowLocationModal(true);
         }
-      }
+      );
     } else {
-      // Non-Telegram environment
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            await handleLocationSelection({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude
-            });
-          },
-          (error) => {
-            console.error("Location error:", error);
-            setShowLocationModal(true);
-          }
-        );
-      } else {
-        setShowLocationModal(true);
-      }
+      // Geolocation not supported
+      setShowLocationModal(true);
     }
   };
   
