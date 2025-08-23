@@ -264,11 +264,11 @@ async def create_order(
                     order_date,
                     status,
                     total_price,
-                    latitude,        -- NEW
-                    longitude,       -- NEW
-                    address,         -- NEW
-                    notes,           -- NEW
-                    location_label   -- NEW
+                    latitude,
+                    longitude,
+                    address,
+                    notes,
+                    location_label
                 ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s)
                 RETURNING order_id
                 """,
@@ -279,25 +279,20 @@ async def create_order(
                     obfuscated_phone,
                     order_date,
                     total_price,
-                    order.latitude,        # NEW
-                    order.longitude,       # NEW
-                    order.address,         # NEW
-                    order.notes,           # NEW
-                    order.location_label   # NEW
+                    order.latitude,
+                    order.longitude,
+                    order.address,
+                    order.notes,
+                    order.location_label
                 )
             )
             
             # Check if insertion succeeded
-            if rowcount == 0:
+            if not result_row:
                 logger.error(f"❌ Order insertion failed for user {chat_id}")
                 raise HTTPException(500, "Order creation failed")
             
             # Get the returned order_id
-            result_row = cursor.fetchone()
-            if not result_row:
-                logger.error(f"❌ Failed to get order ID for user {chat_id}")
-                raise HTTPException(500, "Order creation failed")
-            
             order_id = result_row[0]
             
         logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
@@ -322,111 +317,6 @@ async def create_order(
     except Exception as e:
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
-
-
-
-@router.post("/orders", response_model=dict)
-async def create_order(
-    order: OrderCreate,
-    chat_id: int = Depends(telegram_auth_dependency)
-):
-    try:
-        # Validate phone format
-        if not re.fullmatch(r'^\+251(7|9)\d{8}$', order.phone):
-            obfuscated = encryptor.obfuscate(order.phone)
-            logger.warning(f"🚫 Invalid phone format for user {chat_id}: {obfuscated}")
-            raise HTTPException(
-                status_code=400, 
-                detail="Phone must be in +251 format: +2517xxxxxxxx or +2519xxxxxxxx"
-            )
-        
-        # Validate items
-        if not order.items or len(order.items) == 0:
-            logger.warning(f"🛒 Empty order attempt by user {chat_id}")
-            raise HTTPException(
-                status_code=400,
-                detail="Order must contain at least one item"
-            )
-        
-        # Calculate total price
-        total_price = sum(item['price'] * item['quantity'] for item in order.items)
-        
-        # Log for debugging
-        logger.info(f"🛒 Order items: {order.items}")
-        logger.info(f"💰 Calculated total price: {total_price}")
-        
-        # Encrypt phone
-        encrypted_phone = encryptor.encrypt(order.phone)
-        obfuscated_phone = encryptor.obfuscate(order.phone)
-        
-        # Database operation using DatabaseManager
-        with DatabaseManager() as db:
-            order_date = datetime.utcnow()
-            
-            # Use execute_returning for INSERT ... RETURNING
-            result_row = db.execute_returning(
-                """
-                INSERT INTO orders (
-                    user_id, 
-                    items, 
-                    encrypted_phone,
-                    obfuscated_phone,
-                    order_date,
-                    status,
-                    total_price,
-                    latitude,        -- NEW
-                    longitude,       -- NEW
-                    address,         -- NEW
-                    notes,           -- NEW
-                    location_label   -- NEW
-                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s)
-                RETURNING order_id
-                """,
-                (
-                    chat_id,
-                    json.dumps(order.items),
-                    encrypted_phone,
-                    obfuscated_phone,
-                    order_date,
-                    total_price,
-                    order.latitude,        # NEW
-                    order.longitude,       # NEW
-                    order.address,         # NEW
-                    order.notes,           # NEW
-                    order.location_label   # NEW
-                )
-            )
-            
-            if not result_row:
-                logger.error(f"❌ Order insertion failed for user {chat_id}")
-                raise HTTPException(500, "Order creation failed")
-            
-            order_id = result_row[0]
-            logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
-        
-        return {
-            "status": "success",
-            "order_id": order_id,
-            "total_price": total_price,
-            "message": "Order received! We're preparing your food."
-        }
-        
-    except HTTPException as he:
-        raise he
-        
-    except KeyError as e:
-        logger.error(f"🔑 Missing key in order item: {str(e)}")
-        raise HTTPException(400, f"Invalid item structure: missing {str(e)}")
-        
-    except TypeError as e:
-        logger.error(f"🔠 JSON encoding error: {str(e)}")
-        raise HTTPException(500, "Invalid order data format")
-        
-    except Exception as e:
-        logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
-        raise HTTPException(500, "Internal server error")
-
-
 
 
 
