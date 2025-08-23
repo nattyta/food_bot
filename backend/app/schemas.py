@@ -17,7 +17,8 @@ class OrderItem(BaseModel):
 
 class UserCreate(BaseModel):
     chat_id: int
-    session_token: str
+    session# Add this new class
+_token: str
     phone: Optional[str] = None
     address: Optional[str] = None
 
@@ -26,7 +27,6 @@ class Location(BaseModel):
     lat: float
     lng: float
 
-# Add this new class
 class UserContactUpdate(BaseModel):
     chat_id: Optional[int] = None
 
@@ -55,7 +55,7 @@ class PhoneUpdateRequest(BaseModel):
 
 class OrderCreate(BaseModel):
     phone: str
-    address: str  # Added for order-specific address
+    address: Optional[str] = None  
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     location_label: Optional[str] = None

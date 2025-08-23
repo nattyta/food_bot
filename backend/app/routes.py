@@ -363,8 +363,13 @@ async def create_order(
                     obfuscated_phone,
                     order_date,
                     status,
-                    total_price
-                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s)
+                    total_price,
+                    latitude,        -- NEW
+                    longitude,       -- NEW
+                    address,         -- NEW
+                    notes,           -- NEW
+                    location_label   -- NEW
+                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s)
                 RETURNING order_id
                 """,
                 (
@@ -373,7 +378,12 @@ async def create_order(
                     encrypted_phone,
                     obfuscated_phone,
                     order_date,
-                    total_price
+                    total_price,
+                    order.latitude,        # NEW
+                    order.longitude,       # NEW
+                    order.address,         # NEW
+                    order.notes,           # NEW
+                    order.location_label   # NEW
                 )
             )
             
