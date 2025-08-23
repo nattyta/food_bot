@@ -1,12 +1,11 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup,useMapEvents } from 'react-leaflet';
 import "./cart.css";
 
 
 
-// Fix for Leaflet default icons
 import L from 'leaflet';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -14,6 +13,39 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
+
+// Create a custom component to handle map clicks
+function LocationMarker({ onLocationSelect, initialPosition }) {
+  const [position, setPosition] = useState(initialPosition);
+  const markerRef = useRef(null);
+  
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+      onLocationSelect(e.latlng);
+    },
+  });
+
+  return position === null ? null : (
+    <Marker
+      position={position}
+      ref={markerRef}
+      draggable={true}
+      eventHandlers={{
+        dragend: () => {
+          const marker = markerRef.current;
+          if (marker != null) {
+            const newPosition = marker.getLatLng();
+            setPosition(newPosition);
+            onLocationSelect(newPosition);
+          }
+        },
+      }}
+    >
+      <Popup>Your delivery location</Popup>
+    </Marker>
+  );
+}
 
 
 
@@ -143,7 +175,6 @@ L.Icon.Default.mergeOptions({
   };
 
   const handleShareLocation = () => {
-    // First show the map modal to let user select location
     setShowOrderPopup(false);
     
     if (navigator.geolocation) {
@@ -158,17 +189,22 @@ L.Icon.Default.mergeOptions({
         },
         (error) => {
           console.error("Location error:", error);
-          // If location access fails, show manual entry modal
           setShowLocationModal(true);
         }
       );
     } else {
-      // Geolocation not supported
       setShowLocationModal(true);
     }
   };
 
-  const handleMapLocationSelect = async () => {
+  const handleMapLocationSelect = (latlng) => {
+    setMapLocation({
+      lat: latlng.lat,
+      lng: latlng.lng
+    });
+  };
+
+  const handleMapConfirm = async () => {
     if (mapLocation) {
       setTempLocation(mapLocation);
       setIsGeocoding(true);
@@ -181,7 +217,7 @@ L.Icon.Default.mergeOptions({
         setAddress(displayName);
       } catch (error) {
         console.error("Geocoding error:", error);
-        setAddress(""); // Clear address if geocoding fails
+        setAddress("");
       } finally {
         setIsGeocoding(false);
       }
@@ -197,14 +233,15 @@ L.Icon.Default.mergeOptions({
       delivery: {
         ...prev.delivery,
         location: tempLocation,
-        address: address, // Use the address from the textarea
-        notes: notes // Save the notes
+        address: address,
+        notes: notes
       }
     }));
     setShowLocationModal(false);
-    setNotes(''); // Reset notes for next time
-    setAddress(''); // Reset address
+    setNotes('');
+    setAddress('');
   };
+
 
 const handleConfirmOrder = async () => {
   if (isSubmitting) return;
@@ -524,9 +561,6 @@ const handleConfirmOrder = async () => {
                     Location set: {orderDetails.delivery.location.lat.toFixed(6)}, {orderDetails.delivery.location.lng.toFixed(6)}
                   </p>
                 )}
-
-
-
               </div>
             )}
 
@@ -549,27 +583,31 @@ const handleConfirmOrder = async () => {
       )}
 
 
-{showMapModal && (
+{showMapModal && mapLocation && (
         <div className="modal-overlay" style={{zIndex: 1000}}>
-          <div className="modal-content" style={{width: '90vw', height: '70vh'}}>
+          <div className="modal-content" style={{width: '90vw', height: '70vh', padding: '10px'}}>
             <h3>Select Your Delivery Location</h3>
-            <p>Drag the pin to your exact delivery location</p>
+            <p>Click anywhere on the map or drag the pin to your exact delivery location</p>
             
-            <div style={{width: '100%', height: '60%', background: '#f0f0f0'}}>
-              {mapLocation ? (
-                <div style={{width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-                  <p>Map would be displayed here with coordinates: {mapLocation.lat}, {mapLocation.lng}</p>
-                  {/* 
-                    In a real implementation, you would use:
-                    <MapContainer center={[mapLocation.lat, mapLocation.lng]} zoom={15} style={{height: '100%', width: '100%'}}>
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                      <Marker position={[mapLocation.lat, mapLocation.lng]} draggable={true} />
-                    </MapContainer>
-                  */}
-                </div>
-              ) : (
-                <p>Loading map...</p>
-              )}
+            <div style={{width: '100%', height: '60%', marginBottom: '10px'}}>
+              <MapContainer 
+                center={[mapLocation.lat, mapLocation.lng]} 
+                zoom={15} 
+                style={{height: '100%', width: '100%'}}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <LocationMarker 
+                  onLocationSelect={handleMapLocationSelect} 
+                  initialPosition={[mapLocation.lat, mapLocation.lng]}
+                />
+              </MapContainer>
+            </div>
+            
+            <div style={{marginBottom: '10px'}}>
+              <p><strong>Selected Coordinates:</strong> {mapLocation.lat.toFixed(6)}, {mapLocation.lng.toFixed(6)}</p>
             </div>
             
             <div className="modal-buttons">
@@ -580,7 +618,7 @@ const handleConfirmOrder = async () => {
                 Cancel
               </button>
               <button 
-                onClick={handleMapLocationSelect}
+                onClick={handleMapConfirm}
                 className="confirm-button"
               >
                 Confirm Location
