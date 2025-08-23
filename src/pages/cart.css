@@ -388,6 +388,37 @@
   cursor: not-allowed;
 }
 
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 5px;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
 .loading-container {
   text-align: center;
   padding: 20px;
@@ -415,14 +446,18 @@
   margin-bottom: 15px;
 }
 
-.address-textarea,
-.notes-textarea {
+.form-section {
+  margin-bottom: 15px;
+}
+
+.form-textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-family: inherit;
   resize: vertical;
+  margin-top: 5px;
 }
 
 .modal-buttons {
@@ -437,6 +472,7 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 16px;
 }
 
 .cancel-button {
@@ -451,4 +487,9 @@
 .confirm-button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
+}
+
+/* Ensure order popup has lower z-index */
+.order-popup {
+  z-index: 900;
 }
