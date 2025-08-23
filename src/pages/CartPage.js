@@ -364,6 +364,8 @@ const handleConfirmOrder = async () => {
       throw new Error(`Order failed: ${response.status} - ${errorSafe.slice(0, 50)}`);
     }
 
+    setCart([]);
+    
     const result = await response.json();
     navigate('/payment', { 
       state: { 
