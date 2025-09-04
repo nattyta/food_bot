@@ -121,7 +121,7 @@ function App() {
         }
       }
   
-      const response = await fetch('/me', { headers });
+      const response = await fetch(`${API_URL}/me`, { headers });
       
       if (response.ok) {
         const data = await response.json();
