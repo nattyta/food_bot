@@ -42,7 +42,7 @@
     "eslint-config-react-app": "^7.0.1"
   },
 
-  "overrides": {
-  "eslint": "^8.0.0"
-  }
+  "engines": {
+  "node": "18.x"
+  } 
 }
