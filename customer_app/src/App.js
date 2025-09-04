@@ -1,119 +1,284 @@
-// src/pages/HistoryPage.js
-import React, { useState, useEffect } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { FaArrowLeft } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import './historyPage.css'; // We will create this CSS file next
+import React, { useState, useEffect } from "react";
+import HomePage from "./pages/homePage";
+import CartPage from "./pages/CartPage";
+import Detail from "./pages/Detail";
+import PaymentPage from "./pages/PaymentPage";
+import OrderHistory from "./pages/OrderHistory";
+import DebugBanner from "./components/DebugBanner";
+import PhoneCaptureModal from './components/PhoneCaptureModal';
+import HistoryPage from './pages/HistoryPage';
+import "./App.css";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-const HistoryPage = ({ telegramInitData }) => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+const API_URL = "https://food-bot-vulm.onrender.com";
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const API_URL = "https://food-bot-vulm.onrender.com";
-        
-        const response = await fetch(`${API_URL}/api/v1/orders/me`, {
-          headers: {
-            // Your backend is secured with this header
-            'x-telegram-init-data': telegramInitData,
-          },
-        });
+function App() {
+  const [cart, setCart] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [debugLogs, setDebugLogs] = useState([]);
+  const [auth, setAuth] = useState(null);
+  const [telegramInitData, setTelegramInitData] = useState(null);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [userPhone, setUserPhone] = useState('');
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || 'Failed to fetch order history');
-        }
+  const addDebugLog = (message) => {
+    setDebugLogs((prev) => [...prev, message]);
+    console.log(message);
+  };
 
-        const data = await response.json();
-        setOrders(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (telegramInitData) {
-      fetchOrders();
-    } else {
-      setError("Cannot fetch history. Please open the app via Telegram.");
-      setLoading(false);
-    }
-  }, [telegramInitData]);
-
-  const getStatusClass = (status) => {
-    switch (status) {
-      case 'completed': return 'status-completed';
-      case 'preparing': return 'status-preparing';
-      case 'pending': return 'status-pending';
-      default: return '';
+  // Check if we're in Telegram WebApp
+  const isTelegramWebApp = () => {
+    try {
+      return (
+        typeof window !== 'undefined' &&
+        window?.Telegram?.WebApp?.initDataUnsafe?.user?.id !== undefined
+      );
+    } catch (e) {
+      return false;
     }
   };
 
-  return (
-    <div className="history-page">
-      <header className="history-header">
-        <FaArrowLeft className="back-icon" onClick={() => navigate('/')} />
-        <h1>Order History</h1>
-        <div style={{ width: '20px' }} /> {/* Placeholder for alignment */}
-      </header>
+  const authenticateUser = async (initData) => {
+    const tg = window.Telegram?.WebApp;
+    try {
+      if (!tg) throw new Error("Telegram WebApp not detected");
+      tg.enableClosingConfirmation();
+      
+      const requiredParams = ["hash", "user", "auth_date"];
+      requiredParams.forEach(param => {
+        if (!initData.includes(`${param}=`)) {
+          throw new Error(`Missing required parameter: ${param}`);
+        }
+      });
 
-      <main className="history-content">
-        {loading && <p className="loading-text">Loading your order history...</p>}
-        {error && <p className="error-message">{error}</p>}
+      console.group("Telegram Authentication Debug");
+      console.log("🌐 WebApp version:", tg.version);
+      console.log("📦 Full initData:", initData);
+      console.log("👤 User info:", tg.initDataUnsafe?.user);
+      console.log("🕒 Auth date:", tg.initDataUnsafe?.auth_date);
+      console.groupEnd();
+
+      const response = await fetch(`${API_URL}/auth/telegram`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-telegram-init-data": initData
+        }
+      });
+
+      if (!response.ok) {
+        let errorDetail = `HTTP ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorDetail = errorData.detail || errorDetail;
+        } catch (e) {}
+        throw new Error(`Backend error: ${errorDetail}`);
+      }
+
+      const data = await response.json();
+      console.log("Authentication response:", data);
+      
+      if (data.session_token) {
+        localStorage.setItem("auth_token", data.session_token);
+        console.log("Stored auth token in localStorage:", data.session_token);
+      } else {
+        console.warn("No session token in authentication response");
+      }
+
+      return data.user;
+    } catch (err) {
+      console.error("🔒 Authentication failed:", err);
+      if (process.env.NODE_ENV === "production") {
+        tg?.showAlert?.(`Authentication failed: ${err.message || "Please reopen the app"}`);
+      }
+      throw err;
+    } finally {
+      tg?.disableClosingConfirmation?.();
+    }
+  };
+
+  const checkPhone = async () => {
+    try {
+      if (!isTelegramWebApp()) return;
+      
+      // Get auth token
+      const authToken = localStorage.getItem('auth_token');
+      if (!authToken) return;
+      
+      // Create headers with both auth token and Telegram initData
+      const headers = {
+        'Authorization': `Bearer ${authToken}`
+      };
+      
+      // Always add Telegram initData if available
+      if (telegramInitData) {
+        headers['x-telegram-init-data'] = telegramInitData;
+      } else {
+        // Try to get initData directly from Telegram if not in state
+        const tg = window.Telegram?.WebApp;
+        if (tg && tg.initData) {
+          headers['x-telegram-init-data'] = tg.initData;
+        }
+      }
+  
+      const response = await fetch('/me', { headers });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.phone) {
+          setShowPhoneModal(true);
+        } else {
+          setUserPhone(data.phone);
+        }
+      } else {
+        setShowPhoneModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to check phone:', error);
+      setShowPhoneModal(true);
+    }
+  };
+
+  // FIXED: Restore cart from localStorage on load
+  useEffect(() => {
+    try {
+      const storedCart = localStorage.getItem("cart");
+      if (storedCart) {
+        const parsedCart = JSON.parse(storedCart);
         
-        {!loading && !error && orders.length === 0 && (
-          <p className="empty-message">You have no past orders. Time to make some!</p>
+        // Validate cart structure before setting state
+        if (Array.isArray(parsedCart)) {
+          setCart(parsedCart);
+          addDebugLog("🛒 Cart restored from localStorage");
+        } else {
+          console.warn("Stored cart is not an array. Resetting cart.");
+          localStorage.removeItem("cart");
+          addDebugLog("❌ Invalid cart format - resetting");
+        }
+      }
+    } catch (e) {
+      console.error("❌ Failed to parse stored cart:", e);
+      localStorage.removeItem("cart");
+      addDebugLog("❌ Corrupted cart data - resetting");
+    }
+  }, []);
+
+  // FIXED: Save cart to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      // Only save if cart is valid
+      if (Array.isArray(cart)) {
+        localStorage.setItem("cart", JSON.stringify(cart));
+        addDebugLog("💾 Cart saved to localStorage");
+      } else {
+        console.warn("Attempted to save invalid cart format");
+        addDebugLog("⚠️ Invalid cart format - not saved");
+      }
+    } catch (e) {
+      console.error("❌ Failed to save cart to localStorage:", e);
+      addDebugLog("❌ Failed to save cart");
+    }
+  }, [cart]);
+
+  // Telegram WebApp initialization
+  useEffect(() => {
+    if (!window.Telegram?.WebApp) {
+      addDebugLog("⚠️ Not in Telegram environment - running in browser mode");
+      return;
+    }
+
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    
+    // PRESERVE THE INITDATA IMMEDIATELY - BEFORE USING IT
+    const initData = tg.initData;
+    setTelegramInitData(initData);
+
+   
+    localStorage.setItem('telegram_init_data', initData);
+    
+    addDebugLog("✅ Telegram WebApp initialized");
+    addDebugLog(`📦 Full initData: ${initData}`);
+    addDebugLog(`👤 Raw user info: ${JSON.stringify(tg.initDataUnsafe?.user || {})}`);
+
+    authenticateUser(initData)
+      .then(user => {
+        setAuth({
+          auth: initData,
+          user: user || tg.initDataUnsafe?.user
+        });
+        // Check if we need to show phone modal after auth
+        checkPhone();
+      })
+      .catch(err => {
+        addDebugLog(`🔒 Final auth failure: ${err.message}`);
+        tg.showPopup({
+          title: "Authentication Error",
+          message: "Failed to verify your session. Please reopen the app.",
+          buttons: [{ type: "ok" }]
+        });
+      });
+  }, []);
+
+  {showPhoneModal && (
+    <PhoneCaptureModal 
+      onSave={(phone) => {
+        setUserPhone(phone);
+        setShowPhoneModal(false);
+      }}
+      telegramInitData={telegramInitData}
+      appName="FoodBot"
+    />
+  )}
+
+  return (
+    <Router>
+      <div className="App">
+        {/* Phone capture modal - appears only for first-time Telegram users */}
+        {showPhoneModal && (
+          <PhoneCaptureModal 
+            onClose={() => setShowPhoneModal(false)}
+            onSave={(phone) => {
+              setUserPhone(phone);
+              setShowPhoneModal(false);
+            }}
+            telegramInitData={telegramInitData}
+            appName="FoodBot"
+          />
         )}
-
-        {orders.map((order) => (
-          <div key={order.order_id} className="order-card">
-            <div className="order-card-header">
-              <div>
-                <h3>Order #{order.order_id}</h3>
-                <p>{new Date(order.order_date).toLocaleString()}</p>
-              </div>
-              <div className={`order-status ${getStatusClass(order.status)}`}>
-                {order.status}
-              </div>
-            </div>
-            <div className="order-card-body">
-              <div className="order-items">
-                <h4>Items</h4>
-                <ul>
-                  {order.items.map((item, index) => (
-                    <li key={index}>
-                      {item.quantity}x {item.name}
-                    </li>
-                  ))}
-                </ul>
-                <div className="order-total">
-                  Total: ${order.total_price.toFixed(2)}
-                </div>
-              </div>
-              <div className="qr-code-container">
-                <QRCode 
-                  value={String(order.order_id)} // The QR code data is the order ID
-                  size={90}
-                  bgColor="#1e1e1e"
-                  fgColor="#ffffff"
-                  level="H" 
+        
+        {/* <DebugBanner logs={debugLogs} /> */}
+        <Routes>
+          <Route path="/" element={<HomePage cart={cart} setCart={setCart} user={auth?.user}  telegramInitData={telegramInitData} />} />
+          <Route path="/detail" element={<Detail cart={cart} setCart={setCart} />} />
+          <Route path="/order-history" element={<OrderHistory />} />
+          <Route path="/CartPage" element={
+            <CartPage 
+              cart={cart} 
+              setCart={setCart} 
+              telegramInitData={telegramInitData}
+              userPhone={userPhone}
+            />
+          } />
+          // App.js
+            <Route path="/CartPage" element={
+              <CartPage 
+               cart={cart} 
+               setCart={setCart} 
+               telegramInitData={telegramInitData}
+               userPhone={userPhone}  // Pass userPhone here
                 />
-                <p>Delivery Confirmation</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </main>
-    </div>
-  );
-};
+            } />
+          <Route path="/payment" element={<PaymentPage />} />
 
-export default HistoryPage;
+          <Route path="/history" element={<HistoryPage telegramInitData={telegramInitData} />} /> 
+
+        </Routes>
+
+       
+      </div>
+    </Router>
+  );
+}
+
+export default App;
