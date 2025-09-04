@@ -361,3 +361,44 @@ async def health_check():
         "timestamp": int(time.time())
     }
 
+    
+
+@router.get("/api/v1/orders/me", response_model=list)
+async def get_my_orders(
+    chat_id: int = Depends(telegram_auth_dependency) # This reuses your existing security
+):
+    """
+    Fetches all past orders for the currently authenticated Telegram user.
+    """
+    try:
+        with DatabaseManager() as db:
+            # We add "ORDER BY order_date DESC" to show the newest orders first
+            orders = db.fetchall(
+                """
+                SELECT order_id, items, total_price, status, order_date 
+                FROM orders 
+                WHERE user_id = %s
+                ORDER BY order_date DESC
+                """,
+                (chat_id,)
+            )
+        
+        if not orders:
+            return []
+            
+        # Format the data nicely for the frontend
+        formatted_orders = []
+        for order in orders:
+            formatted_orders.append({
+                "order_id": order[0],
+                "items": order[1],  # This is already JSON from your DB
+                "total_price": float(order[2]),
+                "status": order[3],
+                "order_date": order[4].isoformat() # Convert datetime to string
+            })
+            
+        return formatted_orders
+        
+    except Exception as e:
+        logger.error(f"Failed to fetch order history for user {chat_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Could not retrieve order history.")

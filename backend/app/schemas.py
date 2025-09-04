@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict,Any
 
 
@@ -64,3 +64,50 @@ class OrderCreate(BaseModel):
     is_guest_order: bool = False
     order_type: str = "pickup"
 
+class AdminLoginRequest(BaseModel):
+    username: EmailStr  # We use 'username' to match the db, but treat it as an email
+    password: str
+    role: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    role: Optional[str] = None
+
+
+
+StaffRole = Literal['kitchen', 'delivery', 'manager']
+StaffStatus = Literal['active', 'inactive']
+
+class StaffBase(BaseModel):
+    name: str
+    role: StaffRole
+    phone: str
+    telegramId: Optional[str] = None
+    status: StaffStatus
+
+class StaffCreate(StaffBase):
+    # When creating a new staff, a password is required for them to log in.
+    password: str
+
+class StaffUpdate(BaseModel):
+    # All fields are optional when updating
+    name: Optional[str] = None
+    role: Optional[StaffRole] = None
+    phone: Optional[str] = None
+    telegramId: Optional[str] = None
+    status: Optional[StaffStatus] = None
+
+class StaffPublic(StaffBase):
+    id: int
+    ordersHandled: int
+    rating: float
+    lastActive: datetime
+    averageTime: Optional[int] = None
+    totalEarnings: Optional[float] = None
+
+    class Config:
+        orm_mode = True # Helps map SQLAlchemy objects, but good practice anyway

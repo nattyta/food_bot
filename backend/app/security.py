@@ -3,8 +3,17 @@ import os
 import logging
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.exceptions import InvalidSignature
+from . import config
 
 logger = logging.getLogger(__name__)
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
 
 class PhoneEncryptor:
     _instance = None
@@ -51,3 +60,30 @@ class PhoneEncryptor:
         except Exception as e:
             logger.error(f"👁️ Obfuscation failed: {str(e)}")
             return "***"
+
+
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verifies a plain password against a hashed one."""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Hashes a plain password."""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Creates a new JWT access token."""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        # Fallback expiration time if not provided
+        expire = datetime.utcnow() + timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
+        
+    to_encode.update({"exp": expire})
+    
+    encoded_jwt = jwt.encode(
+        to_encode, config.JWT_SECRET_KEY, algorithm=config.JWT_ALGORITHM
+    )
+    return encoded_jwt

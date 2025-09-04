@@ -168,6 +168,14 @@ def test_database_connection():
         return False
 
 
-
+def get_db_manager():
+    """FastAPI dependency to get a DatabaseManager instance."""
+    try:
+        db = DatabaseManager()
+        db.conn = psycopg.connect(os.getenv("DATABASE_URL"))
+        yield db
+    finally:
+        if db.conn:
+            db.conn.close()
 
 test_database_connection()

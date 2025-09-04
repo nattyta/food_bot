@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaHome, FaShoppingCart, FaHeart, FaBell, FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
+import { FaHome, FaShoppingCart, FaHistory, FaBell, FaSearch, FaRegArrowAltCircleRight } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import PhoneCaptureModal from '../components/PhoneCaptureModal';
 import "./homePage.css";
@@ -244,7 +244,7 @@ const HomePage = ({ cart, setCart, telegramInitData }) => {
       <footer className="footer-nav">
         <FaHome className="nav-icon" />
         <FaShoppingCart onClick={() => navigate("/CartPage")} size={24} className="nav-icon" />
-        <FaHeart className="nav-icon" />
+        <FaHistory className="nav-icon" onClick={() => navigate("/history")} />
         <FaBell className="nav-icon" />
       </footer>
     </div>

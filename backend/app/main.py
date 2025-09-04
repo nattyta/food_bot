@@ -16,11 +16,11 @@ from typing import Optional
 import json
 from typing import List, Optional 
 from .auth import get_current_user, telegram_auth
-from app.routes import router
+from app.routes import router as main_router
 from fastapi.middleware.cors import CORSMiddleware
 import time
 from app.security import PhoneEncryptor
-
+from app.admin_router import router as admin_router
 
 # Load environment variables
 load_dotenv()
@@ -35,7 +35,8 @@ if os.getenv("ENVIRONMENT") == "production":
     session_manager.init_redis()
 
 
-app.include_router(router)
+app.include_router(main_router)
+app.include_router(admin_router) 
 
 # CORS Configuration
 app.add_middleware(
