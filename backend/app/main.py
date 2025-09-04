@@ -43,7 +43,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot",
          "https://telegram.me",
-        "https://web.telegram.org"],
+        "https://web.telegram.org",
+        "http://192.168.0.113:8080/",
+        "http://localhost:8080/",
+        "https://customer-z13e.onrender.com"
+        ],
+        
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -358,5 +363,4 @@ def verify_chapa_signature(payload: bytes, signature: str) -> bool:
 
     
 
-app.mount("/", StaticFiles(directory="app/build", html=True), name="static")
 
