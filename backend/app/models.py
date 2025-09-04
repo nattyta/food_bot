@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import optional
+from typing import Optional
 
 class AdminInDB(BaseModel):
     id: int

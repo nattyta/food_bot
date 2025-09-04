@@ -1,4 +1,3 @@
-
 import os
 import logging
 from cryptography.fernet import Fernet, InvalidToken
@@ -7,7 +6,9 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.exceptions import InvalidSignature
+from typing import Optional
 from . import config
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
