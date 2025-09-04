@@ -17,7 +17,7 @@ const HistoryPage = ({ telegramInitData }) => {
       try {
         setLoading(true);
         // This is the same API_URL pattern you will use elsewhere
-        const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:10000';
+        const API_URL = process.env.REACT_APP_API_URL || 'https://food-bot-vulm.onrender.com';
         
         const response = await fetch(`${API_URL}/api/v1/orders/me`, {
           headers: {
