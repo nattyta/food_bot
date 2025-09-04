@@ -1,0 +1,140 @@
+/* src/pages/historyPage.css */
+.history-page {
+    background-color: #121212;
+    color: #fff;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+  
+  .history-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e1e1e;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .history-header h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: bold;
+  }
+  
+  .back-icon {
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  .history-content {
+    padding: 20px;
+  }
+  
+  .loading-text, .empty-message, .error-message {
+    text-align: center;
+    color: gray;
+    margin-top: 40px;
+  }
+  
+  .error-message {
+    color: #ef4444;
+  }
+  
+  .order-card {
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .order-card-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .order-card-header p {
+    margin: 5px 0 0 0;
+    font-size: 12px;
+    color: gray;
+  }
+  
+  .order-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+  
+  .status-pending { background-color: #f59e0b; color: #121212; }
+  .status-preparing { background-color: #3b82f6; color: #fff; }
+  .status-completed { background-color: #10b981; color: #fff; }
+  
+  .order-card-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .order-items {
+    flex-grow: 1;
+  }
+  
+  .order-items h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: gray;
+  }
+  
+  .order-items ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    color: #ccc;
+  }
+  
+  .order-items li {
+    margin-bottom: 4px;
+  }
+  
+  .order-total {
+    font-weight: bold;
+    margin-top: 15px;
+    font-size: 16px;
+  }
+  
+  .qr-code-container {
+    text-align: center;
+    padding-left: 20px;
+    margin-left: 20px;
+    border-left: 1px solid #333;
+    flex-shrink: 0;
+  }
+  
+  .qr-code-container canvas, 
+  .qr-code-container svg {
+    background-color: #fff; /* QR codes need a light background */
+    padding: 5px;
+    border-radius: 5px;
+  }
+  
+  .qr-code-container p {
+    font-size: 10px;
+    color: gray;
+    margin-top: 5px;
+  }
