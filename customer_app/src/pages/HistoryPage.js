@@ -99,13 +99,12 @@ const HistoryPage = ({ telegramInitData }) => {
                 </div>
               </div>
               <div className="qr-code-container">
-                <QRCode 
-                  value={String(order.order_id)} // The QR code data is the order ID
-                  size={100}
-                  bgColor="#1e1e1e"
-                  fgColor="#ffffff"
-                  level="H" 
-                />
+              <QRCodeSVG
+               value={String(order.order_id)}
+               bgColor="#1e1e1e"
+               fgColor="#ffffff"
+               level="H" 
+              />
                 <p>Show this to delivery person</p>
               </div>
             </div>
