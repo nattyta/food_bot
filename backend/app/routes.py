@@ -12,6 +12,7 @@ from .crud import create_user, update_user_contact
 from .auth import validate_init_data
 from .security import PhoneEncryptor
 import hashlib
+import requests 
 import hmac
 import time
 from .schemas import PhoneUpdateRequest,PaymentRequest
@@ -28,6 +29,7 @@ router = APIRouter(  prefix="/api/v1",
 
 # Load bot token once globally
 BOT_TOKEN = os.getenv("Telegram_API", "").strip()
+CHAPA_SECRET_KEY = os.getenv("Chapa_API", "").strip()
 encryptor = PhoneEncryptor.get_instance()
 
 if not BOT_TOKEN:
