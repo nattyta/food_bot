@@ -258,26 +258,39 @@ async def create_order(
             
             # Use execute_returning for INSERT ... RETURNING
             result_row = db.execute_returning(
-                """
-    INSERT INTO orders (user_id, items, encrypted_phone, obfuscated_phone, order_date, status, total_price, latitude, longitude, address, notes, order_type, payment_status)
-    VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s, 'pending')
+    """
+    INSERT INTO orders (
+        user_id, 
+        items, 
+        encrypted_phone,
+        obfuscated_phone,
+        order_date,
+        status,
+        total_price,
+        latitude,
+        longitude,
+        address,
+        notes,
+        order_type,
+        payment_status  -- We are setting this column
+    ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s, 'pending') -- And we give it a default value here
     RETURNING order_id
     """,
-                (
-                    chat_id,
-                    json.dumps(order.items),
-                    encrypted_phone,
-                    obfuscated_phone,
-                    order_date,
-                    total_price,
-                    order.latitude,
-                    order.longitude,
-                    order.address,
-                    order.notes,
-                    order.location_label,
-                    order.order_type    
-                )
-            )
+    (
+        chat_id,
+        json.dumps([item.dict() for item in order.items]),
+        encrypted_phone,
+        obfuscated_phone,
+        order_date,
+        order.total_price,
+        order.latitude,
+        order.longitude,
+        order.address,
+        order.notes,
+        order.order_type
+        # The 'payment_status' value is now handled directly in the SQL, so we remove it from this list
+    )
+)
             
             # Check if insertion succeeded
             if not result_row:
