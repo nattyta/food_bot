@@ -23,7 +23,8 @@ from math import sin, cos, sqrt, atan2, radians
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(  prefix="/api/v1",
+    tags=["Customer App"])
 
 # Load bot token once globally
 BOT_TOKEN = os.getenv("Telegram_API", "").strip()
@@ -363,7 +364,7 @@ async def health_check():
 
     
 
-@router.get("/api/v1/orders/me", response_model=list)
+@router.get("/orders/me", response_model=list)
 async def get_my_orders(
     chat_id: int = Depends(telegram_auth_dependency) # This reuses your existing security
 ):
