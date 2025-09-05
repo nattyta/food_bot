@@ -87,8 +87,8 @@ const Payment = () => {
         console.log("Payment method:", method);
         console.log("Amount:", totalPrice);
         
-        // Use the correct endpoint URL
-        const endpoint = `${window.location.origin}/create-payment`;
+        const API_URL = "https://food-bot-vulm.onrender.com";
+        const endpoint = `${API_URL}/api/v1/create-payment`;
         
         console.log("API endpoint:", endpoint);
         
@@ -106,7 +106,8 @@ const Payment = () => {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem('auth_token')}`
+            "Authorization": `Bearer ${localStorage.getItem('auth_token')}`,
+            "x-telegram-init-data": window.Telegram.WebApp.initData,
           },
           body: JSON.stringify(paymentData),
         });
