@@ -13,6 +13,7 @@ from .auth import validate_init_data
 from .security import PhoneEncryptor
 import hashlib
 import requests 
+from typing import Dict
 import hmac
 import time
 from .schemas import PhoneUpdateRequest,PaymentRequest
