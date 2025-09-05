@@ -58,7 +58,7 @@ function App() {
       console.log("🕒 Auth date:", tg.initDataUnsafe?.auth_date);
       console.groupEnd();
 
-      const response = await fetch(`${API_URL}/auth/telegram`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/telegram`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ function App() {
         }
       }
   
-      const response = await fetch(`${API_URL}/me`, { headers });
+      const response = await fetch(`${API_URL}/api/v1/me`, { headers });
       
       if (response.ok) {
         const data = await response.json();

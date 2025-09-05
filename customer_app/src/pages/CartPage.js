@@ -351,7 +351,8 @@ const handleConfirmOrder = async () => {
     }
 
     // Create order directly
-    const apiUrl = `${process.env.REACT_APP_API_BASE || ''}/orders`;
+    const API_URL = "https://food-bot-vulm.onrender.com";
+    const apiUrl = `${API_URL}/api/v1/orders`; 
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers,
@@ -359,7 +360,7 @@ const handleConfirmOrder = async () => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const errorText = await response.text();  
       // Scrub any numbers from the error text
       const errorSafe = errorText.replace(/\d{4,}/g, '***');
       throw new Error(`Order failed: ${response.status} - ${errorSafe.slice(0, 50)}`);
