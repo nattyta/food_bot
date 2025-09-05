@@ -229,12 +229,12 @@ async def create_order(
     chat_id: int = Depends(telegram_auth_dependency)
 ):
     try:
+        # Your validation logic is good
         if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
             raise HTTPException(status_code=400, detail="Invalid phone format")
         if not order.items:
             raise HTTPException(status_code=400, detail="Order is empty")
 
-        # Your existing logic is good
         encrypted_phone = encryptor.encrypt(order.phone).encode('utf-8')
         obfuscated_phone = encryptor.obfuscate(order.phone)
         order_date = datetime.utcnow()
@@ -249,8 +249,7 @@ async def create_order(
                 (
                     chat_id,
                     # --- THIS IS THE FIX ---
-                    # The `order.items` is already a list of dicts from the Pydantic model.
-                    # We pass it directly to json.dumps.
+                    # `order.items` is already a list of dicts. We don't need to call .dict() on them.
                     json.dumps(order.items),
                     encrypted_phone,
                     obfuscated_phone,
@@ -270,18 +269,14 @@ async def create_order(
             order_id = result_row[0]
             
         logger.info(f"✅ Order created successfully: ID {order_id} for user {chat_id}")
-        return {
-            "status": "success",
-            "order_id": order_id,
-            "total_price": order.total_price
-        }
+        return {"status": "success", "order_id": order_id, "total_price": order.total_price}
         
     except HTTPException as he:
+
         raise he
     except Exception as e:
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
-
 
 RESTAURANT_LAT = 9.005  # Example: Addis Ababa coordinates
 RESTAURANT_LON = 38.763
