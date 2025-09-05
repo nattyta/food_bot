@@ -229,12 +229,12 @@ async def create_order(
     chat_id: int = Depends(telegram_auth_dependency)
 ):
     try:
-        # ... (your phone and item validation logic remains the same) ...
         if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
             raise HTTPException(status_code=400, detail="Invalid phone format")
         if not order.items:
             raise HTTPException(status_code=400, detail="Order is empty")
 
+        # Your existing logic is good
         encrypted_phone = encryptor.encrypt(order.phone).encode('utf-8')
         obfuscated_phone = encryptor.obfuscate(order.phone)
         order_date = datetime.utcnow()
@@ -249,8 +249,8 @@ async def create_order(
                 (
                     chat_id,
                     # --- THIS IS THE FIX ---
-                    # The 'items' from the Pydantic model is already a list of dicts.
-                    # We can pass it directly to json.dumps.
+                    # The `order.items` is already a list of dicts from the Pydantic model.
+                    # We pass it directly to json.dumps.
                     json.dumps(order.items),
                     encrypted_phone,
                     obfuscated_phone,

@@ -293,14 +293,15 @@ const handleConfirmOrder = async () => {
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) throw new Error("Authentication expired. Refresh page.");
 
-      const API_URL = "https://food-bot-vulm.onrender.com"; // Or your env variable
+      const API_URL = "https://food-bot-vulm.onrender.com"; 
 
 const validationResponse = await fetch(
     `${API_URL}/api/v1/validate-location?lat=${orderDetails.delivery.location.lat}&lng=${orderDetails.delivery.location.lng}`,
     {
-        headers: {
-            'Authorization': `Bearer ${authToken}`
-        }
+      headers: {
+        
+        'x-telegram-init-data': telegramInitData
+    }
     }
 );
       if (!validationResponse.ok) {
