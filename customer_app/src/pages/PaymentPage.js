@@ -152,6 +152,7 @@ const Payment = () => {
         } else {
           alert(`Payment failed: ${errorMessage}`);
         }
+        navigate('/');
       } catch (parseError) {
         console.error("Failed to parse error response:", parseError);
         const errorMsg = `Payment failed with status ${response.status}: ${responseText.substring(0, 100)}...`;

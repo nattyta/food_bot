@@ -60,19 +60,14 @@ const HistoryPage = ({ telegramInitData }) => {
   return (
     <div className="history-page">
       <header className="history-header">
-        <FaArrowLeft className="back-icon" onClick={() => navigate(-1)} />
+        <FaArrowLeft className="back-icon" onClick={() => navigate('/')} />
         <h1>Order History</h1>
-        <div /> {/* Placeholder for alignment */}
+        <div style={{ width: '20px' }} />
       </header>
-
+   
       <main className="history-content">
-        {loading && <p>Loading your history...</p>}
-        {error && <p className="error-message">{error}</p>}
-        
-        {!loading && !error && orders.length === 0 && (
-          <p>You have no past orders.</p>
-        )}
-
+        {/* ... (your loading and error states) ... */}
+   
         {orders.map((order) => (
           <div key={order.order_id} className="order-card">
             <div className="order-card-header">
@@ -88,31 +83,51 @@ const HistoryPage = ({ telegramInitData }) => {
               <div className="order-items">
                 <h4>Items</h4>
                 <ul>
-                  {order.items.map((item, index) => (
-                    <li key={index}>
-                      {item.quantity}x {item.name}
-                    </li>
+                  {/* Assuming items is a JSON string, parse it */}
+                  {(typeof order.items === 'string' ? JSON.parse(order.items) : order.items).map((item, index) => (
+                    <li key={index}>{item.quantity}x {item.name}</li>
                   ))}
                 </ul>
                 <div className="order-total">
                   Total: ${order.total_price.toFixed(2)}
                 </div>
               </div>
-              <div className="qr-code-container">
-              <QRCodeSVG
-               value={String(order.order_id)}
-               bgColor="#1e1e1e"
-               fgColor="#ffffff"
-               level="H" 
-              />
-                <p>Show this to delivery person</p>
-              </div>
+   
+              {/* --- CONDITIONAL QR CODE DISPLAY --- */}
+              {order.payment_status === 'paid' ? (
+                <div className="qr-code-container">
+                  <QRCode 
+                    value={String(order.order_id)}
+                    size={90}
+                    bgColor="#ffffff" /* White background for better scanning */
+                    fgColor="#121212"
+                    level="H" 
+                  />
+                  <p>Delivery Confirmation</p>
+                </div>
+              ) : (
+                <div className="payment-pending-container">
+                  <p className="payment-pending-text">Payment Pending</p>
+                  <button 
+                    className="retry-payment-btn"
+                    onClick={() => navigate('/payment', { 
+                      state: { 
+                        orderId: order.order_id,
+                        phone: phone, // You'll need to fetch/pass the user's phone here
+                        totalPrice: order.total_price
+                      }
+                    })}
+                  >
+                    Retry Payment
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </main>
     </div>
-  );
+   );
 };
 
 export default HistoryPage;

@@ -138,3 +138,31 @@
     color: gray;
     margin-top: 5px;
   }
+
+  .payment-pending-container {
+    text-align: center;
+    padding-left: 20px;
+    margin-left: 20px;
+    border-left: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .payment-pending-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #f59e0b; /* Amber/Warning color */
+    margin-bottom: 10px;
+  }
+  
+  .retry-payment-btn {
+    background-color: #1e1e1e;
+    color: #f59e0b;
+    border: 1px solid #f59e0b;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }

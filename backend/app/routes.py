@@ -259,23 +259,10 @@ async def create_order(
             # Use execute_returning for INSERT ... RETURNING
             result_row = db.execute_returning(
                 """
-                INSERT INTO orders (
-                    user_id, 
-                    items, 
-                    encrypted_phone,
-                    obfuscated_phone,
-                    order_date,
-                    status,
-                    total_price,
-                    latitude,
-                    longitude,
-                    address,
-                    notes,
-                    location_label,
-                    order_type  -- NEW COLUMN
-                ) VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s, %s)
-                RETURNING order_id
-                """,
+    INSERT INTO orders (user_id, items, encrypted_phone, obfuscated_phone, order_date, status, total_price, latitude, longitude, address, notes, order_type, payment_status)
+    VALUES (%s, %s, %s, %s, %s, 'pending', %s, %s, %s, %s, %s, %s, 'pending')
+    RETURNING order_id
+    """,
                 (
                     chat_id,
                     json.dumps(order.items),
@@ -288,7 +275,8 @@ async def create_order(
                     order.address,
                     order.notes,
                     order.location_label,
-                    order.order_type  # NEW VALUE
+                    order.order_type ,
+                    payment_status# NEW VALUE
                 )
             )
             
@@ -378,11 +366,10 @@ async def get_my_orders(
             # We add "ORDER BY order_date DESC" to show the newest orders first
             orders = db.fetchall(
                 """
-                SELECT order_id, items, total_price, status, order_date 
-                FROM orders 
-                WHERE user_id = %s
-                ORDER BY order_date DESC
-                """,
+    SELECT order_id, items, total_price, status, order_date, payment_status
+    FROM orders 
+    WHERE user_id = %s ORDER BY order_date DESC
+    """,
                 (chat_id,)
             )
         
@@ -397,7 +384,8 @@ async def get_my_orders(
                 "items": order[1],  # This is already JSON from your DB
                 "total_price": float(order[2]),
                 "status": order[3],
-                "order_date": order[4].isoformat() # Convert datetime to string
+                "order_date": order[4].isoformat(), # Convert datetime to string
+                "payment_status": order[5]
             })
             
         return formatted_orders
@@ -576,68 +564,51 @@ async def create_payment(payment: PaymentRequest, request: Request):
 
 @router.post("/payment-webhook")
 async def chapa_webhook(request: Request):
-    """Handle Chapa payment confirmation webhooks"""
+    """
+    Handles incoming webhooks from Chapa to confirm payment.
+    This is the ONLY place where an order's payment status should be marked as 'paid'.
+    """
     try:
-        # Get the raw request body
-        body = await request.body()
-        
-        # Verify the signature (important for security!)
+        # Get signature and raw body
         signature = request.headers.get("Chapa-Signature")
+        body = await request.body()
+
+        # 1. VERIFY THE SIGNATURE - CRITICAL FOR SECURITY
         if not verify_chapa_signature(body, signature):
-            logger.warning("⚠️ Invalid webhook signature")
-            raise HTTPException(403, "Invalid signature")
+            logger.warning("⚠️ Invalid webhook signature received.")
+            raise HTTPException(status_code=403, detail="Invalid signature")
         
-        # Parse the webhook data
-        webhook_data = await request.json()
-        logger.info(f"📩 Webhook received: {webhook_data}")
+        webhook_data = json.loads(body)
+        logger.info(f"✅ Webhook received and verified: {webhook_data}")
         
-        # Extract important information
-        tx_ref = webhook_data.get("tx_ref")  # This should be your order_id
+        # 2. Extract data and check for success
+        tx_ref = webhook_data.get("tx_ref")
         status = webhook_data.get("status")
-        chapa_transaction_id = webhook_data.get("id")
-        
+
         if not tx_ref:
-            logger.error("❌ No tx_ref in webhook data")
+            logger.error("❌ No tx_ref (order_id) in webhook data.")
             return {"status": "error", "message": "No transaction reference"}
         
-        # Update order status in database
-        with DatabaseManager() as db:
-            if status == "success":
+        # 3. UPDATE DATABASE ONLY IF PAYMENT WAS SUCCESSFUL
+        if status == "success":
+            with DatabaseManager() as db:
+                # Update both payment_status and the main order status
                 db.execute(
-                    "UPDATE orders SET status = 'completed', chapa_transaction_id = %s WHERE order_id = %s",
-                    (chapa_transaction_id, tx_ref)
+                    """
+                    UPDATE orders 
+                    SET payment_status = 'paid', status = 'preparing' 
+                    WHERE order_id = %s
+                    """,
+                    (int(tx_ref),)
                 )
-                logger.info(f"✅ Payment successful for order {tx_ref}")
-            elif status == "failed":
-                db.execute(
-                    "UPDATE orders SET status = 'failed' WHERE order_id = %s",
-                    (tx_ref,)
-                )
-                logger.warning(f"❌ Payment failed for order {tx_ref}")
-        
-        return {"status": "success"}
+                logger.info(f"✅ Payment successful for order {tx_ref}. Status updated to 'preparing'.")
+        else:
+            logger.warning(f"Payment for order {tx_ref} was not successful. Status: {status}")
+
+        return {"status": "success"} # Always return 200 OK to Chapa
         
     except Exception as e:
         logger.exception(f"💥 Webhook processing error: {str(e)}")
         raise HTTPException(500, "Webhook processing failed")
-
-def verify_chapa_signature(payload: bytes, signature: str) -> bool:
-    """Verify Chapa webhook signature"""
-    # Get your webhook secret from Chapa dashboard
-    webhook_secret = os.getenv("CHAPA_WEBHOOK_SECRET")
-    
-    if not webhook_secret or not signature:
-        return False
-    
-    # Compute expected signature
-    expected_signature = hmac.new(
-        webhook_secret.encode(),
-        payload,
-        hashlib.sha256
-    ).hexdigest()
-    
-    return hmac.compare_digest(expected_signature, signature)
-
-    
 
 
