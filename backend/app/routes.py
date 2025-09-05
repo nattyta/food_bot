@@ -275,8 +275,7 @@ async def create_order(
                     order.address,
                     order.notes,
                     order.location_label,
-                    order.order_type ,
-                    payment_status# NEW VALUE
+                    order.order_type    
                 )
             )
             
