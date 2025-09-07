@@ -393,7 +393,7 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
             "return_url": "https://customer-z13e.onrender.com/payment-success",
             "customization": {
                 "title": "FoodBot Payment",
-                "description": f"Payment for Order #{payment.order_id}"
+                "description": f"Payment for Order {payment.order_id}"
             },
             "meta": {
                 "internal_order_id": payment.order_id
