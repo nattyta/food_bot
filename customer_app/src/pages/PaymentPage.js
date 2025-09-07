@@ -87,8 +87,8 @@ const Payment = () => {
         console.log("Payment method:", method);
         console.log("Amount:", totalPrice);
         
-        const API_URL = "https://food-bot-vulm.onrender.com";
-        const endpoint = `${API_URL}/api/v1/create-payment`;
+        const API_BASE_URL = process.env.REACT_APP_API_BASE || "http://localhost:10000";
+        const endpoint = `${API_BASE_URL}/api/v1/create-payment`;
         
         console.log("API endpoint:", endpoint);
         

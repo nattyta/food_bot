@@ -293,11 +293,18 @@ const handleConfirmOrder = async () => {
       const authToken = localStorage.getItem('auth_token');
       if (!authToken) throw new Error("Authentication expired. Refresh page.");
 
-      const API_URL = "https://food-bot-vulm.onrender.com";
-const validationResponse = await fetch(
-    `${API_URL}/api/v1/validate-location?lat=${orderDetails.delivery.location.lat}&lng=${orderDetails.delivery.location.lng}`,
-    { headers: { 'x-telegram-init-data': telegramInitData } }
-);
+      const API_BASE_URL = process.env.REACT_APP_API_BASE || "http://localhost:10000";
+
+      // ... inside handleConfirmOrder ...
+      
+      // --- FIX #1: The validation call ---
+      const validationResponse = await fetch(
+          `${API_BASE_URL}/api/v1/validate-location?lat=${orderDetails.delivery.location.lat}&lng=${orderDetails.delivery.location.lng}`,
+          {
+              headers: { 'x-telegram-init-data': telegramInitData }
+          }
+      );
+      
       if (!validationResponse.ok) {
         const errorText = await validationResponse.text();
         throw new Error(`Location validation failed: ${errorText}`);
@@ -347,8 +354,7 @@ const validationResponse = await fetch(
     }
 
     // Create order directly
-    const API_URL = "https://food-bot-vulm.onrender.com";
-    const apiUrl = `${API_URL}/api/v1/orders`; 
+    const apiUrl = `${API_BASE_URL}/api/v1/orders`; 
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers,
