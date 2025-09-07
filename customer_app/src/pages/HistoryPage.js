@@ -96,12 +96,12 @@ const HistoryPage = ({ telegramInitData }) => {
               {/* --- CONDITIONAL QR CODE DISPLAY --- */}
               {order.payment_status === 'paid' ? (
                 <div className="qr-code-container">
-                  <QRCode 
-                    value={String(order.order_id)}
-                    size={90}
-                    bgColor="#ffffff" /* White background for better scanning */
-                    fgColor="#121212"
-                    level="H" 
+                  <QRCodeSVG
+                   value={String(order.order_id)}
+                   size={100}
+                   bgColor="#1e1e1e"
+                   fgColor="#ffffff"
+                   level="H" 
                   />
                   <p>Delivery Confirmation</p>
                 </div>
@@ -113,7 +113,6 @@ const HistoryPage = ({ telegramInitData }) => {
                     onClick={() => navigate('/payment', { 
                       state: { 
                         orderId: order.order_id,
-                        phone: phone, // You'll need to fetch/pass the user's phone here
                         totalPrice: order.total_price
                       }
                     })}

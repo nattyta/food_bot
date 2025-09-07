@@ -10,7 +10,7 @@ import HistoryPage from './pages/HistoryPage';
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-const API_URL = "https://food-bot-vulm.onrender.com";
+const API_BASE_URL = process.env.REACT_APP_API_BASE || "http://localhost:10000";
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -58,7 +58,7 @@ function App() {
       console.log("🕒 Auth date:", tg.initDataUnsafe?.auth_date);
       console.groupEnd();
 
-      const response = await fetch(`${API_URL}/api/v1/auth/telegram`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/telegram`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ function App() {
         }
       }
   
-      const response = await fetch(`${API_URL}/api/v1/me`, { headers });
+      const response = await fetch(`${API_BASE_URL}/api/v1/me`, { headers });
       
       if (response.ok) {
         const data = await response.json();

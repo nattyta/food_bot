@@ -53,7 +53,7 @@ function LocationMarker({ onLocationSelect, initialPosition }) {
   );
 }
 
-
+const API_BASE_URL = process.env.REACT_APP_API_BASE || "http://127.0.0.1:10000";
 
 
 const CartPage = ({ cart, setCart, telegramInitData }) => {
