@@ -45,15 +45,33 @@ class PhoneEncryptor:
             logger.error(f"🔒 Encryption failed: {str(e)}")
             raise RuntimeError("Encryption error")
     
-    def decrypt(self, encrypted: str) -> str:
-        try:
-            return self.cipher.decrypt(encrypted.encode()).decode()
-        except (InvalidToken, InvalidSignature) as e:
-            logger.error(f"🔓 Decryption failed - invalid token: {str(e)}")
-            raise RuntimeError("Decryption error")
-        except Exception as e:
-            logger.error(f"🔓 Decryption failed: {str(e)}")
-            raise RuntimeError("Decryption error")
+    def decrypt(self, encrypted_data: [str, bytes]) -> str:
+    """
+    Decrypts data that can be either a string or bytes.
+    This makes the function flexible for different data sources.
+    """
+    try:
+        # --- THIS IS THE FIX ---
+        # Check the type of the input data.
+        if isinstance(encrypted_data, str):
+            # If it's a string, encode it to bytes first.
+            encrypted_bytes = encrypted_data.encode('utf-8')
+        elif isinstance(encrypted_data, bytes):
+            # If it's already bytes, use it directly.
+            encrypted_bytes = encrypted_data
+        else:
+            # If it's neither, we can't process it.
+            raise TypeError("Encrypted data must be a string or bytes")
+
+        # Now, decrypt the guaranteed bytes object.
+        return self.cipher.decrypt(encrypted_bytes).decode()
+
+    except (InvalidToken, InvalidSignature) as e:
+        logger.error(f"🔓 Decryption failed - invalid token: {str(e)}")
+        raise RuntimeError("Decryption error")
+    except Exception as e:
+        logger.error(f"🔓 Decryption failed: {str(e)}")
+        raise RuntimeError("Decryption error")
     
     def obfuscate(self, phone: str) -> str:
         try:

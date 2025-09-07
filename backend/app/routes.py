@@ -363,11 +363,10 @@ async def get_my_orders(
 
 @router.post("/create-payment")
 async def create_payment(payment: PaymentRequest, request: Request, chat_id: int = Depends(telegram_auth_dependency)):
-    """Initiates a payment with Chapa, generating a unique transaction reference for each attempt."""
+    """Initiates a payment with Chapa, generating a unique transaction reference."""
     logger.info(f"💰 Payment request for order {payment.order_id} from user {chat_id}")
 
     try:
-        # Retrieve the order from the database to get the user's encrypted phone
         with DatabaseManager() as db:
             order_row = db.fetchone(
                 "SELECT encrypted_phone FROM orders WHERE order_id = %s AND user_id = %s",
@@ -376,49 +375,48 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
             if not order_row:
                 raise HTTPException(status_code=404, detail="Order not found or does not belong to this user.")
             
+            # This is a 'bytes' object from the bytea column
             encrypted_phone_bytes = order_row[0]
         
-        # Decrypt the phone number for Chapa
+        # This will now work perfectly because our new decrypt method can handle bytes
         original_phone = encryptor.decrypt(encrypted_phone_bytes)
 
-        # --- SOLUTION FOR UNIQUE TRANSACTION REFERENCE ---
-        # Generate a new, unique tx_ref by appending the current timestamp in milliseconds.
-        # This ensures that every click on "Pay" or "Retry Payment" is a new transaction for Chapa.
         unique_tx_ref = f"{payment.order_id}-{int(time.time() * 1000)}"
         logger.info(f"Generated unique tx_ref for Chapa: {unique_tx_ref}")
 
-        # Prepare the payload for Chapa
         payload = {
             "amount": str(payment.amount),
             "currency": "ETB",
-            "tx_ref": unique_tx_ref,  # Use the newly generated unique reference
+            "tx_ref": unique_tx_ref,
             "phone_number": original_phone,
             "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
-            "return_url": "https://customer-z13e.onrender.com/payment-success", # A page you can create
+            "return_url": "https://customer-z13e.onrender.com/payment-success",
             "customization": {
                 "title": "FoodBot Payment",
                 "description": f"Payment for Order #{payment.order_id}"
+            },
+            "meta": {
+                "internal_order_id": payment.order_id
             }
         }
-
-        headers = {
-            "Authorization": f"Bearer {CHAPA_API_KEY}",
-            "Content-Type": "application/json"
-        }
         
-        # Call the Chapa API
+        if payment.payment_method:
+            payload["payment_method"] = payment.payment_method
+
+        headers = {"Authorization": f"Bearer {CHAPA_API_KEY}", "Content-Type": "application/json"}
+        
         chapa_response = requests.post(
             "https://api.chapa.co/v1/transaction/initialize", 
             json=payload, 
             headers=headers
         )
-        chapa_response.raise_for_status()  # This will raise an error for non-2xx responses
+        
+        chapa_response.raise_for_status()
         
         logger.info(f"✅ Chapa payment initiated successfully for tx_ref: {unique_tx_ref}")
         return chapa_response.json()
 
     except requests.exceptions.HTTPError as e:
-        # Handle errors from Chapa (like the "tx_ref used before" error)
         error_body = e.response.text
         logger.error(f"❌ Chapa API error for order {payment.order_id}: {error_body}")
         raise HTTPException(status_code=e.response.status_code, detail=f"Payment gateway error: {error_body}")
@@ -428,50 +426,51 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
 
 @router.post("/payment-webhook")
 async def chapa_webhook(request: Request):
-    """Handles incoming webhooks from Chapa to confirm payment."""
+    """
+    Handles incoming webhooks from Chapa to confirm payment.
+    This is the ONLY place where an order's payment status should be marked as 'paid'.
+    """
     try:
+        # Get signature and raw body
         signature = request.headers.get("Chapa-Signature")
         body = await request.body()
 
+        # 1. VERIFY THE SIGNATURE - CRITICAL FOR SECURITY
         if not verify_chapa_signature(body, signature):
-            logger.warning("⚠️ Invalid webhook signature received. Request denied.")
+            logger.warning("⚠️ Invalid webhook signature received.")
             raise HTTPException(status_code=403, detail="Invalid signature")
         
         webhook_data = json.loads(body)
         logger.info(f"✅ Webhook received and verified: {webhook_data}")
         
-        # --- SOLUTION FOR HANDLING OLD AND NEW TX_REF ---
-        tx_ref_from_chapa = webhook_data.get("tx_ref")
+        # 2. Extract data and check for success
+        tx_ref = webhook_data.get("tx_ref")
         status = webhook_data.get("status")
 
-        if not tx_ref_from_chapa:
-            logger.error("❌ No tx_ref found in Chapa webhook.")
-            return {"status": "error", "message": "Missing transaction reference"}
-
-        # We get our internal order ID by splitting the tx_ref.
-        # Example: "47-1757255477000" becomes "47".
-        # This is robust and works for any tx_ref containing a hyphen.
-        order_id_to_update = tx_ref_from_chapa.split('-')[0]
-
+        if not tx_ref:
+            logger.error("❌ No tx_ref (order_id) in webhook data.")
+            return {"status": "error", "message": "No transaction reference"}
+        
+        # 3. UPDATE DATABASE ONLY IF PAYMENT WAS SUCCESSFUL
         if status == "success":
             with DatabaseManager() as db:
+                # Update both payment_status and the main order status
                 db.execute(
                     """
                     UPDATE orders 
                     SET payment_status = 'paid', status = 'preparing' 
                     WHERE order_id = %s
                     """,
-                    (int(order_id_to_update),)
+                    (int(tx_ref),)
                 )
-                logger.info(f"✅ Payment for order {order_id_to_update} confirmed. Status updated to 'preparing'.")
+                logger.info(f"✅ Payment successful for order {tx_ref}. Status updated to 'preparing'.")
         else:
-            logger.warning(f"Payment for order {order_id_to_update} was not successful via webhook. Status: {status}")
+            logger.warning(f"Payment for order {tx_ref} was not successful. Status: {status}")
 
-        # Always return a 200 OK to Chapa so they know we received it.
-        return {"status": "success"}
+        return {"status": "success"} # Always return 200 OK to Chapa
         
     except Exception as e:
         logger.exception(f"💥 Webhook processing error: {str(e)}")
-        # Return a 500 error but don't crash the whole server
-        raise HTTPException(status_code=500, detail="Internal webhook processing error")
+        raise HTTPException(500, "Webhook processing failed")
+
 
