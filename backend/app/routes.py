@@ -370,7 +370,7 @@ async def create_payment(payment: PaymentRequest, request: Request):
     logger.info(f"🌐 Client IP: {client_ip}, Order: {payment.order_id}")
 
     try:
-        # Validate payment method
+        # Validate payment method   
         valid_methods = ["telebirr", "cbe", "awash", "cbebirr", "dashen", "boa"]
         if payment.payment_method not in valid_methods:
             logger.warning(f"🚫 Invalid payment method: {payment.payment_method}")
@@ -427,11 +427,11 @@ async def create_payment(payment: PaymentRequest, request: Request):
             "tx_ref": payment.order_id,
             "payment_method": payment.payment_method,
             "phone_number": original_phone,  # Use the decrypted phone
-            "callback_url": "https://food-bot-vulm.onrender.com/payment-webhook",
-            "return_url": "https://food-bot-vulm.onrender.com/payment-success",
+            "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
+            "return_url": "https://customer-z13e.onrender.com/payment-success",
             "customization": {
                 "title": "FoodBot Payment",
-                "description": f"Order {payment.order_id}"  # Removed the '#' symbol
+                "description": f"Order {payment.order_id}"
             }
         }
 

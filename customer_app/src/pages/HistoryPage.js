@@ -113,7 +113,8 @@ const HistoryPage = ({ telegramInitData }) => {
                     onClick={() => navigate('/payment', { 
                       state: { 
                         orderId: order.order_id,
-                        totalPrice: order.total_price
+                        totalPrice: order.total_price,
+                        phone: userPhone
                       }
                     })}
                   >
