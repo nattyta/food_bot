@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import './historyPage.css';
 
 
-const HistoryPage = ({ telegramInitData }) => {
+const HistoryPage = ({ telegramInitData, userPhone  }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
