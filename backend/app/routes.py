@@ -30,7 +30,7 @@ router = APIRouter(  prefix="/api/v1",
 
 # Load bot token once globally
 BOT_TOKEN = os.getenv("Telegram_API", "").strip()
-CHAPA_SECRET_KEY = os.getenv("Chapa_API", "").strip()
+Chapa_API = os.getenv("Chapa_API", "").strip()
 encryptor = PhoneEncryptor.get_instance()
 
 if not BOT_TOKEN:
@@ -403,7 +403,7 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
         if payment.payment_method:
             payload["payment_method"] = payment.payment_method
 
-        headers = {"Authorization": f"Bearer {CHAPA_API_KEY}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {Chapa_API}", "Content-Type": "application/json"}
         
         chapa_response = requests.post(
             "https://api.chapa.co/v1/transaction/initialize", 
