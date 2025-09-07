@@ -425,13 +425,6 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
     except Exception as e:
         logger.exception(f"💥 Critical payment error for user {chat_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal payment processing error: {str(e)}")
-2. chapa_webhook Function (Complete Code)
-This version now handles the new tx_ref format correctly. It extracts your internal order_id to update the database.
-
-code
-Python
-# In backend/app/routes.py
-# Make sure you have `def verify_chapa_signature(...)` defined before this function
 
 @router.post("/payment-webhook")
 async def chapa_webhook(request: Request):
