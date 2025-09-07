@@ -46,11 +46,8 @@ class PhoneEncryptor:
             raise RuntimeError("Encryption error")
     
     def decrypt(self, encrypted_data: [str, bytes]) -> str:
-    """
-    Decrypts data that can be either a string or bytes.
-    This makes the function flexible for different data sources.
-    """
-    try:
+  
+     try:
         # --- THIS IS THE FIX ---
         # Check the type of the input data.
         if isinstance(encrypted_data, str):
@@ -66,10 +63,10 @@ class PhoneEncryptor:
         # Now, decrypt the guaranteed bytes object.
         return self.cipher.decrypt(encrypted_bytes).decode()
 
-    except (InvalidToken, InvalidSignature) as e:
+     except (InvalidToken, InvalidSignature) as e:
         logger.error(f"🔓 Decryption failed - invalid token: {str(e)}")
         raise RuntimeError("Decryption error")
-    except Exception as e:
+     except Exception as e:
         logger.error(f"🔓 Decryption failed: {str(e)}")
         raise RuntimeError("Decryption error")
     
