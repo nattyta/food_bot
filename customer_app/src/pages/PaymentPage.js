@@ -176,37 +176,35 @@ const Payment = () => {
     }
     
     // USSD Flow
-    if (data.ussd_code) {
-      const ussdMessage = `Dial ${data.ussd_code} on your phone to complete payment`;
-      console.log("USSD instruction:", ussdMessage);
-      
-      // Show USSD prompt in Telegram
+    if (data.data && data.data.ussd_code) {
+      const ussdMessage = `Dial ${data.data.ussd_code} on your phone to complete payment`;
+      setUssdCode(data.data.ussd_code);
       if (window.Telegram?.WebApp?.showAlert) {
-        window.Telegram.WebApp.showAlert(ussdMessage);
+          window.Telegram.WebApp.showAlert(ussdMessage);
       } else {
-        alert(ussdMessage);
+          alert(ussdMessage);
       }
-      
-      // Show on-screen instruction
-      setUssdCode(data.ussd_code);
-      
-      // Redirect to confirmation page after 5 seconds
-      setTimeout(() => {
-        navigate("/confirmation", { state: { orderId } });
-      }, 5000);
+      // After showing the USSD, we can redirect to the homepage
+      setTimeout(() => navigate('/'), 3000);
     } 
+
+
     // Redirect flow (if needed)
-    else if (data.checkout_url) {
-      console.log("Redirecting to checkout:", data.checkout_url);
-      if (window.Telegram?.WebApp?.openLink) {
-        window.Telegram.WebApp.openLink(data.checkout_url);
-      } else {
-        window.open(data.checkout_url, '_blank');
-      }
+    else if (data.data && data.data.checkout_url) {
+    const checkoutUrl = data.data.checkout_url;
+    console.log("Redirecting to checkout:", checkoutUrl);
+    if (window.Telegram?.WebApp?.openLink) {
+        // This is the best method for Telegram Web Apps
+        window.Telegram.WebApp.openLink(checkoutUrl);
     } else {
-      console.error("Unexpected response format:", data);
-      throw new Error("Unexpected response from payment service");
+        // Fallback for browsers
+        window.location.href = checkoutUrl;
     }
+} else {
+    // This will now only run if the response is truly unexpected
+    console.error("Unexpected response format:", data);
+    throw new Error("Unexpected response from payment service");
+}
     
     console.log("Payment request sent successfully");
     
