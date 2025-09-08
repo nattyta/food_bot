@@ -364,9 +364,10 @@ async def get_my_orders(
 @router.post("/create-payment")
 async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegram_auth_dependency)):
     """
-    Initiates a USSD push payment with Chapa using the correct payload structure.
+    Initiates a USSD push payment with Chapa, constructing the specific
+    payload required for different payment methods.
     """
-    logger.info(f"--- FINAL ATTEMPT: PAYMENT REQUEST ---")
+    logger.info(f"--- FINAL PAYMENT LOGIC ---")
     logger.info(f"Order ID: {payment.order_id}, Method: {payment.payment_method}, User: {chat_id}")
 
     try:
@@ -382,40 +383,46 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
 
         unique_tx_ref = f"{payment.order_id}-{int(time.time() * 1000)}"
 
-        # Step 2: Prepare the payload with information common to all payment types.
+        # Step 2: Prepare the base payload and headers
         payload = {
             "amount": str(payment.amount),
             "currency": "ETB",
             "tx_ref": unique_tx_ref,
-            "phone_number": original_phone, # This is still useful for some banks
             "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
             "return_url": "https://customer-z13e.onrender.com/payment-success",
-            "customization": {
-                "title": "FoodBot Order", # Simplified title
-                "description": f"Payment for Order {payment.order_id}"
-            },
+            "customization": {"title": "FoodBot Order", "description": f"Payment for Order {payment.order_id}"},
             "meta": {"internal_order_id": payment.order_id}
         }
         headers = {"Authorization": f"Bearer {Chapa_API}", "Content-Type": "application/json"}
         chapa_url = "https://api.chapa.co/v1/transaction/initialize"
         
-        # --- THE DEFINITIVE PAYLOAD LOGIC ---
-        # We ALWAYS use the /initialize endpoint. We only change the payload contents.
+        # --- THE DEFINITIVE LOGIC FOR USSD ---
         method = payment.payment_method
+        bank_ussd_methods = ["cbe", "awash", "cbebirr", "boa"]
+
+        if method == "telebirr":
+            # For Telebirr, we add a specific 'channel' object and remove phone_number from the top level.
+            payload["channel"] = {
+                "id": "telebirr",
+                "phone_number": original_phone
+            }
+            logger.info("Formatting payload for Telebirr direct push.")
         
-        # The key is to add the 'payment_method' field correctly.
-        # This is the standard way to request a specific payment rail.
-        payload["payment_method"] = method
-        logger.info(f"Attempting direct payment with method: '{method}'")
+        elif method in bank_ussd_methods:
+            # For banks, we add 'payment_method' and 'bank'.
+            payload["payment_method"] = "ussd"
+            payload["bank"] = method
+            payload["phone_number"] = original_phone # Banks need this at the top level
+            logger.info(f"Formatting payload for Bank USSD via '{method}'.")
+            
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported USSD method: {method}")
 
         # Step 3: Send the finalized POST request to Chapa.
         logger.info(f"Sending final payload to {chapa_url}: {json.dumps(payload)}")
-        
         chapa_response = requests.post(chapa_url, json=payload, headers=headers)
         
-        logger.info(f"Chapa Response Status Code: {chapa_response.status_code}")
         logger.info(f"Chapa Response Body: {chapa_response.text}")
-        
         chapa_response.raise_for_status()
         
         return chapa_response.json()
