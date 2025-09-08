@@ -389,6 +389,7 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
             "currency": "ETB",
             "tx_ref": unique_tx_ref,
             "phone_number": original_phone,
+            "payment_method": payment.payment_method,
             "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
             "return_url": "https://customer-z13e.onrender.com/payment-success",
             "customization": {
