@@ -253,8 +253,7 @@ function App() {
           <Route path="/" element={<HomePage cart={cart} setCart={setCart} user={auth?.user}  telegramInitData={telegramInitData} />} />
           <Route path="/detail" element={<Detail cart={cart} setCart={setCart} />} />
           <Route path="/order-history" element={<OrderHistory />} />
-          <Route path="/payment-success" element={<PaymentStatusPage />} />
-
+          
           <Route path="/CartPage" element={
             <CartPage 
               cart={cart} 
