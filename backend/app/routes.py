@@ -362,11 +362,16 @@ async def get_my_orders(
 
 
 @router.post("/create-payment")
-async def create_payment(payment: PaymentRequest, request: Request, chat_id: int = Depends(telegram_auth_dependency)):
-    """Initiates a payment with Chapa, generating a unique transaction reference."""
-    logger.info(f"💰 Payment request for order {payment.order_id} from user {chat_id}")
+async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegram_auth_dependency)):
+    """
+    Initiates a USSD push payment with Chapa for all supported methods.
+    This function dynamically builds the correct payload to avoid the hosted checkout page.
+    """
+    logger.info(f"💰 USSD Payment request for order {payment.order_id} via {payment.payment_method} from user {chat_id}")
 
     try:
+        # Step 1: Securely retrieve the order and encrypted phone from the database.
+        # We match on both order_id and user_id to ensure a user can only pay for their own order.
         with DatabaseManager() as db:
             order_row = db.fetchone(
                 "SELECT encrypted_phone FROM orders WHERE order_id = %s AND user_id = %s",
@@ -375,21 +380,21 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
             if not order_row:
                 raise HTTPException(status_code=404, detail="Order not found or does not belong to this user.")
             
-            # This is a 'bytes' object from the bytea column
             encrypted_phone_bytes = order_row[0]
         
-        # This will now work perfectly because our new decrypt method can handle bytes
+        # Step 2: Decrypt the phone number to be sent to Chapa.
         original_phone = encryptor.decrypt(encrypted_phone_bytes)
 
+        # Step 3: Generate a unique transaction reference for this specific payment attempt.
         unique_tx_ref = f"{payment.order_id}-{int(time.time() * 1000)}"
         logger.info(f"Generated unique tx_ref for Chapa: {unique_tx_ref}")
 
+        # Step 4: Prepare the base payload with information common to all payment types.
         payload = {
             "amount": str(payment.amount),
             "currency": "ETB",
             "tx_ref": unique_tx_ref,
             "phone_number": original_phone,
-            "payment_method": payment.payment_method,
             "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
             "return_url": "https://customer-z13e.onrender.com/payment-success",
             "customization": {
@@ -400,29 +405,54 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
                 "internal_order_id": payment.order_id
             }
         }
-        
-        
         headers = {"Authorization": f"Bearer {Chapa_API}", "Content-Type": "application/json"}
+        chapa_url = "https://api.chapa.co/v1/transaction/initialize"
+
+        # Step 5: Dynamically add the correct fields to the payload to force USSD.
+        method = payment.payment_method
         
-        chapa_response = requests.post(
-            "https://api.chapa.co/v1/transaction/initialize", 
-            json=payload, 
-            headers=headers
-        )
+        # Define which methods are which type
+        telebirr_methods = ["telebirr"]
+        bank_ussd_methods = ["cbe", "awash", "cbebirr", "boa"] # Add any other Chapa bank codes here
+
+        if method in telebirr_methods:
+            # For Telebirr, we just need to specify the payment_method directly.
+            payload["payment_method"] = "telebirr"
+            logger.info("Formatting payload for direct Telebirr USSD.")
         
+        elif method in bank_ussd_methods:
+            # For banks, we must explicitly state the method is 'ussd'
+            # and then specify which bank in the 'bank' field.
+            payload["payment_method"] = "ussd"
+            payload["bank"] = method  # e.g., "cbe", "awash"
+            logger.info(f"Formatting payload for Bank USSD via '{method}'.")
+            
+        else:
+            # If the frontend sends a method we don't support for USSD, we reject it.
+            logger.error(f"Unsupported USSD payment method received: {method}")
+            raise HTTPException(status_code=400, detail=f"The payment method '{method}' is not supported for direct USSD.")
+
+        # Step 6: Send the finalized request to Chapa.
+        logger.debug(f"Final payload sent to Chapa: {json.dumps(payload)}")
+        chapa_response = requests.post(chapa_url, json=payload, headers=headers)
+        
+        # This will automatically raise an HTTPException if the status code is 4xx or 5xx.
         chapa_response.raise_for_status()
         
         logger.info(f"✅ Chapa payment initiated successfully for tx_ref: {unique_tx_ref}")
         return chapa_response.json()
 
     except requests.exceptions.HTTPError as e:
+        # This catches errors returned by the Chapa API itself (like "invalid key").
         error_body = e.response.text
         logger.error(f"❌ Chapa API error for order {payment.order_id}: {error_body}")
         raise HTTPException(status_code=e.response.status_code, detail=f"Payment gateway error: {error_body}")
     except Exception as e:
+        # This catches all other errors (like database connection, decryption, etc.).
         logger.exception(f"💥 Critical payment error for user {chat_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal payment processing error: {str(e)}")
 
+        
 @router.api_route("/payment-webhook", methods=["GET", "POST"]) # <-- ALLOW BOTH GET and POST
 async def chapa_webhook(request: Request):
     """
