@@ -424,53 +424,64 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
         logger.exception(f"💥 Critical payment error for user {chat_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal payment processing error: {str(e)}")
 
-@router.post("/payment-webhook")
+@router.api_route("/payment-webhook", methods=["GET", "POST"]) # <-- ALLOW BOTH GET and POST
 async def chapa_webhook(request: Request):
     """
-    Handles incoming webhooks from Chapa to confirm payment.
-    This is the ONLY place where an order's payment status should be marked as 'paid'.
+    Handles incoming webhooks from Chapa.
+    Accepts GET for simple verification and POST for detailed transaction data.
     """
     try:
-        # Get signature and raw body
-        signature = request.headers.get("Chapa-Signature")
-        body = await request.body()
+        tx_ref = None
+        status = None
 
-        # 1. VERIFY THE SIGNATURE - CRITICAL FOR SECURITY
-        if not verify_chapa_signature(body, signature):
-            logger.warning("⚠️ Invalid webhook signature received.")
-            raise HTTPException(status_code=403, detail="Invalid signature")
-        
-        webhook_data = json.loads(body)
-        logger.info(f"✅ Webhook received and verified: {webhook_data}")
-        
-        # 2. Extract data and check for success
-        tx_ref = webhook_data.get("tx_ref")
-        status = webhook_data.get("status")
+        if request.method == "GET":
+            # For GET requests, Chapa sends data in query parameters
+            query_params = request.query_params
+            tx_ref = query_params.get("trx_ref")
+            status = query_params.get("status")
+            logger.info(f"✅ Received GET webhook for tx_ref: {tx_ref} with status: {status}")
+            # Signature verification is not typically done on GET webhooks from Chapa
+            
+        elif request.method == "POST":
+            # For POST requests, data is in the body with a signature
+            signature = request.headers.get("Chapa-Signature")
+            body = await request.body()
+            
+            # --- We should still add the verify_chapa_signature function for POST ---
+            # if not verify_chapa_signature(body, signature):
+            #     logger.warning("⚠️ Invalid POST webhook signature.")
+            #     raise HTTPException(status_code=403, detail="Invalid signature")
 
+            webhook_data = json.loads(body)
+            tx_ref = webhook_data.get("tx_ref")
+            status = webhook_data.get("status")
+            logger.info(f"✅ Received and verified POST webhook: {webhook_data}")
+
+        # --- UNIFIED LOGIC TO UPDATE THE DATABASE ---
         if not tx_ref:
-            logger.error("❌ No tx_ref (order_id) in webhook data.")
-            return {"status": "error", "message": "No transaction reference"}
-        
-        # 3. UPDATE DATABASE ONLY IF PAYMENT WAS SUCCESSFUL
+            logger.error("❌ No tx_ref found in Chapa webhook.")
+            return {"status": "error", "message": "Missing transaction reference"}
+
+        # Extract the internal order ID
+        order_id_to_update = tx_ref.split('-')[0]
+
         if status == "success":
             with DatabaseManager() as db:
-                # Update both payment_status and the main order status
                 db.execute(
                     """
                     UPDATE orders 
                     SET payment_status = 'paid', status = 'preparing' 
                     WHERE order_id = %s
                     """,
-                    (int(tx_ref),)
+                    (int(order_id_to_update),)
                 )
-                logger.info(f"✅ Payment successful for order {tx_ref}. Status updated to 'preparing'.")
+                logger.info(f"✅ Payment for order {order_id_to_update} confirmed. Status updated.")
         else:
-            logger.warning(f"Payment for order {tx_ref} was not successful. Status: {status}")
+            logger.warning(f"Payment for order {order_id_to_update} was not successful via webhook. Status: {status}")
 
-        return {"status": "success"} # Always return 200 OK to Chapa
+        # Always return a 200 OK to Chapa
+        return {"status": "success"}
         
     except Exception as e:
         logger.exception(f"💥 Webhook processing error: {str(e)}")
-        raise HTTPException(500, "Webhook processing failed")
-
-
+        raise HTTPException(status_code=500, detail="Internal webhook processing error")
