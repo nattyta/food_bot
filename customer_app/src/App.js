@@ -272,7 +272,7 @@ function App() {
             } />
           <Route path="/payment" element={<PaymentPage />} />
 
-          <Route path="/history" element={<HistoryPage telegramInitData={telegramInitData} />} /> 
+          <Route path="/history" element={<HistoryPage telegramInitData={telegramInitData} userPhone={userPhone} />} />
           <Route path="/payment-success" element={<PaymentStatusPage />} />
         </Routes>
 
