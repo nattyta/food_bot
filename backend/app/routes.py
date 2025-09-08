@@ -364,8 +364,8 @@ async def get_my_orders(
 @router.post("/create-payment")
 async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegram_auth_dependency)):
     """
-    Initiates a payment with Chapa, intelligently routing to the correct
-    API endpoint to force USSD push notifications.
+    Initiates a USSD push payment with Chapa, intelligently routing to the correct
+    API endpoint AND using the correct HTTP method.
     """
     logger.info(f"--- NEW PAYMENT REQUEST ---")
     logger.info(f"Order ID: {payment.order_id}, Method: {payment.payment_method}, User: {chat_id}")
@@ -383,7 +383,7 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
 
         unique_tx_ref = f"{payment.order_id}-{int(time.time() * 1000)}"
 
-        # Step 2: Prepare the base payload
+        # Step 2: Prepare the base payload and headers
         payload = {
             "amount": str(payment.amount),
             "currency": "ETB",
@@ -395,31 +395,33 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
             "meta": {"internal_order_id": payment.order_id}
         }
         headers = {"Authorization": f"Bearer {Chapa_API}", "Content-Type": "application/json"}
-
-        # --- THIS IS THE FINAL, CORRECT LOGIC ---
-        method = payment.payment_method
         
-        # Define which methods are direct mobile money
-        mobile_money_methods = ["telebirr"]
+        # --- THIS IS THE FINAL LOGIC FIX ---
+        method = payment.payment_method
+        telebirr_methods = ["telebirr"]
+        bank_ussd_methods = ["cbe", "awash", "cbebirr", "boa"]
 
-        if method in mobile_money_methods:
-            # For Telebirr, use the specific mobile-money endpoint and set the 'channel'
+        if method in telebirr_methods:
+            # For Telebirr, use GET and pass data as params
             chapa_url = "https://api.chapa.co/v1/transaction/mobile-money"
             payload["channel"] = method
-            logger.info(f"Routing to Chapa mobile money endpoint for channel: {method}")
-        else:
-            # For all other methods (CBE, Awash), use the standard initialize endpoint.
-            # Chapa's API will then return the appropriate USSD code for these banks.
+            logger.info(f"Routing to Chapa mobile money endpoint (GET) for channel: {method}")
+            # Use `params` for GET request, not `json`
+            chapa_response = requests.get(chapa_url, params=payload, headers=headers)
+        
+        elif method in bank_ussd_methods:
+            # For banks, use POST and pass data in the body
             chapa_url = "https://api.chapa.co/v1/transaction/initialize"
-            payload["payment_method"] = method
-            logger.info(f"Routing to standard initialize endpoint for method: {method}")
+            payload["payment_method"] = "ussd"
+            payload["bank"] = method
+            logger.info(f"Routing to standard initialize endpoint (POST) for method: {method}")
+            # Use `json` for POST request
+            chapa_response = requests.post(chapa_url, json=payload, headers=headers)
+            
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported USSD method: {payment.payment_method}")
 
-        # Step 3: Call the correct Chapa API
-        logger.info(f"Sending request to Chapa URL: {chapa_url}")
-        logger.info(f"Final Request Payload: {json.dumps(payload)}")
-        
-        chapa_response = requests.post(chapa_url, json=payload, headers=headers)
-        
+        # Step 3: Handle the response
         logger.info(f"Chapa Response Body: {chapa_response.text}")
         chapa_response.raise_for_status()
         
@@ -432,7 +434,6 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
     except Exception as e:
         logger.exception(f"💥 Critical payment error for user {chat_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal payment processing error: {str(e)}")
-
 
         
 @router.api_route("/payment-webhook", methods=["GET", "POST"]) # <-- ALLOW BOTH GET and POST
