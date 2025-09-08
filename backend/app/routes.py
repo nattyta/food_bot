@@ -401,9 +401,7 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
             }
         }
         
-        if payment.payment_method:
-            payload["payment_method"] = payment.payment_method
-
+        
         headers = {"Authorization": f"Bearer {Chapa_API}", "Content-Type": "application/json"}
         
         chapa_response = requests.post(
