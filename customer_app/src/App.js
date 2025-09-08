@@ -7,7 +7,6 @@ import OrderHistory from "./pages/OrderHistory";
 import DebugBanner from "./components/DebugBanner";
 import PhoneCaptureModal from './components/PhoneCaptureModal';
 import HistoryPage from './pages/HistoryPage';
-import PaymentStatusPage from './pages/PaymentStatusPage';
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
@@ -273,7 +272,7 @@ function App() {
           <Route path="/payment" element={<PaymentPage />} />
 
           <Route path="/history" element={<HistoryPage telegramInitData={telegramInitData} userPhone={userPhone} />} />
-          <Route path="/payment-success" element={<PaymentStatusPage />} />
+         
         </Routes>
 
        
