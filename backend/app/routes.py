@@ -364,10 +364,9 @@ async def get_my_orders(
 @router.post("/create-payment")
 async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegram_auth_dependency)):
     """
-    Initiates a USSD push payment with Chapa, intelligently routing to the correct
-    API endpoint AND using the correct HTTP method.
+    Initiates a USSD push payment with Chapa using the correct payload structure.
     """
-    logger.info(f"--- NEW PAYMENT REQUEST ---")
+    logger.info(f"--- FINAL ATTEMPT: PAYMENT REQUEST ---")
     logger.info(f"Order ID: {payment.order_id}, Method: {payment.payment_method}, User: {chat_id}")
 
     try:
@@ -383,46 +382,40 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
 
         unique_tx_ref = f"{payment.order_id}-{int(time.time() * 1000)}"
 
-        # Step 2: Prepare the base payload and headers
+        # Step 2: Prepare the payload with information common to all payment types.
         payload = {
             "amount": str(payment.amount),
             "currency": "ETB",
             "tx_ref": unique_tx_ref,
-            "phone_number": original_phone,
+            "phone_number": original_phone, # This is still useful for some banks
             "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
             "return_url": "https://customer-z13e.onrender.com/payment-success",
-            "customization": {"title": "FoodBot Payment", "description": f"Payment for Order {payment.order_id}"},
+            "customization": {
+                "title": "FoodBot Order", # Simplified title
+                "description": f"Payment for Order {payment.order_id}"
+            },
             "meta": {"internal_order_id": payment.order_id}
         }
         headers = {"Authorization": f"Bearer {Chapa_API}", "Content-Type": "application/json"}
+        chapa_url = "https://api.chapa.co/v1/transaction/initialize"
         
-        # --- THIS IS THE FINAL LOGIC FIX ---
+        # --- THE DEFINITIVE PAYLOAD LOGIC ---
+        # We ALWAYS use the /initialize endpoint. We only change the payload contents.
         method = payment.payment_method
-        telebirr_methods = ["telebirr"]
-        bank_ussd_methods = ["cbe", "awash", "cbebirr", "boa"]
-
-        if method in telebirr_methods:
-            # For Telebirr, use GET and pass data as params
-            chapa_url = "https://api.chapa.co/v1/transaction/mobile-money"
-            payload["channel"] = method
-            logger.info(f"Routing to Chapa mobile money endpoint (GET) for channel: {method}")
-            # Use `params` for GET request, not `json`
-            chapa_response = requests.get(chapa_url, params=payload, headers=headers)
         
-        elif method in bank_ussd_methods:
-            # For banks, use POST and pass data in the body
-            chapa_url = "https://api.chapa.co/v1/transaction/initialize"
-            payload["payment_method"] = "ussd"
-            payload["bank"] = method
-            logger.info(f"Routing to standard initialize endpoint (POST) for method: {method}")
-            # Use `json` for POST request
-            chapa_response = requests.post(chapa_url, json=payload, headers=headers)
-            
-        else:
-            raise HTTPException(status_code=400, detail=f"Unsupported USSD method: {payment.payment_method}")
+        # The key is to add the 'payment_method' field correctly.
+        # This is the standard way to request a specific payment rail.
+        payload["payment_method"] = method
+        logger.info(f"Attempting direct payment with method: '{method}'")
 
-        # Step 3: Handle the response
+        # Step 3: Send the finalized POST request to Chapa.
+        logger.info(f"Sending final payload to {chapa_url}: {json.dumps(payload)}")
+        
+        chapa_response = requests.post(chapa_url, json=payload, headers=headers)
+        
+        logger.info(f"Chapa Response Status Code: {chapa_response.status_code}")
         logger.info(f"Chapa Response Body: {chapa_response.text}")
+        
         chapa_response.raise_for_status()
         
         return chapa_response.json()
@@ -434,7 +427,6 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
     except Exception as e:
         logger.exception(f"💥 Critical payment error for user {chat_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal payment processing error: {str(e)}")
-
         
 @router.api_route("/payment-webhook", methods=["GET", "POST"]) # <-- ALLOW BOTH GET and POST
 async def chapa_webhook(request: Request):
