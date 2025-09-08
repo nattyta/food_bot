@@ -367,8 +367,19 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
     logger.info(f"Order ID: {payment.order_id}, Method: {payment.payment_method}, User: {chat_id}")
 
     try:
-        # ... (your existing code to get phone number) ...
-        original_phone = encryptor.decrypt(order_row[0])
+        # Retrieve the order from the database to get the user's encrypted phone
+        with DatabaseManager() as db:
+            order_row = db.fetchone(
+                "SELECT encrypted_phone FROM orders WHERE order_id = %s AND user_id = %s",
+                (int(payment.order_id), chat_id)
+            )
+            if not order_row:
+                raise HTTPException(status_code=404, detail="Order not found or does not belong to this user.")
+            
+            encrypted_phone_bytes = order_row[0]
+        
+        # Decrypt the phone number for Chapa
+        original_phone = encryptor.decrypt(encrypted_phone_bytes)
         unique_tx_ref = f"{payment.order_id}-{int(time.time() * 1000)}"
 
         payload = {
@@ -418,7 +429,6 @@ async def create_payment(payment: PaymentRequest, chat_id: int = Depends(telegra
     except Exception as e:
         logger.exception(f"💥 PAYMENT ERROR for order {payment.order_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal payment processing error: {str(e)}")
-        
 
 @router.api_route("/payment-webhook", methods=["GET", "POST"]) # <-- ALLOW BOTH GET and POST
 async def chapa_webhook(request: Request):
