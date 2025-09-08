@@ -390,7 +390,7 @@ async def create_payment(payment: PaymentRequest, request: Request, chat_id: int
             "tx_ref": unique_tx_ref,
             "phone_number": original_phone,
             "callback_url": "https://food-bot-vulm.onrender.com/api/v1/payment-webhook",
-            "return_url": "https://customer-z13e.onrender.com/PaymentStatusPage",
+            "return_url": "https://customer-z13e.onrender.com/payment-success",
             "customization": {
                 "title": "FoodBot Payment",
                 "description": f"Payment for Order {payment.order_id}"
