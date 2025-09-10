@@ -7,6 +7,8 @@ from typing import Optional, Dict, Any
 import warnings
 import logging
 import psycopg
+import time
+
 
 # Configure logging
 logging.basicConfig(
@@ -169,13 +171,41 @@ def test_database_connection():
 
 
 def get_db_manager():
-    """FastAPI dependency to get a DatabaseManager instance."""
-    try:
-        db = DatabaseManager()
-        db.conn = psycopg.connect(os.getenv("DATABASE_URL"))
-        yield db
-    finally:
-        if db.conn:
-            db.conn.close()
+    """
+    FastAPI dependency to get a DatabaseManager instance.
+    Includes a retry mechanism to handle temporary network failures.
+    """
+    retries = 3
+    delay = 0.5  # Start with a 500ms delay
+    last_exception = None
 
+    for attempt in range(retries):
+        try:
+            db = DatabaseManager()
+            # This is the line that can fail
+            db.conn = psycopg.connect(os.getenv("DATABASE_URL"))
+            
+            # If connection is successful, yield the manager and exit the loop
+            yield db
+            return 
+        
+        except psycopg.OperationalError as e:
+            logger.warning(f"DB connection attempt {attempt + 1}/{retries} failed: {e}")
+            last_exception = e
+            time.sleep(delay)
+            delay *= 2  # Double the delay for the next attempt (exponential backoff)
+            continue # Go to the next iteration of the loop
+        
+        finally:
+            # This 'finally' block ensures the connection is closed
+            # after the request is finished, but only if it was successfully created.
+            if 'db' in locals() and hasattr(db, 'conn') and db.conn:
+                if not db.conn.closed:
+                    db.conn.close()
+
+    # If all retries have failed, raise the final exception
+    raise HTTPException(
+        status_code=503, # Service Unavailable
+        detail=f"Could not connect to the database after {retries} attempts. Last error: {last_exception}"
+    )
 test_database_connection()

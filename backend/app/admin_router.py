@@ -6,11 +6,14 @@ from datetime import timedelta
 # Import all the necessary components we've built
 from . import schemas, crud, security, config
 from .database import get_db_manager, DatabaseManager
-
+from .dependencies import get_current_admin_user
+from .schemas import AdminInDB # Your user model
+from typing import List, Optional, Dict,Any, Literal
+from fastapi import Query
 # Create a new router instance for admin endpoints
 router = APIRouter(
     prefix="/api/v1/admin",  # All routes in this file will start with /api/v1/admin
-    tags=["Admin Authentication"] # This groups them nicely in the API docs
+    tags=["Admin Portal"] # This groups them nicely in the API docs
 )
 
 @router.post("/login", response_model=schemas.Token)
@@ -36,10 +39,10 @@ def login_for_access_token(
         
     # 3. After confirming credentials, verify that the role matches.
     # This ensures a 'staff' user cannot log in via the 'admin' portal on the frontend.
-    if admin.role != form_data.role:
+    if admin.role.lower() != form_data.role.lower():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Access denied. User does not have the required '{form_data.role}' role.",
+            detail=f"Access denied. User role ('{admin.role}') does not match the requested portal role ('{form_data.role}').",
         )
 
     # 4. If all checks pass, create the JWT access token.
@@ -47,9 +50,115 @@ def login_for_access_token(
     access_token = security.create_access_token(
         # The 'data' dictionary contains the claims that will be encoded in the token.
         # 'sub' (subject) is a standard claim for the user's identifier.
-        data={"sub": admin.username, "role": admin.role, "id": admin.id},
+        data={"sub": admin.username, "role": admin.role.lower(), "id": admin.id},
         expires_delta=access_token_expires
     )
 
     # 5. Return the token to the frontend.
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/dashboard/stats")
+def get_stats(db: DatabaseManager = Depends(get_db_manager), admin: AdminInDB = Depends(get_current_admin_user)):
+    return crud.get_dashboard_stats(db)
+
+# --- ORDERS ENDPOINTS (Admin Only) ---
+@router.get("/all-orders", response_model=List[schemas.Order]) # Assuming you have an Order schema
+def get_orders_list(
+    limit: Optional[int] = Query(None),
+    status: Optional[str] = Query(None),
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    if limit:
+        # The dashboard calls with a limit, so use the "newest first" function
+        return crud.get_recent_orders_for_dashboard(db, limit=limit)
+    else:
+        # The main orders page calls without a limit, use the "oldest first" function
+        return crud.get_all_orders_for_kitchen(db, status=status)
+
+
+
+@router.put("/orders/{order_id}/status")
+def update_status_of_order(
+    order_id: str,
+    status_update: schemas.StatusUpdate, # You'll need to create this schema
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    # Extract numeric part of order_id like "ORD-54" -> 54
+    numeric_order_id = int(order_id.split('-')[1])
+    updated_order = crud.update_order_status(db, numeric_order_id, status_update.status)
+    if not updated_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return updated_order
+
+# --- STAFF MANAGEMENT ENDPOINTS (Admin Only) ---
+# ... (your existing /staff endpoints) ...
+
+
+# --- ROLE-SPECIFIC ENDPOINTS ---
+
+@router.get("/kitchen/orders")
+# --- THIS IS THE FIX ---
+# Change get_current_user to the correctly imported get_current_admin_user
+def get_kitchen_orders_list(
+    db: DatabaseManager = Depends(get_db_manager), 
+    user: AdminInDB = Depends(get_current_admin_user) # Corrected function name
+):
+    # Add extra security check if needed, e.g., if user.role not in ['admin', 'staff'] raise exception
+    return crud.get_all_orders_paginated(db, status='preparing')
+
+
+@router.get("/delivery/orders")
+# --- THIS IS THE FIX ---
+# Change get_current_user to the correctly imported get_current_admin_user
+def get_delivery_orders_list(
+    db: DatabaseManager = Depends(get_db_manager), 
+    user: AdminInDB = Depends(get_current_admin_user) # Corrected function name
+):
+    # Add logic to get orders assigned to this specific delivery person
+    # return crud.get_orders_for_delivery_person(db, user.id)
+    return [] # Placeholder
+
+
+@router.get("/staff", response_model=List[schemas.StaffPublic])
+def get_staff_list(
+    db: DatabaseManager = Depends(get_db_manager), 
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Get a list of all staff members. Requires admin privileges."""
+    return crud.get_all_staff(db)
+
+@router.post("/staff", response_model=schemas.StaffPublic, status_code=status.HTTP_201_CREATED)
+def create_new_staff_member(
+    staff_data: schemas.StaffCreate, 
+    db: DatabaseManager = Depends(get_db_manager), 
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Create a new staff member. Requires admin privileges."""
+    return crud.create_staff(db, staff_data)
+
+@router.put("/staff/{staff_id}", response_model=schemas.StaffPublic)
+def update_staff_member(
+    staff_id: int, 
+    staff_data: schemas.StaffUpdate, 
+    db: DatabaseManager = Depends(get_db_manager), 
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Update a staff member's details. Requires admin privileges."""
+    updated_staff = crud.update_staff(db, staff_id, staff_data)
+    if not updated_staff:
+        raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
+    return updated_staff
+
+@router.delete("/staff/{staff_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_staff_member(
+    staff_id: int, 
+    db: DatabaseManager = Depends(get_db_manager), 
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Delete a staff member. Requires admin privileges."""
+    if not crud.delete_staff(db, staff_id):
+        raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
+    return

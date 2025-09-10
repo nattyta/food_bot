@@ -6,9 +6,10 @@ import { TrendingUp, Users, Clock, Star } from 'lucide-react';
 
 interface StaffStatsProps {
   staff: Staff[];
+  isLoading?: boolean;
 }
 
-export const StaffStats = ({ staff }: StaffStatsProps) => {
+export const StaffStats = ({ staff, isLoading = false }: StaffStatsProps) => {
   const kitchenStaff = staff.filter(s => s.role === 'kitchen');
   const deliveryStaff = staff.filter(s => s.role === 'delivery');
   const managerStaff = staff.filter(s => s.role === 'manager');

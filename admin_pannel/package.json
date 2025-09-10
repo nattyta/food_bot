@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "ESLINT_NO_DEV_ERRORS=true react-scripts start",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

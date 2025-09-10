@@ -1,111 +1,139 @@
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Edit, Trash2, Users, TrendingUp, Clock, Star } from 'lucide-react';
 import { StaffForm } from '@/components/Staff/StaffForm';
 import { StaffList } from '@/components/Staff/StaffList';
 import { StaffStats } from '@/components/Staff/StaffStats';
 import { StaffPerformance } from '@/components/Staff/StaffPerformance';
 import { AssignOrderDialog } from '@/components/Staff/AssignOrderDialog';
+import { useAuthWithToken } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { staffApi } from '@/api/staff';
+import { Staff } from '@/api/types';
 
 export type StaffRole = 'kitchen' | 'delivery' | 'manager';
 export type StaffStatus = 'active' | 'inactive';
 
-export interface Staff {
-  id: string;
-  name: string;
-  role: StaffRole;
-  phone: string;
-  telegramId?: string;
-  status: StaffStatus;
-  ordersHandled: number;
-  rating: number;
-  lastActive: Date;
-  averageTime?: number; // in minutes
-  totalEarnings?: number;
-}
-
-// Mock data
-const mockStaff: Staff[] = [
-  {
-    id: '1',
-    name: 'John Smith',
-    role: 'kitchen',
-    phone: '+1234567890',
-    telegramId: '@johnsmith',
-    status: 'active',
-    ordersHandled: 45,
-    rating: 4.8,
-    lastActive: new Date(Date.now() - 30 * 60 * 1000), // 30 mins ago
-    averageTime: 12
-  },
-  {
-    id: '2',
-    name: 'Sarah Wilson',
-    role: 'delivery',
-    phone: '+1234567891',
-    status: 'active',
-    ordersHandled: 32,
-    rating: 4.9,
-    lastActive: new Date(Date.now() - 5 * 60 * 1000), // 5 mins ago
-    averageTime: 18,
-    totalEarnings: 450
-  },
-  {
-    id: '3',
-    name: 'Mike Johnson',
-    role: 'manager',
-    phone: '+1234567892',
-    telegramId: '@mikej',
-    status: 'active',
-    ordersHandled: 120,
-    rating: 4.7,
-    lastActive: new Date(Date.now() - 2 * 60 * 1000), // 2 mins ago
-  }
-];
+// Re-export Staff type for components
+export type { Staff } from '@/api/types';
 
 const StaffManagement = () => {
-  const [staff, setStaff] = useState<Staff[]>(mockStaff);
+  const { token } = useAuthWithToken();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [showForm, setShowForm] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
   const [showAssignOrder, setShowAssignOrder] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'assign'>('overview');
 
+  // Fetch staff data
+  const { data: staff = [], isLoading, error } = useQuery({
+    queryKey: ['staff'],
+    queryFn: () => staffApi.getAll(token!),
+    enabled: !!token,
+  });
+
+  // Create staff mutation
+  const createStaffMutation = useMutation({
+    mutationFn: (newStaff: Omit<Staff, 'id' | 'ordersHandled' | 'rating' | 'lastActive'> & { password: string }) =>
+      staffApi.create(token!, newStaff),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      setShowForm(false);
+      toast({
+        title: "Success",
+        description: "Staff member created successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to create staff member: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update staff mutation
+  const updateStaffMutation = useMutation({
+    mutationFn: ({ staffId, staffData }: { staffId: string; staffData: Partial<Staff> }) =>
+      staffApi.update(token!, staffId, staffData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      setEditingStaff(null);
+      setShowForm(false);
+      toast({
+        title: "Success",
+        description: "Staff member updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update staff member: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete staff mutation
+  const deleteStaffMutation = useMutation({
+    mutationFn: (staffId: string) => staffApi.delete(token!, staffId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+      toast({
+        title: "Success",
+        description: "Staff member deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete staff member: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddStaff = (newStaff: Omit<Staff, 'id' | 'ordersHandled' | 'rating' | 'lastActive'>) => {
-    const staff: Staff = {
-      ...newStaff,
-      id: Date.now().toString(),
-      ordersHandled: 0,
-      rating: 5.0,
-      lastActive: new Date()
-    };
-    setStaff(prev => [...prev, staff]);
-    setShowForm(false);
+    createStaffMutation.mutate({ ...newStaff, password: 'defaultPassword123' });
   };
 
   const handleEditStaff = (updatedStaff: Staff) => {
-    setStaff(prev => prev.map(s => s.id === updatedStaff.id ? updatedStaff : s));
-    setEditingStaff(null);
-    setShowForm(false);
+    updateStaffMutation.mutate({ staffId: updatedStaff.id, staffData: updatedStaff });
   };
 
   const handleDeleteStaff = (id: string) => {
-    setStaff(prev => prev.filter(s => s.id !== id));
+    deleteStaffMutation.mutate(id);
   };
 
   const handleToggleStatus = (id: string) => {
-    setStaff(prev => prev.map(s => 
-      s.id === id 
-        ? { ...s, status: s.status === 'active' ? 'inactive' : 'active' }
-        : s
-    ));
+    const staffMember = staff.find(s => s.id === id);
+    if (staffMember) {
+      const newStatus = staffMember.status === 'active' ? 'inactive' : 'active';
+      updateStaffMutation.mutate({ staffId: id, staffData: { status: newStatus } });
+    }
   };
 
   const totalStaff = staff.length;
   const activeStaff = staff.filter(s => s.status === 'active').length;
   const totalOrders = staff.reduce((sum, s) => sum + s.ordersHandled, 0);
-  const avgRating = staff.reduce((sum, s) => sum + s.rating, 0) / staff.length;
+  const avgRating = staff.length > 0 ? staff.reduce((sum, s) => sum + s.rating, 0) / staff.length : 0;
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center text-destructive">
+          Error loading staff data: {error.message}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -129,53 +157,71 @@ const StaffManagement = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Staff</p>
-                <p className="text-2xl font-bold">{totalStaff}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <div className="h-3 w-3 bg-success rounded-full"></div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active Staff</p>
-                <p className="text-2xl font-bold">{activeStaff}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-secondary" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Orders</p>
-                <p className="text-2xl font-bold">{totalOrders}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Star className="h-5 w-5 text-warning" />
-              <div>
-                <p className="text-sm text-muted-foreground">Avg Rating</p>
-                <p className="text-2xl font-bold">{avgRating.toFixed(1)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-5 w-5 rounded" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-6 w-8" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Staff</p>
+                    <p className="text-2xl font-bold">{totalStaff}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <div className="h-3 w-3 bg-success rounded-full"></div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Active Staff</p>
+                    <p className="text-2xl font-bold">{activeStaff}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5 text-secondary" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Orders</p>
+                    <p className="text-2xl font-bold">{totalOrders}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <Star className="h-5 w-5 text-warning" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Avg Rating</p>
+                    <p className="text-2xl font-bold">{avgRating.toFixed(1)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Navigation Tabs */}
@@ -209,6 +255,7 @@ const StaffManagement = () => {
           <div className="lg:col-span-2">
             <StaffList 
               staff={staff}
+              isLoading={isLoading}
               onEdit={(staff) => {
                 setEditingStaff(staff);
                 setShowForm(true);
@@ -218,13 +265,13 @@ const StaffManagement = () => {
             />
           </div>
           <div>
-            <StaffStats staff={staff} />
+            <StaffStats staff={staff} isLoading={isLoading} />
           </div>
         </div>
       )}
 
       {activeTab === 'performance' && (
-        <StaffPerformance staff={staff} />
+        <StaffPerformance staff={staff} isLoading={isLoading} />
       )}
 
       {activeTab === 'assign' && (
@@ -235,10 +282,61 @@ const StaffManagement = () => {
               Assign New Order
             </Button>
           </div>
-          {/* Order assignment content would go here */}
+          {/* Order assignment content */}
           <Card>
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">Order assignment interface coming soon...</p>
+            <CardHeader>
+              <CardTitle>Recent Order Assignments</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-medium">ORD</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Order #ORD-001</p>
+                      <p className="text-sm text-muted-foreground">Pizza Margherita - $24.00</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">Mike Johnson</p>
+                    <Badge className="status-preparing">Assigned</Badge>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-medium">ORD</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Order #ORD-002</p>
+                      <p className="text-sm text-muted-foreground">Burger Deluxe - $18.50</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">Sarah Wilson</p>
+                    <Badge className="status-ready">On Delivery</Badge>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-medium">ORD</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Order #ORD-003</p>
+                      <p className="text-sm text-muted-foreground">Caesar Salad - $12.99</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">Emily Davis</p>
+                    <Badge className="status-completed">Delivered</Badge>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

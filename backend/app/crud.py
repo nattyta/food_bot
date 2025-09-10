@@ -4,8 +4,11 @@ import json
 from typing import Dict, Any,Optional,List
 from .models import AdminInDB
 from .schemas import StaffCreate, StaffBase, StaffPublic, StaffUpdate
+from .security import get_password_hash
+import logging
 
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def create_user(user_data: UserCreate):
     conn = get_db_connection()
@@ -203,3 +206,221 @@ def row_to_dict(row: tuple) -> Dict[str, Any]:
         "created_at": row[7], "lastActive": row[8], "ordersHandled": row[9],
         "rating": float(row[10]), "averageTime": row[11], "totalEarnings": float(row[12]) if row[12] else None
     }
+
+
+
+def get_dashboard_stats(db: DatabaseManager) -> Dict[str, Any]:
+    """
+    Calculates and returns key statistics for the admin dashboard.
+    This version is robust and handles empty tables or NULL results using COALESCE.
+    """
+    logger.info("Fetching robust dashboard stats from database...")
+    
+    # This single query is more efficient and safer than running four separate ones.
+    stats_query = """
+        SELECT
+            (SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE payment_status = 'paid'),
+            (SELECT COUNT(*) FROM orders),
+            (SELECT COUNT(*) FROM users),
+            (SELECT COUNT(*) FROM orders WHERE status = 'pending' AND payment_status = 'paid')
+    """
+    
+    # fetchone() will return a single tuple, e.g., (Decimal('0.00'), 0, 0, 0)
+    result = db.fetchone(stats_query)
+    
+    if not result:
+        # This is a fallback in case the query itself fails for some reason
+        return {"totalRevenue": 0.0, "totalOrders": 0, "totalCustomers": 0, "pendingOrders": 0}
+
+    total_revenue, total_orders, total_customers, pending_orders = result
+
+    # This structure now perfectly matches what your StatsCards.tsx component expects
+    return {
+        "activeOrders": pending_orders,
+        "activeOrdersChange": "+0%", # Placeholder value
+        "avgPrepTime": "N/A",      # Placeholder value
+        "avgPrepTimeChange": "0%",   # Placeholder value
+        "completedToday": 0,       # Placeholder value
+        "completedTodayChange": "+0%", # Placeholder value
+        "revenueToday": f"${float(total_revenue):.2f}",
+        "revenueTodayChange": "+0%"  # Placeholder value
+    }
+
+def get_recent_orders(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any]]:
+    """
+    Retrieves the most recent orders, formatted to perfectly match the `schemas.Order` model.
+    """
+    logger.info(f"Fetching {limit} recent orders from database...")
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        ORDER BY o.order_date DESC
+        LIMIT %s;
+    """
+    rows = db.fetchall(query, (limit,))
+    
+    recent_orders = []
+    for row in rows:
+        # --- THIS IS THE FIX ---
+        # We now build a dictionary with the exact keys and types the frontend/schema expects.
+        
+        # Safely parse the 'items' JSON from the database
+        items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
+        formatted_items = [{"menuItemName": item.get("name", "Unknown Item")} for item in items_from_db]
+
+        recent_orders.append({
+            "id": f"ORD-{row[0]}",             # Matches `id: str`
+            "customerName": row[1] if row[1] else "Unknown User", # Matches `customerName: str`
+            "total": float(row[2]),            # Matches `total: float`
+            "status": row[3],                  # Matches `status: str`
+            "createdAt": row[4],               # Matches `createdAt: datetime`
+            "updatedAt": row[4],               # Matches `updatedAt: datetime` (can be same as created for now)
+            "items": formatted_items,          # Matches `items: List[OrderItemDetail]`
+            "estimatedDeliveryTime": None      # Matches `estimatedDeliveryTime: Optional[datetime]`
+        })
+    
+    return recent_orders
+
+# --- ADD these new functions for the Orders page ---
+
+def get_all_orders_paginated(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Retrieves all orders, with an optional filter for status.
+    (In a real app, you would add pagination here with limit/offset).
+    """
+    logger.info(f"Fetching all orders with status: {status}")
+    
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+    """
+    params = []
+    if status:
+        query += " WHERE o.status = %s"
+        params.append(status)
+    
+    query += " ORDER BY o.order_date DESC;"
+    
+    rows = db.fetchall(query, tuple(params))
+    
+    # This logic is duplicated, in a real app you'd refactor this into a helper function
+    all_orders = []
+    for row in rows:
+        items_from_db = json.loads(row[5]) if isinstance(row[5], str) else row[5]
+        formatted_items = [{"menuItemName": item.get("name", "Unknown")} for item in items_from_db]
+        all_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1] if row[1] else "Unknown User",
+            "total": float(row[2]),
+            "status": row[3],
+            "createdAt": row[4],
+            "updatedAt": row[4],
+            "items": formatted_items,
+            "estimatedDeliveryTime": None
+        })
+    return all_orders
+
+def update_order_status(db: DatabaseManager, order_id: int, new_status: str) -> Optional[Dict[str, Any]]:
+    """Updates the status of a specific order."""
+    logger.info(f"Updating order {order_id} to status {new_status}")
+    # You might want to add logic here to prevent invalid status transitions
+    query = "UPDATE orders SET status = %s WHERE order_id = %s RETURNING order_id;"
+    result = db.execute_returning(query, (new_status, order_id))
+    if result:
+        # After updating, fetch the full order details to return to the frontend
+        return get_order_by_id(db, order_id) # We'll need to create get_order_by_id
+    return None
+
+# Helper function needed for update_order_status
+def get_order_by_id(db: DatabaseManager, order_id: int) -> Optional[Dict[str, Any]]:
+    # This is a simplified version; you would build this out like get_recent_orders
+    query = "SELECT order_id, status FROM orders WHERE order_id = %s;"
+    row = db.fetchone(query, (order_id,))
+    if not row: return None
+    # In a real app, you'd return the full order object here
+    return {"id": f"ORD-{row[0]}", "status": row[1]} 
+
+
+
+def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any]]:
+    """
+    Retrieves the NEWEST orders for the dashboard display.
+    Sorts by order_date DESC (newest first).
+    """
+    logger.info(f"Fetching {limit} newest orders for dashboard...")
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        ORDER BY o.order_date DESC
+        LIMIT %s;
+    """
+    rows = db.fetchall(query, (limit,))
+    
+    # --- THIS IS THE FIX ---
+    # The formatting logic was missing, and the variable name was wrong.
+    formatted_orders = []
+    for row in rows:
+        try:
+            items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
+        except (json.JSONDecodeError, TypeError):
+            items_from_db = []
+            
+        formatted_items = [{"menuItemName": item.get("name", "Unknown Item")} for item in items_from_db]
+
+        formatted_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1] if row[1] else "Unknown User",
+            "total": float(row[2]),
+            "status": row[3],
+            "createdAt": row[4],
+            "updatedAt": row[4],
+            "items": formatted_items,
+            "estimatedDeliveryTime": None
+        })
+    return formatted_orders # Return the correctly named and populated list
+
+def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Retrieves all orders for the main orders page.
+    Sorts by order_date ASC (oldest first) for First-In-First-Out processing.
+    """
+    logger.info(f"Fetching all kitchen orders with status filter: '{status}'")
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+    """
+    params = []
+    if status and status != 'all':
+        query += " WHERE o.status = %s"
+        params.append(status)
+    
+    query += " ORDER BY o.order_date ASC;"
+    
+    rows = db.fetchall(query, tuple(params))
+    
+    # --- THIS IS THE FIX ---
+    # This function also needed the full formatting logic.
+    all_orders = []
+    for row in rows:
+        try:
+            items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
+        except (json.JSONDecodeError, TypeError):
+            items_from_db = []
+
+        formatted_items = [{"menuItemName": item.get("name", "Unknown Item")} for item in items_from_db]
+        all_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1] if row[1] else "Unknown User",
+            "customerPhone": "N/A", # Placeholder
+            "items": formatted_items,
+            "status": row[3],
+            "orderTime": row[4].strftime("%H:%M"),
+            "estimatedTime": "15 min", # Placeholder
+            "total": float(row[2]),
+            "type": "delivery" # Placeholder
+        })
+    return all_orders

@@ -6,9 +6,10 @@ import { TrendingUp, Clock, Star, DollarSign, Target, Award } from 'lucide-react
 
 interface StaffPerformanceProps {
   staff: Staff[];
+  isLoading?: boolean;
 }
 
-export const StaffPerformance = ({ staff }: StaffPerformanceProps) => {
+export const StaffPerformance = ({ staff, isLoading = false }: StaffPerformanceProps) => {
   const kitchenStaff = staff.filter(s => s.role === 'kitchen' && s.status === 'active');
   const deliveryStaff = staff.filter(s => s.role === 'delivery' && s.status === 'active');
   

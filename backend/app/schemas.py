@@ -110,4 +110,54 @@ class StaffPublic(StaffBase):
     totalEarnings: Optional[float] = None
 
     class Config:
-        orm_mode = True # Helps map SQLAlchemy objects, but good practice anyway
+        from_mode = True # Helps map SQLAlchemy objects, but good practice anyway
+
+class AdminInDB(BaseModel):
+    id: int
+    username: str
+    password_hash: str
+    role: str
+    created_at: datetime
+    last_login: Optional[datetime]
+
+    
+
+class DashboardStats(BaseModel):
+    """
+    Matches the DashboardStats type in the frontend's `types.ts`.
+    """
+    activeOrders: int
+    activeOrdersChange: str
+    avgPrepTime: str
+    avgPrepTimeChange: str
+    completedToday: int
+    completedTodayChange: str
+    revenueToday: str
+    revenueTodayChange: str
+
+class OrderItemDetail(BaseModel):
+    """
+    A simple structure for an item within an order.
+    """
+    menuItemName: str
+
+class Order(BaseModel):
+    """
+    Matches the Order type in the frontend's `types.ts`.
+    This is what the /admin/orders endpoint will return.
+    """
+    id: str
+    customerName: str
+    total: float
+    status: str
+    createdAt: datetime
+    updatedAt: datetime
+    items: List[OrderItemDetail]
+    estimatedDeliveryTime: Optional[datetime] = None
+
+class StatusUpdate(BaseModel):
+    """
+    The model for the request body when updating an order's status.
+    e.g., PUT /orders/{orderId}/status
+    """
+    status: str

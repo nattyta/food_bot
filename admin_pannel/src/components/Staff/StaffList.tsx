@@ -7,12 +7,13 @@ import { Staff } from '@/pages/StaffManagement';
 
 interface StaffListProps {
   staff: Staff[];
+  isLoading?: boolean;
   onEdit: (staff: Staff) => void;
   onDelete: (id: string) => void;
   onToggleStatus: (id: string) => void;
 }
 
-export const StaffList = ({ staff, onEdit, onDelete, onToggleStatus }: StaffListProps) => {
+export const StaffList = ({ staff, isLoading = false, onEdit, onDelete, onToggleStatus }: StaffListProps) => {
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'kitchen': return 'secondary';

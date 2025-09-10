@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Search, 
   Filter, 
@@ -13,72 +15,112 @@ import {
   ChefHat,
   Clock
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthWithToken } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { menuApi } from '@/api/menu';
+import { MenuItem } from '@/api/types';
 import MenuItemForm from '@/components/Menu/MenuItemForm';
 
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  prepTime: number;
-  image?: string;
-  available: boolean;
-  allergens: string[];
-}
-
-const mockMenuItems: MenuItem[] = [
-  {
-    id: 'MENU-001',
-    name: 'Burger Deluxe',
-    description: 'Juicy beef patty with lettuce, tomato, cheese, and our special sauce',
-    price: 12.99,
-    category: 'Burgers',
-    prepTime: 8,
-    available: true,
-    allergens: ['gluten', 'dairy']
-  },
-  {
-    id: 'MENU-002',
-    name: 'Caesar Salad',
-    description: 'Fresh romaine lettuce with parmesan cheese and croutons',
-    price: 10.99,
-    category: 'Salads',
-    prepTime: 5,
-    available: true,
-    allergens: ['dairy', 'gluten']
-  },
-  {
-    id: 'MENU-003',
-    name: 'Pizza Margherita',
-    description: 'Classic pizza with tomato sauce, mozzarella, and fresh basil',
-    price: 18.00,
-    category: 'Pizza',
-    prepTime: 15,
-    available: false,
-    allergens: ['gluten', 'dairy']
-  },
-  {
-    id: 'MENU-004',
-    name: 'Fries',
-    description: 'Crispy golden french fries with sea salt',
-    price: 3.99,
-    category: 'Sides',
-    prepTime: 4,
-    available: true,
-    allergens: []
-  }
-];
 
 const categories = ['All', 'Burgers', 'Pizza', 'Salads', 'Sides', 'Beverages', 'Desserts'];
 
 const Menu = () => {
-  const { user } = useAuth();
+  const { token } = useAuthWithToken();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+
+  // Fetch menu items
+  const { data: menuItems = [], isLoading, error } = useQuery({
+    queryKey: ['menu', selectedCategory],
+    queryFn: () => menuApi.getAll(token!, selectedCategory),
+    enabled: !!token,
+  });
+
+  // Create menu item mutation
+  const createMenuItemMutation = useMutation({
+    mutationFn: (newItem: Omit<MenuItem, 'id'>) => menuApi.create(token!, newItem),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu'] });
+      setShowForm(false);
+      toast({
+        title: "Success",
+        description: "Menu item created successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to create menu item: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update menu item mutation
+  const updateMenuItemMutation = useMutation({
+    mutationFn: ({ itemId, itemData }: { itemId: string; itemData: Partial<MenuItem> }) =>
+      menuApi.update(token!, itemId, itemData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu'] });
+      setEditingItem(null);
+      setShowForm(false);
+      toast({
+        title: "Success",
+        description: "Menu item updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update menu item: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete menu item mutation
+  const deleteMenuItemMutation = useMutation({
+    mutationFn: (itemId: string) => menuApi.delete(token!, itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu'] });
+      toast({
+        title: "Success",
+        description: "Menu item deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to delete menu item: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle availability mutation
+  const toggleAvailabilityMutation = useMutation({
+    mutationFn: ({ itemId, available }: { itemId: string; available: boolean }) =>
+      menuApi.toggleAvailability(token!, itemId, available),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menu'] });
+      toast({
+        title: "Success",
+        description: "Menu item availability updated",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update availability: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
@@ -86,9 +128,7 @@ const Menu = () => {
   };
 
   const handleDelete = (itemId: string) => {
-    // In a real app, this would make an API call
-    console.log(`Deleting menu item ${itemId}`);
-    // Show confirmation dialog first
+    deleteMenuItemMutation.mutate(itemId);
   };
 
   const handleAddNew = () => {
@@ -101,12 +141,14 @@ const Menu = () => {
     setEditingItem(null);
   };
 
-  const toggleAvailability = (itemId: string) => {
-    // In a real app, this would make an API call
-    console.log(`Toggling availability for item ${itemId}`);
+  const toggleAvailability = (item: MenuItem) => {
+    toggleAvailabilityMutation.mutate({ 
+      itemId: item.id, 
+      available: !item.available 
+    });
   };
 
-  const filteredItems = mockMenuItems.filter(item => {
+  const filteredItems = menuItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -114,6 +156,27 @@ const Menu = () => {
     
     return matchesSearch && matchesCategory;
   });
+
+  const handleSaveItem = (itemData: Partial<MenuItem>) => {
+    if (editingItem) {
+      updateMenuItemMutation.mutate({ 
+        itemId: editingItem.id, 
+        itemData 
+      });
+    } else {
+      createMenuItemMutation.mutate(itemData as Omit<MenuItem, 'id'>);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center text-destructive">
+          Error loading menu items: {error.message}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -162,7 +225,32 @@ const Menu = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredItems.map((item, index) => (
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                  <div className="flex space-x-1">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <div className="flex justify-between">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-6 w-20" />
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredItems.map((item, index) => (
           <Card 
             key={item.id}
             className="animate-slide-in hover:shadow-elegant transition-all duration-200"
@@ -220,8 +308,9 @@ const Menu = () => {
                 <Button
                   variant={item.available ? "outline" : "default"}
                   size="sm"
-                  onClick={() => toggleAvailability(item.id)}
+                  onClick={() => toggleAvailability(item)}
                   className="text-xs"
+                  disabled={toggleAvailabilityMutation.isPending}
                 >
                   {item.available ? 'Disable' : 'Enable'}
                 </Button>
@@ -245,10 +334,7 @@ const Menu = () => {
         <MenuItemForm
           item={editingItem}
           onClose={handleFormClose}
-          onSave={(item) => {
-            console.log('Saving item:', item);
-            handleFormClose();
-          }}
+          onSave={handleSaveItem}
         />
       )}
     </div>

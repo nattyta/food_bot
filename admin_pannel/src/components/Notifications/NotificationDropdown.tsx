@@ -100,7 +100,7 @@ export const NotificationDropdown = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent align="end" className="w-80 bg-card border border-border shadow-lg z-50">
         <div className="flex items-center justify-between p-3">
           <h3 className="font-semibold">Notifications</h3>
           {unreadCount > 0 && (

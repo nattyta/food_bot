@@ -6,28 +6,40 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { RoleBasedLogin } from "./components/Auth/RoleBasedLogin";
 import { Header } from "./components/Layout/Header";
-import { Sidebar } from "./components/Layout/Sidebar";
+import { AppSidebar } from "./components/Layout/Sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
 import Menu from "./pages/Menu";
 import StaffDashboard from "./pages/StaffDashboard";
 import DeliveryDashboard from "./pages/DeliveryDashboard";
 import StaffManagement from "./pages/StaffManagement";
+import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const queryClient = new QueryClient();
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1">
-          {children}
-        </main>
+    <SidebarProvider>
+      <div className="min-h-screen w-full flex bg-background">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col">
+          {/* Header with sidebar trigger for mobile */}
+          <header className="h-14 flex items-center border-b px-4 lg:px-6">
+            <SidebarTrigger className="lg:hidden" />
+            <div className="flex-1">
+              <Header />
+            </div>
+          </header>
+          
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
@@ -73,7 +85,7 @@ const AppRoutes = () => {
           <>
             <Route path="/orders" element={<Orders />} />
             <Route path="/menu" element={<Menu />} />
-            <Route path="/analytics" element={<div className="p-6">Analytics - Coming Soon</div>} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/staff-management" element={<StaffManagement />} />
           </>
         )}
@@ -83,7 +95,7 @@ const AppRoutes = () => {
         {user?.role === 'delivery' && (
           <Route path="/delivery" element={<DeliveryDashboard />} />
         )}
-        <Route path="/settings" element={<div className="p-6">Settings - Coming Soon</div>} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppLayout>

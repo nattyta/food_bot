@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -8,8 +8,18 @@ import {
   Settings,
   Truck
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 interface NavItem {
   title: string;
@@ -69,35 +79,48 @@ const navItems: NavItem[] = [
   },
 ];
 
-export const Sidebar = () => {
+export const AppSidebar = () => {
   const { user } = useAuth();
+  const { state } = useSidebar();
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const filteredNavItems = navItems.filter(item => 
     user && item.roles.includes(user.role)
   );
 
+  const isActive = (path: string) => currentPath === path;
+  const isExpanded = filteredNavItems.some((item) => isActive(item.href));
+
+  const getNavClassName = ({ isActive }: { isActive: boolean }) =>
+    isActive ? "bg-primary text-primary-foreground font-medium" : "hover:bg-accent hover:text-accent-foreground";
+
   return (
-    <aside className="w-64 border-r border-border bg-card/30 backdrop-blur-sm">
-      <nav className="p-4 space-y-2">
-        {filteredNavItems.map((item) => (
-          <NavLink
-            key={item.href}
-            to={item.href}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
-                'hover:bg-accent hover:text-accent-foreground',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-soft'
-                  : 'text-muted-foreground hover:text-foreground'
-              )
-            }
-          >
-            <item.icon className="h-5 w-5" />
-            <span>{item.title}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </aside>
+    <Sidebar collapsible="icon" className="border-r">
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {filteredNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.href} 
+                      end 
+                      className={({ isActive }) => getNavClassName({ isActive })}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 };
