@@ -346,12 +346,12 @@ def get_order_by_id(db: DatabaseManager, order_id: int) -> Optional[Dict[str, An
 
 def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any]]:
     """
-    Retrieves the NEWEST orders for the dashboard display.
-    Sorts by order_date DESC (newest first).
+    Retrieves the NEWEST orders, formatted to perfectly match the frontend `Order` type.
     """
     logger.info(f"Fetching {limit} newest orders for dashboard...")
     query = """
-        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
         ORDER BY o.order_date DESC
@@ -359,37 +359,38 @@ def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List
     """
     rows = db.fetchall(query, (limit,))
     
-    # --- THIS IS THE FIX ---
-    # The formatting logic was missing, and the variable name was wrong.
-    formatted_orders = []
+    recent_orders = []
     for row in rows:
         try:
-            items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
+            items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
         except (json.JSONDecodeError, TypeError):
             items_from_db = []
-            
-        formatted_items = [{"menuItemName": item.get("name", "Unknown Item")} for item in items_from_db]
 
-        formatted_orders.append({
+        formatted_items = [{"menuItemName": item.get("name", "Unknown Item"), "quantity": item.get("quantity", 0), "price": item.get("price", 0)} for item in items_from_db]
+
+        recent_orders.append({
             "id": f"ORD-{row[0]}",
             "customerName": row[1] if row[1] else "Unknown User",
-            "total": float(row[2]),
-            "status": row[3],
-            "createdAt": row[4],
-            "updatedAt": row[4],
+            "customerPhone": row[2],
             "items": formatted_items,
-            "estimatedDeliveryTime": None
+            "status": row[4],
+            "total": float(row[3]),
+            "paymentStatus": "paid", # Placeholder
+            "createdAt": row[5],
+            "updatedAt": row[5],
+            "type": row[7] # <-- Add the order type
         })
-    return formatted_orders # Return the correctly named and populated list
+    return recent_orders
+
 
 def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Retrieves all orders for the main orders page.
-    Sorts by order_date ASC (oldest first) for First-In-First-Out processing.
+    Retrieves all orders, formatted to perfectly match the frontend `Order` type.
     """
     logger.info(f"Fetching all kitchen orders with status filter: '{status}'")
     query = """
-        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
     """
@@ -402,25 +403,25 @@ def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None
     
     rows = db.fetchall(query, tuple(params))
     
-    # --- THIS IS THE FIX ---
-    # This function also needed the full formatting logic.
     all_orders = []
     for row in rows:
         try:
-            items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
+            items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
         except (json.JSONDecodeError, TypeError):
             items_from_db = []
 
-        formatted_items = [{"menuItemName": item.get("name", "Unknown Item")} for item in items_from_db]
+        formatted_items = [{"menuItemName": item.get("name", "Unknown Item"), "quantity": item.get("quantity", 0), "price": item.get("price", 0)} for item in items_from_db]
+
         all_orders.append({
             "id": f"ORD-{row[0]}",
             "customerName": row[1] if row[1] else "Unknown User",
-            "customerPhone": "N/A", # Placeholder
+            "customerPhone": row[2],
             "items": formatted_items,
-            "status": row[3],
-            "orderTime": row[4].strftime("%H:%M"),
-            "estimatedTime": "15 min", # Placeholder
-            "total": float(row[2]),
-            "type": "delivery" # Placeholder
+            "status": row[4],
+            "total": float(row[3]),
+            "paymentStatus": "paid", # Placeholder
+            "createdAt": row[5],
+            "updatedAt": row[5],
+            "type": row[7] # <-- Add the order type
         })
     return all_orders

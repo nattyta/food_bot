@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict,Any, Literal
 from datetime import datetime
@@ -136,25 +137,24 @@ class DashboardStats(BaseModel):
     revenueTodayChange: str
 
 class OrderItemDetail(BaseModel):
-    """
-    A simple structure for an item within an order.
-    """
+    """Matches the frontend `OrderItem` type exactly."""
     menuItemName: str
+    quantity: int
+    price: float
 
 class Order(BaseModel):
-    """
-    Matches the Order type in the frontend's `types.ts`.
-    This is what the /admin/orders endpoint will return.
-    """
+    """Matches the frontend `Order` type exactly."""
     id: str
     customerName: str
+    customerPhone: Optional[str]
+    items: List[OrderItemDetail]
+    status: Literal['pending', 'accepted', 'preparing', 'ready', 'on_the_way', 'delivered', 'cancelled']
     total: float
-    status: str
+    paymentStatus: Literal['paid', 'unpaid']
     createdAt: datetime
     updatedAt: datetime
-    items: List[OrderItemDetail]
+    type: Optional[str] # Matches the 'type' field from crud.py
     estimatedDeliveryTime: Optional[datetime] = None
-
 class StatusUpdate(BaseModel):
     """
     The model for the request body when updating an order's status.

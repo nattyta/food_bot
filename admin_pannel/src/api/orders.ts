@@ -1,3 +1,4 @@
+
 import { createApiClient } from './client';
 import { Order, ApiResponse } from './types';
 
@@ -8,10 +9,10 @@ export const ordersApi = {
     if (status && status !== 'all') params.append('status', status);
     if (limit) params.append('limit', limit.toString());
     
-    const endpoint = `/orders${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await client.get<ApiResponse<Order[]>>(endpoint);
+    const endpoint = `/all-orders${params.toString() ? `?${params.toString()}` : ''}`;
+    const response = await client.get<Order[]>(endpoint);
     
-    return response.data.map(order => ({
+    return response.map(order => ({
       ...order,
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
@@ -19,9 +20,10 @@ export const ordersApi = {
     }));
   },
 
+
   updateStatus: async (token: string, orderId: string, status: Order['status']): Promise<Order> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<Order>>(`/orders/${orderId}/status`, { status });
+    const response = await client.put<ApiResponse<Order>>(`/all-orders/${orderId}/status`, { status });
     return {
       ...response.data,
       createdAt: new Date(response.data.createdAt),

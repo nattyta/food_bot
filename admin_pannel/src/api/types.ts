@@ -37,6 +37,8 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
   specialInstructions?: string;
+  extras?: { name: string; price: number }[];
+  modifications?: { name: string }[];
   deliveryAddress?: string;
   deliveryStaffId?: string;
   estimatedDeliveryTime?: Date;
@@ -48,8 +50,11 @@ export interface OrderItem {
   menuItemName: string;
   quantity: number;
   price: number;
-  modifications?: string[];
   specialInstructions?: string;
+  addOns?: { name: string; price: number }[];
+  extras?: { name: string; price: number }[];
+  modifications?: { name: string }[];
+
 }
 
 export interface DashboardStats {
