@@ -6,6 +6,8 @@ from .models import AdminInDB
 from .schemas import StaffCreate, StaffBase, StaffPublic, StaffUpdate
 from .security import get_password_hash
 import logging
+from . import schemas
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -248,11 +250,12 @@ def get_dashboard_stats(db: DatabaseManager) -> Dict[str, Any]:
 
 def get_recent_orders(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any]]:
     """
-    Retrieves the most recent orders, formatted to perfectly match the `schemas.Order` model.
+    Retrieves the most recent orders, correctly formatted for the frontend API client.
     """
     logger.info(f"Fetching {limit} recent orders from database...")
     query = """
-        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
         ORDER BY o.order_date DESC
@@ -262,22 +265,40 @@ def get_recent_orders(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any
     
     recent_orders = []
     for row in rows:
-        # --- THIS IS THE FIX ---
-        # We now build a dictionary with the exact keys and types the frontend/schema expects.
+        try:
+            # Parse the items JSON
+            items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+        except (json.JSONDecodeError, TypeError):
+            items_from_db = []
+            
+        # Convert the items to the format expected by the frontend
+        formatted_items = []
+        for item in items_from_db:
+            formatted_item = {
+                "id": item.get("id", ""),
+                "name": item.get("name", "Unknown Item"),
+                "price": float(item.get("price", 0)),
+                "quantity": int(item.get("quantity", 1)),
+                "addOns": item.get("addOns", []),
+                "extras": item.get("extras", []),
+                "modifications": item.get("modifications", []),
+                "specialInstruction": item.get("specialInstruction", "")
+            }
+            formatted_items.append(formatted_item)
         
-        # Safely parse the 'items' JSON from the database
-        items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
-        formatted_items = [{"menuItemName": item.get("name", "Unknown Item")} for item in items_from_db]
-
         recent_orders.append({
-            "id": f"ORD-{row[0]}",             # Matches `id: str`
-            "customerName": row[1] if row[1] else "Unknown User", # Matches `customerName: str`
-            "total": float(row[2]),            # Matches `total: float`
-            "status": row[3],                  # Matches `status: str`
-            "createdAt": row[4],               # Matches `createdAt: datetime`
-            "updatedAt": row[4],               # Matches `updatedAt: datetime` (can be same as created for now)
-            "items": formatted_items,          # Matches `items: List[OrderItemDetail]`
-            "estimatedDeliveryTime": None      # Matches `estimatedDeliveryTime: Optional[datetime]`
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1] if row[1] else "Unknown User",
+            "customerPhone": row[2],
+            "total": float(row[3]),
+            "status": row[4],
+            "createdAt": row[5],
+            "updatedAt": row[5],
+            "items": formatted_items,
+            "type": row[7],
+            "paymentStatus": row[8],
+            "specialInstructions": row[9],
+            "estimatedDeliveryTime": None
         })
     
     return recent_orders
@@ -287,12 +308,12 @@ def get_recent_orders(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any
 def get_all_orders_paginated(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Retrieves all orders, with an optional filter for status.
-    (In a real app, you would add pagination here with limit/offset).
     """
     logger.info(f"Fetching all orders with status: {status}")
     
     query = """
-        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, o.order_date, o.items
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
     """
@@ -305,19 +326,41 @@ def get_all_orders_paginated(db: DatabaseManager, status: Optional[str] = None) 
     
     rows = db.fetchall(query, tuple(params))
     
-    # This logic is duplicated, in a real app you'd refactor this into a helper function
     all_orders = []
     for row in rows:
-        items_from_db = json.loads(row[5]) if isinstance(row[5], str) else row[5]
-        formatted_items = [{"menuItemName": item.get("name", "Unknown")} for item in items_from_db]
+        try:
+            # Parse the items JSON
+            items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+        except (json.JSONDecodeError, TypeError):
+            items_from_db = []
+            
+        # Convert the items to the format expected by the frontend
+        formatted_items = []
+        for item in items_from_db:
+            formatted_item = {
+                "id": item.get("id", ""),
+                "name": item.get("name", "Unknown Item"),
+                "price": float(item.get("price", 0)),
+                "quantity": int(item.get("quantity", 1)),
+                "addOns": item.get("addOns", []),
+                "extras": item.get("extras", []),
+                "modifications": item.get("modifications", []),
+                "specialInstruction": item.get("specialInstruction", "")
+            }
+            formatted_items.append(formatted_item)
+        
         all_orders.append({
             "id": f"ORD-{row[0]}",
             "customerName": row[1] if row[1] else "Unknown User",
-            "total": float(row[2]),
-            "status": row[3],
-            "createdAt": row[4],
-            "updatedAt": row[4],
+            "customerPhone": row[2],
+            "total": float(row[3]),
+            "status": row[4],
+            "createdAt": row[5],
+            "updatedAt": row[5],
             "items": formatted_items,
+            "type": row[7],
+            "paymentStatus": row[8],
+            "specialInstructions": row[9],
             "estimatedDeliveryTime": None
         })
     return all_orders
@@ -343,17 +386,15 @@ def get_order_by_id(db: DatabaseManager, order_id: int) -> Optional[Dict[str, An
     return {"id": f"ORD-{row[0]}", "status": row[1]} 
 
 
-
 def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any]]:
     """
-    Retrieves the NEWEST orders, formatted to perfectly match the frontend `Order` type.
+    Retrieves the NEWEST orders, ensuring all item customizations are preserved.
     """
     logger.info(f"Fetching {limit} newest orders for dashboard...")
     query = """
         SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
-               o.status, o.order_date, o.items, o.order_type
-        FROM orders o
-        LEFT JOIN users u ON o.user_id = u.chat_id
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
+        FROM orders o LEFT JOIN users u ON o.user_id = u.chat_id
         ORDER BY o.order_date DESC
         LIMIT %s;
     """
@@ -365,34 +406,40 @@ def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List
             items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
         except (json.JSONDecodeError, TypeError):
             items_from_db = []
-
-        formatted_items = [{"menuItemName": item.get("name", "Unknown Item"), "quantity": item.get("quantity", 0), "price": item.get("price", 0)} for item in items_from_db]
+            
+        # --- THE DEFINITIVE FIX ---
+        # This loop modifies the original dictionaries in the list.
+        # It takes the value from 'name', puts it in 'menuItemName', and deletes the old key.
+        # This preserves all other keys like 'addOns', 'extras', etc.
+        for item in items_from_db:
+            if 'name' in item:
+                item['menuItemName'] = item.pop('name')
 
         recent_orders.append({
             "id": f"ORD-{row[0]}",
-            "customerName": row[1] if row[1] else "Unknown User",
+            "customerName": row[1] if row[1] else "Unknown",
             "customerPhone": row[2],
-            "items": formatted_items,
+            "items": items_from_db, # Use the modified list which contains all original data
             "status": row[4],
             "total": float(row[3]),
-            "paymentStatus": "paid", # Placeholder
+            "paymentStatus": row[8],
             "createdAt": row[5],
             "updatedAt": row[5],
-            "type": row[7] # <-- Add the order type
+            "type": row[7],
+            "specialInstructions": row[9]
         })
     return recent_orders
 
 
 def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Retrieves all orders, formatted to perfectly match the frontend `Order` type.
+    Retrieves all orders, sorted FIFO, ensuring all item customizations are preserved.
     """
     logger.info(f"Fetching all kitchen orders with status filter: '{status}'")
     query = """
         SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
-               o.status, o.order_date, o.items, o.order_type
-        FROM orders o
-        LEFT JOIN users u ON o.user_id = u.chat_id
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
+        FROM orders o LEFT JOIN users u ON o.user_id = u.chat_id
     """
     params = []
     if status and status != 'all':
@@ -410,18 +457,118 @@ def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None
         except (json.JSONDecodeError, TypeError):
             items_from_db = []
 
-        formatted_items = [{"menuItemName": item.get("name", "Unknown Item"), "quantity": item.get("quantity", 0), "price": item.get("price", 0)} for item in items_from_db]
+        # --- THE DEFINITIVE FIX ---
+        for item in items_from_db:
+            if 'name' in item:
+                item['menuItemName'] = item.pop('name')
 
         all_orders.append({
             "id": f"ORD-{row[0]}",
-            "customerName": row[1] if row[1] else "Unknown User",
+            "customerName": row[1] if row[1] else "Unknown",
             "customerPhone": row[2],
-            "items": formatted_items,
+            "items": items_from_db, # Use the modified list
             "status": row[4],
             "total": float(row[3]),
-            "paymentStatus": "paid", # Placeholder
+            "paymentStatus": row[8],
             "createdAt": row[5],
             "updatedAt": row[5],
-            "type": row[7] # <-- Add the order type
+            "type": row[7],
+            "orderTime": row[5].strftime("%H:%M"),
+            "estimatedTime": "15 min",
+            "specialInstructions": row[9]
         })
     return all_orders
+
+
+
+
+# Helper to convert a database row (tuple) to a MenuItem dictionary
+def menu_item_row_to_dict(row: tuple) -> Dict[str, Any]:
+    """
+    Safely converts a database row for a menu item into a dictionary.
+    Handles potential None values to prevent serialization errors.
+    """
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "name": row[1] or "Unnamed Item", # Default if name is NULL
+        "description": row[2] or "", # Default if description is NULL
+        "price": float(row[3] or 0.0), # CRITICAL: Default to 0.0 if price is NULL
+        "category": row[4] or "Uncategorized", # Default if category is NULL
+        "prepTime": row[5] or 5, # Default prep time
+        "image": row[6], # Image can be None, so this is fine
+        "available": row[7] if row[7] is not None else True, # Default to True if NULL
+        "allergens": row[8] or [], # This was already correct, but good to confirm
+        "extras": row[9] or [], # This was already correct
+        "modifications": row[10] or [] # This was already correct
+    }
+
+
+def create_menu_item(db: DatabaseManager, item: schemas.MenuItemCreate) -> Dict[str, Any]:
+    """Creates a new menu item in the database."""
+    query = """
+        INSERT INTO menu_items (name, description, price, category, prep_time_minutes, image_url, is_available, allergens, extras, modifications)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id, name, description, price, category, prep_time_minutes, image_url, is_available, allergens, extras, modifications;
+    """
+    params = (
+        item.name, item.description, item.price, item.category, item.prepTime, item.image,
+        item.available, json.dumps(item.allergens), json.dumps([e.dict() for e in item.extras]), json.dumps(item.modifications)
+    )
+    new_item_row = db.execute_returning(query, params)
+    return menu_item_row_to_dict(new_item_row)
+
+def get_all_menu_items(db: DatabaseManager, category: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieves all menu items, with an optional category filter."""
+    query = "SELECT id, name, description, price, category, prep_time_minutes, image_url, is_available, allergens, extras, modifications FROM menu_items"
+    params = []
+    if category:
+        query += " WHERE category = %s"
+        params.append(category)
+    
+    query += " ORDER BY category, name;"
+    
+    rows = db.fetchall(query, tuple(params))
+    return [menu_item_row_to_dict(row) for row in rows]
+
+def update_menu_item(db: DatabaseManager, item_id: int, item_data: schemas.MenuItemUpdate) -> Optional[Dict[str, Any]]:
+    """Updates a menu item in the database."""
+    fields = item_data.dict(exclude_unset=True, by_alias=True)
+    if not fields:
+        # If no data is sent, we can't update anything
+        query = "SELECT id, name, description, price, category, prep_time_minutes, image_url, is_available, allergens, extras, modifications FROM menu_items WHERE id = %s"
+        current_item_row = db.fetchone(query, (item_id,))
+        return menu_item_row_to_dict(current_item_row)
+
+    # Map frontend field names to DB column names
+    field_to_column_map = {
+        'prepTime': 'prep_time_minutes',
+        'image': 'image_url',
+        'available': 'is_available'
+    }
+    
+    set_clauses = []
+    params = []
+    for key, value in fields.items():
+        column_name = field_to_column_map.get(key, key)
+        set_clauses.append(f"{column_name} = %s")
+        # For JSON fields, we need to serialize them
+        if key in ['allergens', 'extras', 'modifications']:
+            params.append(json.dumps(value))
+        else:
+            params.append(value)
+            
+    set_clause_str = ", ".join(set_clauses)
+    query = f"UPDATE menu_items SET {set_clause_str} WHERE id = %s RETURNING id, name, description, price, category, prep_time_minutes, image_url, is_available, allergens, extras, modifications;"
+    params.append(item_id)
+    
+    updated_item_row = db.execute_returning(query, tuple(params))
+    return menu_item_row_to_dict(updated_item_row)
+
+def delete_menu_item(db: DatabaseManager, item_id: int) -> bool:
+    """Deletes a menu item from the database."""
+    query = "DELETE FROM menu_items WHERE id = %s"
+    cursor, rowcount = db.execute(query, (item_id,))
+    cursor.close()
+    return rowcount > 0

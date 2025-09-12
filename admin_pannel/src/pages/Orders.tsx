@@ -1,3 +1,4 @@
+// src/pages/Orders.tsx
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,9 +13,8 @@ import { Order, OrderItem, OrderStatus } from '@/api/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { OrderDetailsModal } from '@/components/Order/OrderDetailsModal'; // Import the new modal component
+import { OrderDetailsModal } from '@/components/Order/OrderDetailsModal';
 
-// Helper function to map your API status to colors
 const getStatusColor = (status: OrderStatus) => {
   switch (status) {
     case 'pending': return 'bg-yellow-500/20 text-yellow-500';
@@ -27,7 +27,6 @@ const getStatusColor = (status: OrderStatus) => {
   }
 };
 
-// Helper function to map your API status to icons
 const getStatusIcon = (status: OrderStatus) => {
   switch (status) {
     case 'pending': return AlertCircle;
@@ -47,11 +46,8 @@ const Orders = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
-  
-  // State to manage which order is selected for the modal
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Fetch orders based on the active tab using react-query
   const { data: orders = [], isLoading, error } = useQuery({
     queryKey: ['orders', activeTab],
     queryFn: () => ordersApi.getAll(token!, activeTab === 'all' ? undefined : activeTab),
@@ -59,7 +55,8 @@ const Orders = () => {
     refetchInterval: 15000,
   });
 
-  // Mutation for updating an order's status
+  console.log("[Orders.tsx] Data received from useQuery:", orders);
+
   const updateStatusMutation = useMutation({
     mutationFn: ({ orderId, status }: { orderId: string; status: OrderStatus }) =>
       ordersApi.updateStatus(token!, orderId, status),
@@ -76,7 +73,6 @@ const Orders = () => {
     updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
-  // Client-side filtering of the fetched orders
   const filteredOrders = orders.filter(order =>
     (order.customerName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (order.id?.toLowerCase() || '').includes(searchTerm.toLowerCase())
@@ -101,13 +97,14 @@ const Orders = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as OrderStatus | 'all')}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="preparing">Preparing</TabsTrigger>
           <TabsTrigger value="ready">Ready</TabsTrigger>
           <TabsTrigger value="on_the_way">On the Way</TabsTrigger>
           <TabsTrigger value="delivered">Completed</TabsTrigger>
+          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
@@ -136,14 +133,16 @@ const Orders = () => {
                           <div>
                             <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                               <h3 className="font-semibold">{order.id}</h3>
-                              <Badge variant="outline" className="text-xs capitalize">{order.type?.replace('_', ' ')}</Badge>
+                              {/* --- FIX: Safe access to optional `type` property --- */}
+                              <Badge variant="outline" className="text-xs capitalize">{order.type?.replace('_', ' ') || 'N/A'}</Badge>
                               <Badge className={`${getStatusColor(order.status)} capitalize`}>{order.status.replace('_', ' ')}</Badge>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">
                               {order.customerName} • {order.customerPhone}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Order time: {format(new Date(order.createdAt), "h:mm a")}
+                              {/* Use the required `createdAt` field which is a Date object */}
+                              Order time: {format(order.createdAt, "h:mm a")}
                             </p>
                           </div>
                         </div>
@@ -186,6 +185,7 @@ const Orders = () => {
                         <div className="space-y-1">
                           {Array.isArray(order.items) && order.items.map((item: OrderItem, idx: number) => (
                             <div key={idx} className="flex justify-between text-sm">
+                              {/* --- FIX: Use the correct 'menuItemName' property --- */}
                               <span>{item.quantity}x {item.menuItemName}</span>
                               <span className="font-mono">
                                 ${typeof item.price === 'number' ? (item.price * item.quantity).toFixed(2) : '0.00'}

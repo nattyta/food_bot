@@ -131,3 +131,4 @@ async def options_create_payment():
         }
     )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")

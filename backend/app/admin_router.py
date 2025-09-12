@@ -1,8 +1,9 @@
 # backend/app/admin_router.py
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from datetime import timedelta
-
+import shutil
+import os
 # Import all the necessary components we've built
 from . import schemas, crud, security, config
 from .database import get_db_manager, DatabaseManager
@@ -15,6 +16,43 @@ router = APIRouter(
     prefix="/api/v1/admin",  # All routes in this file will start with /api/v1/admin
     tags=["Admin Portal"] # This groups them nicely in the API docs
 )
+
+
+UPLOAD_DIRECTORY = "./static/images"
+
+@router.post("/upload/image", response_model=Dict[str, str])
+def upload_menu_image(
+    file: UploadFile = File(...),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """
+    Handles uploading an image file for a menu item.
+    Saves the file to the server and returns its public URL.
+    """
+    # Ensure the upload directory exists
+    os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
+    
+    # Sanitize the filename to prevent security issues
+    filename = file.filename.replace("..", "").replace("/", "")
+    file_path = os.path.join(UPLOAD_DIRECTORY, filename)
+    
+    try:
+        # Save the uploaded file to the specified path
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"There was an error uploading the file: {e}"
+        )
+    finally:
+        file.file.close()
+
+    # Construct the public URL for the file
+    # This URL must match what you configured in main.py
+    file_url = f"/static/images/{filename}"
+    
+    return {"url": file_url}
 
 @router.post("/login", response_model=schemas.Token)
 def login_for_access_token(
@@ -161,4 +199,53 @@ def delete_staff_member(
     """Delete a staff member. Requires admin privileges."""
     if not crud.delete_staff(db, staff_id):
         raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
+    return
+
+@router.post("/menu", response_model=schemas.MenuItemResponse, status_code=status.HTTP_201_CREATED)
+def add_new_menu_item(
+    menu_item: schemas.MenuItemCreate,
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Create a new menu item."""
+    new_item = crud.create_menu_item(db, menu_item)
+    return {"data": new_item} # <-- WRAP THE RESPONSE
+
+# MODIFIED: Use the new response model and wrap the return value
+@router.get("/menu", response_model=schemas.MenuItemListResponse)
+def get_all_items(
+    category: Optional[str] = Query(None),
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Get all menu items, optionally filtered by category."""
+    if category and category.lower() == 'all':
+        category = None
+    items = crud.get_all_menu_items(db, category)
+    return {"data": items} # <-- WRAP THE RESPONSE
+
+# MODIFIED: Use the new response model and wrap the return value
+@router.put("/menu/{item_id}", response_model=schemas.MenuItemResponse)
+def update_existing_menu_item(
+    item_id: int,
+    menu_item_data: schemas.MenuItemUpdate,
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Update a menu item's details."""
+    updated_item = crud.update_menu_item(db, item_id, menu_item_data)
+    if not updated_item:
+        raise HTTPException(status_code=404, detail=f"Menu item with ID {item_id} not found")
+    return {"data": updated_item} # <-- WRAP THE RESPONSE
+
+# NO CHANGE NEEDED HERE: The delete endpoint doesn't return a body, so it's fine.
+@router.delete("/menu/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_menu_item(
+    item_id: int,
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Delete a menu item."""
+    if not crud.delete_menu_item(db, item_id):
+        raise HTTPException(status_code=404, detail=f"Menu item with ID {item_id} not found")
     return

@@ -1,68 +1,83 @@
-
+// src/api/orders.ts
 import { createApiClient } from './client';
-import { Order, ApiResponse } from './types';
+import { Order, OrderStatus } from './types';
 
 export const ordersApi = {
-  getAll: async (token: string, status?: string, limit?: number): Promise<Order[]> => {
-    const client = createApiClient(token);
+  getAll: async (token: string, status?: OrderStatus | 'all'): Promise<Order[]> => {
+    console.log(`[ordersApi.getAll] Fetching orders with status: ${status}`);
+    
+    // We will bypass the client for a moment to get the raw response
+    const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:10000";
     const params = new URLSearchParams();
-    if (status && status !== 'all') params.append('status', status);
-    if (limit) params.append('limit', limit.toString());
-    
-    const endpoint = `/all-orders${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await client.get<Order[]>(endpoint);
-    
-    return response.map(order => ({
-      ...order,
-      createdAt: new Date(order.createdAt),
-      updatedAt: new Date(order.updatedAt),
-      estimatedDeliveryTime: order.estimatedDeliveryTime ? new Date(order.estimatedDeliveryTime) : undefined
-    }));
+    if (status && status !== 'all') {
+      params.append('status', status);
+    }
+    const endpoint = `${API_URL}/api/v1/admin/all-orders${params.toString() ? `?${params.toString()}` : ''}`;
+
+    try {
+      const response = await fetch(endpoint, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const responseText = await response.text();
+      console.log("[ordersApi.getAll] Raw response text from server:", responseText);
+
+      if (!response.ok) {
+        throw new Error(`API responded with ${response.status}: ${responseText}`);
+      }
+
+      const responseData = JSON.parse(responseText) as Order[];
+      console.log("[ordersApi.getAll] Parsed JSON data:", responseData);
+
+      const mappedData = responseData.map(order => ({
+        ...order,
+        createdAt: new Date(order.createdAt),
+        updatedAt: new Date(order.updatedAt),
+      }));
+      console.log("[ordersApi.getAll] Data after mapping dates:", mappedData);
+      
+      return mappedData;
+
+    } catch (error) {
+      console.error("[ordersApi.getAll] FATAL ERROR:", error);
+      // Re-throw the error so react-query can catch it
+      throw error;
+    }
+
   },
 
-
-  updateStatus: async (token: string, orderId: string, status: Order['status']): Promise<Order> => {
+  updateStatus: async (token: string, orderId: string, status: OrderStatus): Promise<Order> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<Order>>(`/all-orders/${orderId}/status`, { status });
+    // Corrected the URL from '/alll-orders/' to '/orders/'
+    const responseData = await client.put<Order>(`/orders/${orderId}/status`, { status });
+
     return {
-      ...response.data,
-      createdAt: new Date(response.data.createdAt),
-      updatedAt: new Date(response.data.updatedAt),
-      estimatedDeliveryTime: response.data.estimatedDeliveryTime ? new Date(response.data.estimatedDeliveryTime) : undefined
+      ...responseData,
+      createdAt: new Date(responseData.createdAt),
+      updatedAt: new Date(responseData.updatedAt),
     };
   },
 
-  assignDelivery: async (token: string, orderId: string, deliveryStaffId: string): Promise<Order> => {
-    const client = createApiClient(token);
-    const response = await client.post<ApiResponse<Order>>('/orders/assign', { orderId, deliveryStaffId });
-    return {
-      ...response.data,
-      createdAt: new Date(response.data.createdAt),
-      updatedAt: new Date(response.data.updatedAt),
-      estimatedDeliveryTime: response.data.estimatedDeliveryTime ? new Date(response.data.estimatedDeliveryTime) : undefined
-    };
-  },
-
-  // Role-specific endpoints
+  // Role-specific endpoints (now also corrected)
   getKitchenOrders: async (token: string): Promise<Order[]> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<Order[]>>('/kitchen/orders');
-    return response.data.map(order => ({
+    const responseData = await client.get<Order[]>('/kitchen/orders');
+    return responseData.map(order => ({
       ...order,
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
-      estimatedDeliveryTime: order.estimatedDeliveryTime ? new Date(order.estimatedDeliveryTime) : undefined
     }));
   },
 
   getDeliveryOrders: async (token: string): Promise<Order[]> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<Order[]>>('/delivery/orders');
-    return response.data.map(order => ({
+    const responseData = await client.get<Order[]>('/delivery/orders');
+    return responseData.map(order => ({
       ...order,
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
-      estimatedDeliveryTime: order.estimatedDeliveryTime ? new Date(order.estimatedDeliveryTime) : undefined
     }));
   }
 };

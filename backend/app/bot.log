@@ -817,3 +817,10 @@ LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
 2025-09-05 04:02:05,613 - __main__ - INFO - Database connection successful
 2025-09-05 04:02:06,250 - __main__ - INFO - Webhook removed
 2025-09-05 04:53:34,840 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries exceeded with url: /bot7935652028:AAFne5ZN0ypdZtgNNX_9kkAgTe9Livs-rUo/getUpdates?offset=1&timeout=20 (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x706e922cca30>: Failed to resolve 'api.telegram.org' ([Errno -3] Temporary failure in name resolution)"))
+2025-09-12 12:16:54,938 - __main__ - INFO - Starting FoodBot...
+2025-09-12 12:17:00,506 - __main__ - INFO - Database connection successful
+2025-09-12 12:17:12,237 - __main__ - INFO - Webhook removed
+2025-09-12 12:17:27,299 - __main__ - INFO - Saved user 916638938 to database
+2025-09-12 12:17:27,300 - __main__ - INFO - User 916638938 initialized
+2025-09-12 12:19:13,147 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-09-12 12:19:23,813 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)

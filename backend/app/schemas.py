@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional, Dict,Any, Literal
 from datetime import datetime
 
@@ -150,7 +150,7 @@ class Order(BaseModel):
     items: List[OrderItemDetail]
     status: Literal['pending', 'accepted', 'preparing', 'ready', 'on_the_way', 'delivered', 'cancelled']
     total: float
-    paymentStatus: Literal['paid', 'unpaid']
+    paymentStatus: Literal['paid', 'unpaid', 'pending']
     createdAt: datetime
     updatedAt: datetime
     type: Optional[str] # Matches the 'type' field from crud.py
@@ -161,3 +161,54 @@ class StatusUpdate(BaseModel):
     e.g., PUT /orders/{orderId}/status
     """
     status: str
+
+
+
+class MenuExtra(BaseModel):
+    name: str
+    price: float
+
+# Base schema for a menu item, containing all common fields
+class MenuItemBase(BaseModel):
+    name: str
+    description: str
+    price: float = Field(..., gt=0) # Price must be greater than 0
+    category: str
+    prepTime: int = Field(alias="prepTime", default=5)
+    image: Optional[str] = None
+    available: bool = Field(default=True)
+    allergens: List[str] = []
+    extras: List[MenuExtra] = []
+    modifications: List[str] = []
+
+# Schema used when creating a new menu item (inherits from base)
+class MenuItemCreate(MenuItemBase):
+    pass
+
+# Schema used when updating a menu item (all fields are optional)
+class MenuItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = Field(None, gt=0)
+    category: Optional[str] = None
+    prepTime: Optional[int] = Field(alias="prepTime", default=None)
+    image: Optional[str] = None
+    available: Optional[bool] = None
+    allergens: Optional[List[str]] = None
+    extras: Optional[List[MenuExtra]] = None
+    modifications: Optional[List[str]] = None
+
+# Schema for the menu item returned from the API (includes the ID)
+class MenuItem(MenuItemBase):
+    id: int
+
+    class Config:
+        orm_mode = True # Helps Pydantic work with ORM objects
+        allow_population_by_field_name = True # Allows using "prepTime" from frontend
+
+
+class MenuItemResponse(BaseModel):
+    data: MenuItem
+
+class MenuItemListResponse(BaseModel):
+    data: List[MenuItem]

@@ -1,5 +1,8 @@
 export type StaffRole = 'kitchen' | 'delivery' | 'manager';
 export type StaffStatus = 'active' | 'inactive';
+export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'on_the_way' | 'delivered' | 'cancelled';
+export type OrderType = 'dine-in' | 'takeout' | 'delivery';
+export type PaymentStatus = 'paid' | 'unpaid' | 'pending';
 export interface Staff {
   id: string;
   name: string;
@@ -24,37 +27,45 @@ export interface MenuItem {
   image?: string;
   available: boolean;
   allergens: string[];
+  extras: MenuExtra[];
+  modifications: string[];
 }
 
+export interface MenuExtra {
+  name: string;
+  price: number;
+}
+
+
 export interface Order {
+  // This structure matches what the backend crud.py functions create
   id: string;
   customerName: string;
-  customerPhone?: string;
+  customerPhone: string;
   items: OrderItem[];
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'on_the_way' | 'delivered' | 'cancelled';
+  status: OrderStatus;
   total: number;
-  paymentStatus: 'paid' | 'unpaid';
+  paymentStatus: PaymentStatus;
   createdAt: Date;
   updatedAt: Date;
-  specialInstructions?: string;
-  extras?: { name: string; price: number }[];
-  modifications?: { name: string }[];
+  type: OrderType;
+  specialInstructions?: string; // Note: plural, for the whole order
+  // Optional display fields
   deliveryAddress?: string;
   deliveryStaffId?: string;
-  estimatedDeliveryTime?: Date;
+  orderTime?: string;
+  estimatedTime?: string;
 }
 
 export interface OrderItem {
   id: string;
-  menuItemId: string;
   menuItemName: string;
   quantity: number;
   price: number;
-  specialInstructions?: string;
   addOns?: { name: string; price: number }[];
   extras?: { name: string; price: number }[];
   modifications?: { name: string }[];
-
+  specialInstruction?: string; // Note: singular
 }
 
 export interface DashboardStats {
@@ -78,4 +89,4 @@ export interface ApiError {
   message: string;
   status: number;
   details?: any;
-}
+}scrollY
