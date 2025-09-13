@@ -1,6 +1,6 @@
 # backend/app/admin_router.py
 
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,Query
 from datetime import timedelta
 import shutil
 import os
@@ -249,3 +249,19 @@ def remove_menu_item(
     if not crud.delete_menu_item(db, item_id):
         raise HTTPException(status_code=404, detail=f"Menu item with ID {item_id} not found")
     return
+
+
+
+@router.get("/analytics", response_model=schemas.AnalyticsData)
+def get_analytics(
+    # Add a query parameter 'period' with a default of '7d'
+    period: str = Query("7d", description="Time period for stats (e.g., '7d', '30d')"),
+    db: DatabaseManager = Depends(get_db_manager),
+    admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """
+    Retrieves all computed data for the analytics dashboard for a given period.
+    """
+    # Pass the period down to the logic function
+    analytics_payload = crud.get_analytics_data(db, period)
+    return analytics_payload

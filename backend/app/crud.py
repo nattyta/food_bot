@@ -7,7 +7,7 @@ from .schemas import StaffCreate, StaffBase, StaffPublic, StaffUpdate
 from .security import get_password_hash
 import logging
 from . import schemas
-
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -572,3 +572,90 @@ def delete_menu_item(db: DatabaseManager, item_id: int) -> bool:
     cursor, rowcount = db.execute(query, (item_id,))
     cursor.close()
     return rowcount > 0
+
+
+
+def get_analytics_data(db: DatabaseManager, period: str) -> Dict[str, Any]:
+    """
+    Orchestrator function to get all data needed for the analytics dashboard for a given period.
+    """
+    # Convert the period string to a SQL INTERVAL string
+    # This is a safe way to handle it, preventing SQL injection
+    interval_map = {
+        "7d": "7 days",
+        "30d": "30 days",
+        "90d": "90 days"
+    }
+    sql_interval = interval_map.get(period, "7 days") # Default to 7 days if invalid period is passed
+
+    # 1. Get the main stat cards for the given period
+    stats_query = f"""
+        SELECT
+            COALESCE(SUM(total_price), 0.0),
+            COALESCE(COUNT(order_id), 0),
+            COALESCE(AVG(total_price), 0.0)
+        FROM orders
+        WHERE order_date >= NOW() - INTERVAL '{sql_interval}';
+    """
+    stats_result = db.fetchone(stats_query)
+    
+    new_customers_query = f"SELECT COUNT(id) FROM users WHERE created_at >= NOW() - INTERVAL '{sql_interval}';"
+    new_customers_result = db.fetchone(new_customers_query)
+
+    stats = {
+        "totalRevenue": float(stats_result[0]),
+        "totalOrders": stats_result[1],
+        "averageOrderValue": float(stats_result[2]),
+        "newCustomers": new_customers_result[0]
+    }
+
+    # 2. Get the sales data (we'll keep this to the last 7 days for the weekly chart)
+    sales_query = """
+        SELECT
+            TO_CHAR(order_date, 'Dy') as day_name,
+            SUM(total_price) as revenue,
+            COUNT(order_id) as orders
+        FROM orders
+        WHERE order_date >= NOW() - INTERVAL '7 days'
+        GROUP BY day_name, EXTRACT(ISODOW FROM order_date)
+        ORDER BY EXTRACT(ISODOW FROM order_date);
+    """
+    sales_result = db.fetchall(sales_query)
+    sales_data = [{"name": row[0], "revenue": float(row[1]), "orders": row[2]} for row in sales_result]
+
+    # 3. Get the top 5 most popular items for the given period
+    popular_items_query = f"""
+        WITH all_items AS (
+            SELECT jsonb_array_elements(items)->>'menuItemName' as item_name
+            FROM orders
+            WHERE order_date >= NOW() - INTERVAL '{sql_interval}'
+        )
+        SELECT item_name, COUNT(*) as order_count
+        FROM all_items
+        WHERE item_name IS NOT NULL
+        GROUP BY item_name
+        ORDER BY order_count DESC
+        LIMIT 5;
+    """
+    popular_items_result = db.fetchall(popular_items_query)
+    popular_items = [{"name": row[0], "value": row[1]} for row in popular_items_result]
+
+    # 4. Get order trends by hour (this should always be for the current day)
+    hourly_trends_query = """
+        SELECT
+            TO_CHAR(order_date, 'HH24:00') as hour,
+            COUNT(order_id) as orders
+        FROM orders
+        WHERE order_date >= DATE_TRUNC('day', NOW())
+        GROUP BY hour
+        ORDER BY hour;
+    """
+    hourly_trends_result = db.fetchall(hourly_trends_query)
+    order_trends = [{"time": row[0], "orders": row[1]} for row in hourly_trends_result]
+
+    return {
+        "stats": stats,
+        "salesData": sales_data,
+        "popularItems": popular_items,
+        "orderTrends": order_trends
+    }

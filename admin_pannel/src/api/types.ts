@@ -90,3 +90,35 @@ export interface ApiError {
   status: number;
   details?: any;
 }scrollY
+
+
+export interface AnalyticsStatCard {
+  totalRevenue: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  newCustomers: number;
+}
+
+export interface DailyTrendItem {
+  name: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface PopularItem {
+  name: string;
+  value: number;
+  color?: string; // Color is a UI concern, we'll add it on the frontend
+}
+
+export interface HourlyTrendItem {
+  time: string;
+  orders: number;
+}
+
+export interface AnalyticsData {
+  stats: AnalyticsStatCard;
+  salesData: DailyTrendItem[];
+  popularItems: PopularItem[];
+  orderTrends: HourlyTrendItem[];
+}

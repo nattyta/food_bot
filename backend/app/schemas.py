@@ -212,3 +212,35 @@ class MenuItemResponse(BaseModel):
 
 class MenuItemListResponse(BaseModel):
     data: List[MenuItem]
+
+
+class AnalyticsStatCard(BaseModel):
+    """Data for the key metric cards at the top."""
+    totalRevenue: float
+    totalOrders: int
+    averageOrderValue: float
+    newCustomers: int # Number of customers in the period
+    # Note: We'll keep rating and prep time static for now as they require more complex data sources.
+
+class DailyTrendItem(BaseModel):
+    """Data for the weekly revenue/orders bar chart."""
+    name: str  # e.g., 'Mon', 'Tue'
+    revenue: float
+    orders: int
+
+class PopularItem(BaseModel):
+    """Data for the popular items pie chart."""
+    name: str
+    value: int  # Represents the number of times ordered
+
+class HourlyTrendItem(BaseModel):
+    """Data for the order volume by hour line chart."""
+    time: str # e.g., '09:00'
+    orders: int
+
+class AnalyticsData(BaseModel):
+    """The main payload for the entire analytics page."""
+    stats: AnalyticsStatCard
+    salesData: List[DailyTrendItem]
+    popularItems: List[PopularItem]
+    orderTrends: List[HourlyTrendItem]
