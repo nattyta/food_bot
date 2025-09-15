@@ -265,3 +265,75 @@ def get_analytics(
     # Pass the period down to the logic function
     analytics_payload = crud.get_analytics_data(db, period)
     return analytics_payload
+
+
+
+@router.post("/staff", response_model=schemas.StaffResponse, status_code=status.HTTP_201_CREATED)
+def create_new_staff_member(
+    staff_data: schemas.StaffCreate,
+    db: DatabaseManager = Depends(get_db_manager),
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Create a new staff member. Requires admin privileges."""
+    # We call the crud function we already wrote
+    new_staff = crud.create_staff(db, staff_data)
+    # We wrap the response as the frontend client expects
+    return {"data": new_staff}
+
+@router.get("/staff", response_model=schemas.StaffListResponse)
+def get_staff_list(
+    db: DatabaseManager = Depends(get_db_manager),
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Get a list of all staff members. Requires admin privileges."""
+    staff_list = crud.get_all_staff(db)
+    logger.info(f"--- Final staff list payload to be sent: {staff_list}")
+    return {"data": staff_list}
+
+@router.put("/staff/{staff_id}", response_model=schemas.StaffResponse)
+def update_staff_member(
+    staff_id: int,
+    staff_data: schemas.StaffUpdate,
+    db: DatabaseManager = Depends(get_db_manager),
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Update a staff member's details. Requires admin privileges."""
+    updated_staff = crud.update_staff(db, staff_id, staff_data)
+    if not updated_staff:
+        raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
+    return {"data": updated_staff}
+
+@router.delete("/staff/{staff_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_staff_member(
+    staff_id: int,
+    db: DatabaseManager = Depends(get_db_manager),
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Delete a staff member. Requires admin privileges."""
+    success = crud.delete_staff(db, staff_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
+    # A 204 response has no body, so we return nothing.
+    return
+
+
+@router.get("/settings/restaurant", response_model=schemas.RestaurantSettingsResponse)
+def get_settings(
+    db: DatabaseManager = Depends(get_db_manager),
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Get the current restaurant settings."""
+    settings = crud.get_restaurant_settings(db)
+    if not settings:
+        raise HTTPException(status_code=404, detail="Restaurant settings not found.")
+    return {"data": settings}
+
+@router.put("/settings/restaurant", response_model=schemas.RestaurantSettingsResponse)
+def update_settings(
+    settings_data: schemas.RestaurantSettings,
+    db: DatabaseManager = Depends(get_db_manager),
+    current_admin: AdminInDB = Depends(get_current_admin_user)
+):
+    """Update the restaurant settings."""
+    updated_settings = crud.update_restaurant_settings(db, settings_data)
+    return {"data": updated_settings}

@@ -12,10 +12,9 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-def create_user(user_data: UserCreate):
+def create_user(user_data: schemas.UserCreate):
     conn = get_db_connection()
     cur = conn.cursor()
-
     cur.execute("""
         INSERT INTO users (chat_id, session_token, phone, address)
         VALUES (%s, %s, %s, %s)
@@ -26,11 +25,10 @@ def create_user(user_data: UserCreate):
         RETURNING chat_id, phone, address, created_at;
     """, (
         user_data.chat_id,
-        user_data.session_token,  # New field
+        user_data.session_token,
         user_data.phone,
         user_data.address
     ))
-
     row = cur.fetchone()
     user = {
         "chat_id": row[0],
@@ -38,11 +36,19 @@ def create_user(user_data: UserCreate):
         "address": row[2],
         "created_at": row[3].isoformat() if row[3] else None
     }
-
     conn.commit()
     cur.close()
     conn.close()
     return user
+
+def get_internal_id_from_chat_id(db: DatabaseManager, chat_id: int) -> Optional[int]:
+    """
+    Looks up a user by their chat_id and returns their internal primary key (id).
+    """
+    user_row = db.fetchone("SELECT id FROM users WHERE chat_id = %s", (chat_id,))
+    if user_row:
+        return user_row[0]
+    return None
 
 
 def create_order(order_data: OrderCreate) -> Dict[str, Any]:
@@ -120,94 +126,131 @@ def update_user_contact(chat_id: int, phone: str, address: str = None):
 
 
 def get_admin_by_username(db: DatabaseManager, username: str) -> Optional[AdminInDB]:
-    """Fetches an admin user from the DB by username (email)."""
     query = "SELECT id, username, password_hash, role, created_at, last_login FROM admins WHERE username = %s"
-    
     result = db.fetchone(query, (username,))
-    
     if result:
-        # Map the tuple result to our AdminInDB Pydantic model
         return AdminInDB(
-            id=result[0],
-            username=result[1],
-            password_hash=result[2],
-            role=result[3],
-            created_at=result[4],
-            last_login=result[5]
+            id=result[0], username=result[1], password_hash=result[2], role=result[3],
+            created_at=result[4], last_login=result[5]
         )
     return None
 
+def get_dashboard_stats(db: DatabaseManager) -> Dict[str, Any]:
+    # ... (Keeping your existing dashboard stats logic)
+    stats_query = """
+        SELECT
+            (SELECT COALESCE(SUM(total_price), 0) FROM orders WHERE payment_status = 'paid'),
+            (SELECT COUNT(*) FROM orders),
+            (SELECT COUNT(*) FROM users),
+            (SELECT COUNT(*) FROM orders WHERE status = 'pending' AND payment_status = 'paid')
+    """
+    result = db.fetchone(stats_query)
+    if not result:
+        return {"totalRevenue": 0.0, "totalOrders": 0, "totalCustomers": 0, "pendingOrders": 0}
+    total_revenue, total_orders, total_customers, pending_orders = result
+    return {
+        "activeOrders": pending_orders, "activeOrdersChange": "+0%", "avgPrepTime": "N/A",
+        "avgPrepTimeChange": "0%", "completedToday": 0, "completedTodayChange": "+0%",
+        "revenueToday": f"${float(total_revenue):.2f}", "revenueTodayChange": "+0%"
+    }
 
 
 
-def create_staff(db: DatabaseManager, staff: StaffCreate) -> Dict[str, Any]:
-    """Inserts a new staff member into the 'admins' table with a hashed password."""
-    hashed_password = get_password_hash(staff.password)
+
+def staff_row_to_dict(row: tuple) -> Optional[Dict[str, Any]]:
+    """Helper to convert a staff database row into a dictionary for the frontend."""
+    if not row:
+        return None
     
-    # Note: 'username' column in DB is used for email. We'll use the name for now.
-    # The frontend form doesn't have an email field, so we use the name as a placeholder.
-    # A better long-term solution would be to add an email field to the form.
-    username = f"{staff.name.lower().replace(' ', '')}@foodbot.local"
+    # Create the dictionary
+    result = {
+        "id": row[0],
+        "name": row[1],
+        "role": row[2],
+        "phone": row[3],
+        "telegramId": row[4],
+        "status": row[5],
+        "lastActive": row[6],
+        "ordersHandled": row[7],
+        "rating": float(row[8] or 0.0),
+        "averageTime": row[9],
+        "totalEarnings": float(row[10]) if row[10] is not None else 0.0
+    }
+    
+    # --- ADD THIS LOG ---
+    # Log the dictionary we are about to return
+    logger.info(f"--- Mapped staff dictionary: {result}")
+    
+    return result
+
+def create_staff(db: DatabaseManager, staff: schemas.StaffCreate) -> Dict[str, Any]:
+    """Inserts a new staff member into the 'admins' table."""
+    hashed_password = get_password_hash(staff.password)
+    username = f"{staff.name.lower().replace(' ', '')}@{staff.role}.local"
     
     query = """
-        INSERT INTO admins (username, password_hash, name, role, phone, telegram_id, status)
+        INSERT INTO admins (name, username, password_hash, role, phone, telegram_id, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
-        RETURNING id, username, name, role, phone, telegram_id, status, created_at, last_login, orders_handled, rating, average_time, total_earnings;
+        RETURNING id, name, role, phone, telegram_id, status, last_login, orders_handled, rating, average_time, total_earnings;
     """
     params = (
-        username, hashed_password, staff.name, staff.role, 
+        staff.name, username, hashed_password, staff.role, 
         staff.phone, staff.telegramId, staff.status
     )
     
     new_staff_row = db.execute_returning(query, params)
-    return row_to_dict(new_staff_row)
-
+    return staff_row_to_dict(new_staff_row)
 
 def get_all_staff(db: DatabaseManager) -> List[Dict[str, Any]]:
-    """Retrieves all users from the 'admins' table."""
-    query = "SELECT id, username, name, role, phone, telegram_id, status, created_at, last_login, orders_handled, rating, average_time, total_earnings FROM admins"
+    """Retrieves all staff members from the 'admins' table."""
+    # Use a simpler, direct query. The helper will handle defaults.
+    query = """
+        SELECT id, name, role, phone, telegram_id, status, last_login, 
+               orders_handled, rating, average_time, total_earnings 
+        FROM admins 
+        ORDER BY role, name;
+    """
     rows = db.fetchall(query)
-    return [row_to_dict(row) for row in rows]
+    logger.info(f"--- Raw staff rows from DB: {rows}")
+    
+    return [staff_row_to_dict(row) for row in rows]
 
-def update_staff(db: DatabaseManager, staff_id: int, staff_data: StaffUpdate) -> Optional[Dict[str, Any]]:
-    """Updates a staff member's details in the 'admins' table."""
-    # Build the query dynamically based on the fields provided
-    fields = staff_data.dict(exclude_unset=True)
+def get_staff_by_id(db: DatabaseManager, staff_id: int) -> Optional[Dict[str, Any]]:
+    """Retrieves a single staff member by their ID."""
+    query = """
+        SELECT id, name, role, phone, telegram_id, status, last_login, orders_handled, rating, average_time, total_earnings 
+        FROM admins 
+        WHERE id = %s;
+    """
+    row = db.fetchone(query, (staff_id,))
+    return staff_row_to_dict(row)
+
+def update_staff(db: DatabaseManager, staff_id: int, staff_data: schemas.StaffUpdate) -> Optional[Dict[str, Any]]:
+    """Updates a staff member's details."""
+    fields = staff_data.model_dump(exclude_unset=True) # Use model_dump for Pydantic v2
     if not fields:
-        return get_staff_by_id(db, staff_id) # Return current data if no fields to update
+        return get_staff_by_id(db, staff_id)
+
+    if 'telegramId' in fields:
+        fields['telegram_id'] = fields.pop('telegramId')
 
     set_clause = ", ".join([f"{key} = %s" for key in fields.keys()])
-    query = f"UPDATE admins SET {set_clause} WHERE id = %s RETURNING id, username, name, role, phone, telegram_id, status, created_at, last_login, orders_handled, rating, average_time, total_earnings;"
+    query = f"""
+        UPDATE admins SET {set_clause} WHERE id = %s 
+        RETURNING id, name, role, phone, telegram_id, status, last_login, orders_handled, rating, average_time, total_earnings;
+    """
     
     params = list(fields.values()) + [staff_id]
     
     updated_staff_row = db.execute_returning(query, tuple(params))
-    return row_to_dict(updated_staff_row) if updated_staff_row else None
+    return staff_row_to_dict(updated_staff_row)
 
 def delete_staff(db: DatabaseManager, staff_id: int) -> bool:
-    """Deletes a staff member from the 'admins' table."""
+    """Deletes a staff member. Returns True on success."""
     query = "DELETE FROM admins WHERE id = %s"
     cursor, rowcount = db.execute(query, (staff_id,))
     cursor.close()
     return rowcount > 0
-
-def get_staff_by_id(db: DatabaseManager, staff_id: int) -> Optional[Dict[str, Any]]:
-    """Retrieves a single staff member by their ID."""
-    query = "SELECT id, username, name, role, phone, telegram_id, status, created_at, last_login, orders_handled, rating, average_time, total_earnings FROM admins WHERE id = %s"
-    row = db.fetchone(query, (staff_id,))
-    return row_to_dict(row) if row else None
-
-
-# Helper function to convert DB rows to dictionaries for easier JSON conversion
-def row_to_dict(row: tuple) -> Dict[str, Any]:
-    if not row:
-        return None
-    return {
-        "id": row[0], "username": row[1], "name": row[2], "role": row[3],
-        "phone": row[4], "telegramId": row[5], "status": row[6],
-        "created_at": row[7], "lastActive": row[8], "ordersHandled": row[9],
-        "rating": float(row[10]), "averageTime": row[11], "totalEarnings": float(row[12]) if row[12] else None
-    }
 
 
 
@@ -575,41 +618,70 @@ def delete_menu_item(db: DatabaseManager, item_id: int) -> bool:
 
 
 
-def get_analytics_data(db: DatabaseManager, period: str) -> Dict[str, Any]:
+from typing import Dict, Any, Optional, List # Ensure these are at the top of your file
+from .database import DatabaseManager # Ensure this is imported
+import logging # Ensure this is imported
+
+logger = logging.getLogger(__name__)
+
+def get_analytics_data(db: DatabaseManager, period: str, category: str = "all") -> Dict[str, Any]:
     """
-    Orchestrator function to get all data needed for the analytics dashboard for a given period.
+    Orchestrator function to get all data for the analytics dashboard.
+    Handles flexible periods and category filtering.
     """
-    # Convert the period string to a SQL INTERVAL string
-    # This is a safe way to handle it, preventing SQL injection
+    logger.info(f"Fetching analytics data for period: '{period}' and category: '{category}'")
+
     interval_map = {
+        "1d": "1 day",
         "7d": "7 days",
         "30d": "30 days",
-        "90d": "90 days"
     }
-    sql_interval = interval_map.get(period, "7 days") # Default to 7 days if invalid period is passed
+    sql_interval = interval_map.get(period)
 
-    # 1. Get the main stat cards for the given period
+    # Create a list of WHERE conditions to join later
+    where_conditions = []
+    if sql_interval:
+        where_conditions.append(f"o.order_date >= NOW() - INTERVAL '{sql_interval}'")
+
+    # This logic will be used later for the category filter
+    # Note: This JSON query can be slow on very large datasets.
+    if category != "all" and category is not None:
+        # We add double quotes around the category value to ensure correct JSON matching.
+        where_conditions.append(f"o.items @> '[{{\"category\": \"{category}\"}}]'")
+
+    # Build the final WHERE clause, starting with "WHERE" if there are any conditions
+    date_filter_clause = ("WHERE " + " AND ".join(where_conditions)) if where_conditions else ""
+    
+    # --- Get list of all available categories (for the filter dropdown) ---
+    categories_query = "SELECT DISTINCT category FROM menu_items ORDER BY category;"
+    categories_result = db.fetchall(categories_query)
+    available_categories = [row[0] for row in categories_result]
+
+    # 1. Get the main stat cards
     stats_query = f"""
         SELECT
             COALESCE(SUM(total_price), 0.0),
             COALESCE(COUNT(order_id), 0),
             COALESCE(AVG(total_price), 0.0)
-        FROM orders
-        WHERE order_date >= NOW() - INTERVAL '{sql_interval}';
+        FROM orders o
+        {date_filter_clause};
     """
     stats_result = db.fetchone(stats_query)
     
-    new_customers_query = f"SELECT COUNT(id) FROM users WHERE created_at >= NOW() - INTERVAL '{sql_interval}';"
+    new_customers_date_filter = ""
+    if sql_interval:
+        new_customers_date_filter = f"WHERE created_at >= NOW() - INTERVAL '{sql_interval}'"
+    new_customers_query = f"SELECT COUNT(id) FROM users {new_customers_date_filter};"
     new_customers_result = db.fetchone(new_customers_query)
 
     stats = {
         "totalRevenue": float(stats_result[0]),
         "totalOrders": stats_result[1],
         "averageOrderValue": float(stats_result[2]),
-        "newCustomers": new_customers_result[0]
+        "newCustomers": new_customers_result[0] or 0
     }
 
-    # 2. Get the sales data (we'll keep this to the last 7 days for the weekly chart)
+    # 2. Get sales data for the weekly chart (this one always shows last 7 days regardless of period filter)
     sales_query = """
         SELECT
             TO_CHAR(order_date, 'Dy') as day_name,
@@ -623,12 +695,12 @@ def get_analytics_data(db: DatabaseManager, period: str) -> Dict[str, Any]:
     sales_result = db.fetchall(sales_query)
     sales_data = [{"name": row[0], "revenue": float(row[1]), "orders": row[2]} for row in sales_result]
 
-    # 3. Get the top 5 most popular items for the given period
+    # 3. Get the top 5 most popular items for the selected period and category
     popular_items_query = f"""
         WITH all_items AS (
-            SELECT jsonb_array_elements(items)->>'menuItemName' as item_name
-            FROM orders
-            WHERE order_date >= NOW() - INTERVAL '{sql_interval}'
+            SELECT jsonb_array_elements(o.items)->>'name' as item_name
+            FROM orders o
+            {date_filter_clause}
         )
         SELECT item_name, COUNT(*) as order_count
         FROM all_items
@@ -640,7 +712,7 @@ def get_analytics_data(db: DatabaseManager, period: str) -> Dict[str, Any]:
     popular_items_result = db.fetchall(popular_items_query)
     popular_items = [{"name": row[0], "value": row[1]} for row in popular_items_result]
 
-    # 4. Get order trends by hour (this should always be for the current day)
+    # 4. Get order trends by hour (this one always shows today regardless of period filter)
     hourly_trends_query = """
         SELECT
             TO_CHAR(order_date, 'HH24:00') as hour,
@@ -653,9 +725,109 @@ def get_analytics_data(db: DatabaseManager, period: str) -> Dict[str, Any]:
     hourly_trends_result = db.fetchall(hourly_trends_query)
     order_trends = [{"time": row[0], "orders": row[1]} for row in hourly_trends_result]
 
+    # 5. Calculate Top 5 Spenders for the period
+    top_spenders_query = f"""
+        SELECT u.name, SUM(o.total_price) as total_spent
+        FROM orders o
+        JOIN users u ON o.user_id = u.chat_id
+        {date_filter_clause}
+        GROUP BY u.name
+        ORDER BY total_spent DESC
+        LIMIT 5;
+    """
+    top_spenders_result = db.fetchall(top_spenders_query)
+    top_spenders = [{"name": row[0] or "Unknown", "value": float(row[1])} for row in top_spenders_result]
+
+    # 6. Calculate Top 5 Most Frequent Customers for the period
+    most_frequent_query = f"""
+        SELECT u.name, COUNT(o.order_id) as order_count
+        FROM orders o
+        JOIN users u ON o.user_id = u.chat_id
+        {date_filter_clause}
+        GROUP BY u.name
+        ORDER BY order_count DESC
+        LIMIT 5;
+    """
+    most_frequent_result = db.fetchall(most_frequent_query)
+    most_frequent_customers = [{"name": row[0] or "Unknown", "value": row[1]} for row in most_frequent_result]
+
+    # 7. Calculate New vs. Returning Customers for the period
+    customer_segments_result = (0, 0)
+    if sql_interval:
+        new_vs_returning_query = f"""
+            WITH customers_in_period AS (
+                SELECT DISTINCT o.user_id
+                FROM orders o
+                {date_filter_clause}
+            )
+            SELECT
+                COUNT(CASE WHEN u.created_at >= (NOW() - INTERVAL '{sql_interval}') THEN 1 END) as new_customers,
+                COUNT(CASE WHEN u.created_at < (NOW() - INTERVAL '{sql_interval}') THEN 1 END) as returning_customers
+            FROM customers_in_period cip
+            JOIN users u ON cip.user_id = u.chat_id;
+        """
+        customer_segments_result = db.fetchone(new_vs_returning_query)
+    
+    customer_segments = [
+        {"name": "New", "value": customer_segments_result[0] or 0},
+        {"name": "Returning", "value": customer_segments_result[1] or 0}
+    ]
+
     return {
         "stats": stats,
         "salesData": sales_data,
         "popularItems": popular_items,
-        "orderTrends": order_trends
+        "orderTrends": order_trends,
+        "availableCategories": available_categories,
+        "topSpenders": top_spenders,
+        "mostFrequentCustomers": most_frequent_customers,
+        "customerSegments": customer_segments
     }
+
+
+
+def get_restaurant_settings(db: DatabaseManager, restaurant_id: int = 1) -> Optional[Dict[str, Any]]:
+    """Fetches the settings for a given restaurant."""
+    query = """
+        SELECT name, address, phone, email, tax_rate, delivery_radius_km, 
+               minimum_order_value, business_hours, notification_settings, payment_settings
+        FROM restaurants
+        WHERE id = %s;
+    """
+    row = db.fetchone(query, (restaurant_id,))
+    if not row:
+        return None
+    
+    return {
+        "name": row[0],
+        "address": row[1],
+        "phone": row[2],
+        "email": row[3],
+        "taxRate": float(row[4]),
+        "deliveryRadius": float(row[5]),
+        "minimumOrder": float(row[6]),
+        "businessHours": row[7],
+        "notificationSettings": row[8],
+        "paymentSettings": row[9]
+    }
+
+def update_restaurant_settings(db: DatabaseManager, settings: schemas.RestaurantSettings, restaurant_id: int = 1) -> Dict[str, Any]:
+    """Updates the settings for a given restaurant."""
+    query = """
+        UPDATE restaurants SET
+            name = %s, address = %s, phone = %s, email = %s, tax_rate = %s,
+            delivery_radius_km = %s, minimum_order_value = %s, business_hours = %s,
+            notification_settings = %s, payment_settings = %s, updated_at = NOW()
+        WHERE id = %s;
+    """
+    params = (
+        settings.name, settings.address, settings.phone, settings.email,
+        settings.taxRate, settings.deliveryRadius, settings.minimumOrder,
+        json.dumps(settings.businessHours.model_dump()),
+        json.dumps(settings.notificationSettings.model_dump()),
+        json.dumps(settings.paymentSettings.model_dump()),
+        restaurant_id
+    )
+    db.execute(query, params)
+    
+    return get_restaurant_settings(db, restaurant_id)

@@ -116,9 +116,73 @@ export interface HourlyTrendItem {
   orders: number;
 }
 
+export interface TopCustomer {
+  name: string | null;
+  value: number;
+}
+
+export interface CustomerSegment {
+  name: string; // "New Customers" or "Returning Customers"
+  value: number;
+}
+
+
 export interface AnalyticsData {
   stats: AnalyticsStatCard;
   salesData: DailyTrendItem[];
   popularItems: PopularItem[];
   orderTrends: HourlyTrendItem[];
+  availableCategories: string[];
+  // --- ADD THESE NEW FIELDS ---
+  topSpenders: TopCustomer[];
+  mostFrequentCustomers: TopCustomer[];
+  customerSegments: CustomerSegment[];
+}
+
+
+
+export interface BusinessHoursDay {
+  open: string;
+  close: string;
+  closed: boolean;
+}
+
+export interface BusinessHours {
+  monday: BusinessHoursDay;
+  tuesday: BusinessHoursDay;
+  wednesday: BusinessHoursDay;
+  thursday: BusinessHoursDay;
+  friday: BusinessHoursDay;
+  saturday: BusinessHoursDay;
+  sunday: BusinessHoursDay;
+}
+
+export interface NotificationSettings {
+  newOrders: boolean;
+  orderUpdates: boolean;
+  deliveryAlerts: boolean;
+  lowStock: boolean;
+  dailyReports: boolean;
+  weeklyReports: boolean;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+}
+
+export interface PaymentSettings {
+  cashEnabled: boolean;
+  chapaEnabled: boolean;
+  chapaSecretKey: string;
+}
+
+export interface RestaurantSettings {
+  name: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  taxRate: number;
+  deliveryRadius: number;
+  minimumOrder: number;
+  businessHours: BusinessHours;
+  notificationSettings: NotificationSettings;
+  paymentSettings: PaymentSettings;
 }

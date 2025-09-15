@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field,ConfigDict
 from typing import List, Optional, Dict,Any, Literal
 from datetime import datetime
 
@@ -238,9 +238,115 @@ class HourlyTrendItem(BaseModel):
     time: str # e.g., '09:00'
     orders: int
 
+
+class TopCustomer(BaseModel):
+    name: Optional[str] = "Unknown Customer"
+    value: float # Can be total amount spent or total orders
+
+class CustomerSegment(BaseModel):
+    name: str # "New Customers" or "Returning Customers"
+    value: int
+
+
+
 class AnalyticsData(BaseModel):
     """The main payload for the entire analytics page."""
     stats: AnalyticsStatCard
     salesData: List[DailyTrendItem]
     popularItems: List[PopularItem]
     orderTrends: List[HourlyTrendItem]
+    stats: AnalyticsStatCard
+    salesData: List[DailyTrendItem]
+    popularItems: List[PopularItem]
+    orderTrends: List[HourlyTrendItem]
+    availableCategories: List[str]
+    # --- ADD THESE NEW FIELDS ---
+    topSpenders: List[TopCustomer]
+    mostFrequentCustomers: List[TopCustomer]
+    customerSegments: List[CustomerSegment]
+
+
+
+StaffRole = Literal['kitchen', 'delivery', 'manager', 'admin']
+StaffStatus = Literal['active', 'inactive']
+
+class StaffBase(BaseModel):
+    name: str
+    role: StaffRole
+    # --- THIS IS THE FIX ---
+    # Change 'phone: str' to 'phone: Optional[str] = None'
+    phone: Optional[str] = None
+    telegramId: Optional[str] = None
+    status: StaffStatus
+
+class StaffPublic(StaffBase):
+    id: int
+    ordersHandled: int
+    rating: float
+    lastActive: Optional[datetime] = None # Make lastActive optional to handle new users
+    
+    # --- ENSURE THESE FIELDS EXIST ---
+    averageTime: Optional[int] = None
+    totalEarnings: Optional[float] = None
+
+    # --- UPDATED FOR PYDANTIC V2 ---
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+# --- NEW: Response schemas for Staff to match the API client ---
+class StaffResponse(BaseModel):
+    data: StaffPublic
+
+class StaffListResponse(BaseModel):
+    data: List[StaffPublic]
+
+
+
+
+class BusinessHoursDay(BaseModel):
+    open: str
+    close: str
+    closed: bool
+
+class BusinessHours(BaseModel):
+    monday: BusinessHoursDay
+    tuesday: BusinessHoursDay
+    wednesday: BusinessHoursDay
+    thursday: BusinessHoursDay
+    friday: BusinessHoursDay
+    saturday: BusinessHoursDay
+    sunday: BusinessHoursDay
+
+class NotificationSettings(BaseModel):
+    newOrders: bool
+    orderUpdates: bool
+    deliveryAlerts: bool
+    lowStock: bool
+    dailyReports: bool
+    weeklyReports: bool
+    emailNotifications: bool
+    smsNotifications: bool
+
+# --- REVISED: PaymentSettings now focuses on Cash and Chapa ---
+class PaymentSettings(BaseModel):
+    cashEnabled: bool
+    chapaEnabled: bool
+    chapaSecretKey: Optional[str] = "" # Store the secret key
+
+# --- REVISED: RestaurantSettings is now simpler ---
+class RestaurantSettings(BaseModel):
+    name: str
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    # Currency is removed
+    taxRate: float = Field(alias="taxRate")
+    deliveryRadius: float = Field(alias="deliveryRadius")
+    minimumOrder: float = Field(alias="minimumOrder")
+    businessHours: BusinessHours = Field(alias="businessHours")
+    notificationSettings: NotificationSettings = Field(alias="notificationSettings")
+    paymentSettings: PaymentSettings = Field(alias="paymentSettings")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+class RestaurantSettingsResponse(BaseModel):
+    data: RestaurantSettings

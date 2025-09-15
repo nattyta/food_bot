@@ -832,3 +832,30 @@ LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
 2025-09-13 16:56:54,034 - __main__ - INFO - ✅ Phone number saved for user 916638938
 2025-09-13 16:59:56,697 - __main__ - INFO - Phone number unchanged for user 916638938
 2025-09-13 22:26:00,861 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-09-14 08:11:09,434 - __main__ - INFO - Starting FoodBot...
+2025-09-14 08:11:11,419 - __main__ - INFO - Database connection successful
+2025-09-14 08:11:12,865 - __main__ - INFO - Webhook removed
+2025-09-14 08:11:16,951 - __main__ - INFO - Phone number unchanged for user 916638938
+2025-09-14 08:11:17,219 - __main__ - INFO - Saved user 916638938 to database
+2025-09-14 08:11:17,220 - __main__ - INFO - User 916638938 initialized
+2025-09-14 08:55:16,047 - __main__ - INFO - Saved user 916638938 to database
+2025-09-14 08:55:16,048 - __main__ - INFO - User 916638938 initialized
+2025-09-14 08:55:31,716 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-09-14 09:47:17,793 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-09-14 10:21:21,239 - __main__ - INFO - Starting FoodBot...
+2025-09-14 10:21:23,093 - __main__ - INFO - Database connection successful
+2025-09-14 10:21:23,570 - __main__ - INFO - Webhook removed
+2025-09-14 10:21:27,715 - __main__ - INFO - Saved user 916638938 to database
+2025-09-14 10:21:27,716 - __main__ - INFO - User 916638938 initialized
+2025-09-14 10:21:41,641 - __main__ - ERROR - Contact handling error: column "phone_source" of relation "users" does not exist
+LINE 2: ...               INSERT INTO users (chat_id, phone, phone_sour...
+                                                             ^
+2025-09-14 10:23:58,968 - __main__ - INFO - ✅ Phone number saved for user 916638938
+2025-09-14 10:34:37,242 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
+2025-09-14 11:35:06,646 - __main__ - INFO - Starting FoodBot...
+2025-09-14 11:35:08,223 - __main__ - INFO - Database connection successful
+2025-09-14 11:35:09,049 - __main__ - INFO - Webhook removed
+2025-09-14 11:35:46,287 - __main__ - INFO - Saved user 6523397595 to database
+2025-09-14 11:35:46,288 - __main__ - INFO - User 6523397595 initialized
+2025-09-14 11:36:37,419 - __main__ - INFO - ✅ Phone number saved for user 6523397595
+2025-09-14 11:44:46,222 - __main__ - CRITICAL - Bot crashed: HTTPSConnectionPool(host='api.telegram.org', port=443): Read timed out. (read timeout=25)
