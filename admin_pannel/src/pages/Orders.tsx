@@ -12,7 +12,7 @@ import { ordersApi } from '@/api/orders';
 import { Order, OrderItem, OrderStatus } from '@/api/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, isToday } from 'date-fns';
 import { OrderDetailsModal } from '@/components/Order/OrderDetailsModal';
 
 const getStatusColor = (status: OrderStatus) => {
@@ -78,6 +78,31 @@ const Orders = () => {
   const filteredOrders = orders.filter(order => {
     const searchTermLower = searchTerm.toLowerCase();
 
+
+    let statusMatch = false;
+    if (activeTab === 'all') {
+      statusMatch = true; // Show all orders if 'all' tab is selected
+    } else {
+      // If a specific status tab is selected, check for a match
+      statusMatch = order.status === activeTab;
+    }
+    
+    // 2. If it doesn't match the tab, exclude it
+    if (!statusMatch) return false;
+
+    // 3. For kitchen staff, also filter by "Today's Orders"
+    if (isKitchenStaff && !isToday(order.createdAt)) {
+      return false;
+    }
+    
+    // 4. If it matches the tab and date, then filter by the search term
+    if (searchTerm === '') return true;
+    
+    return (
+      (order.customerName?.toLowerCase() || '').includes(searchTermLower) ||
+      (order.id?.toLowerCase() || '').includes(searchTermLower) ||
+      order.items.some(item => (item.menuItemName?.toLowerCase() || '').includes(searchTermLower))
+    );
     // Condition 1: Check customer name
     const customerMatch = (order.customerName?.toLowerCase() || '').includes(searchTermLower);
     
