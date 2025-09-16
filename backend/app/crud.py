@@ -8,6 +8,7 @@ from .security import get_password_hash
 import logging
 from . import schemas
 from datetime import datetime, timedelta
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -184,22 +185,33 @@ def staff_row_to_dict(row: tuple) -> Optional[Dict[str, Any]]:
     return result
 
 def create_staff(db: DatabaseManager, staff: schemas.StaffCreate) -> Dict[str, Any]:
-    """Inserts a new staff member into the 'admins' table."""
+    """Inserts a new staff member into the 'admins' table with a hashed password."""
+    
+    # 1. Securely hash the password from the form
     hashed_password = get_password_hash(staff.password)
+    
+    # 2. Create a placeholder username
     username = f"{staff.name.lower().replace(' ', '')}@{staff.role}.local"
     
+    # 3. Prepare the SQL query
     query = """
         INSERT INTO admins (name, username, password_hash, role, phone, telegram_id, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         RETURNING id, name, role, phone, telegram_id, status, last_login, orders_handled, rating, average_time, total_earnings;
     """
     params = (
-        staff.name, username, hashed_password, staff.role, 
-        staff.phone, staff.telegramId, staff.status
+        staff.name, 
+        username, 
+        hashed_password, # <-- Save the HASHED password
+        staff.role, 
+        staff.phone, 
+        staff.telegramId, 
+        staff.status
     )
     
+    # 4. Execute and return the new staff member's data
     new_staff_row = db.execute_returning(query, params)
-    return staff_row_to_dict(new_staff_row)
+    return staff_row_to_dict(new_staff_row) # (Assuming your staff_row_to_dict helper is correct)
 
 def get_all_staff(db: DatabaseManager) -> List[Dict[str, Any]]:
     """Retrieves all staff members from the 'admins' table."""
@@ -348,86 +360,62 @@ def get_recent_orders(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any
 
 # --- ADD these new functions for the Orders page ---
 
-def get_all_orders_paginated(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
-    """
-    Retrieves all orders, with an optional filter for status.
-    """
-    logger.info(f"Fetching all orders with status: {status}")
-    
-    query = """
-        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
-               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
-        FROM orders o
-        LEFT JOIN users u ON o.user_id = u.chat_id
-    """
-    params = []
-    if status:
-        query += " WHERE o.status = %s"
-        params.append(status)
-    
-    query += " ORDER BY o.order_date DESC;"
-    
-    rows = db.fetchall(query, tuple(params))
-    
-    all_orders = []
-    for row in rows:
-        try:
-            # Parse the items JSON
-            items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
-        except (json.JSONDecodeError, TypeError):
-            items_from_db = []
-            
-        # Convert the items to the format expected by the frontend
-        formatted_items = []
-        for item in items_from_db:
-            formatted_item = {
-                "id": item.get("id", ""),
-                "name": item.get("name", "Unknown Item"),
-                "price": float(item.get("price", 0)),
-                "quantity": int(item.get("quantity", 1)),
-                "addOns": item.get("addOns", []),
-                "extras": item.get("extras", []),
-                "modifications": item.get("modifications", []),
-                "specialInstruction": item.get("specialInstruction", "")
-            }
-            formatted_items.append(formatted_item)
-        
-        all_orders.append({
-            "id": f"ORD-{row[0]}",
-            "customerName": row[1] if row[1] else "Unknown User",
-            "customerPhone": row[2],
-            "total": float(row[3]),
-            "status": row[4],
-            "createdAt": row[5],
-            "updatedAt": row[5],
-            "items": formatted_items,
-            "type": row[7],
-            "paymentStatus": row[8],
-            "specialInstructions": row[9],
-            "estimatedDeliveryTime": None
-        })
-    return all_orders
+
 
 def update_order_status(db: DatabaseManager, order_id: int, new_status: str) -> Optional[Dict[str, Any]]:
-    """Updates the status of a specific order."""
     logger.info(f"Updating order {order_id} to status {new_status}")
-    # You might want to add logic here to prevent invalid status transitions
     query = "UPDATE orders SET status = %s WHERE order_id = %s RETURNING order_id;"
     result = db.execute_returning(query, (new_status, order_id))
     if result:
-        # After updating, fetch the full order details to return to the frontend
-        return get_order_by_id(db, order_id) # We'll need to create get_order_by_id
+        # This now calls our new, powerful function
+        return get_order_by_id(db, order_id) 
     return None
 
 # Helper function needed for update_order_status
 def get_order_by_id(db: DatabaseManager, order_id: int) -> Optional[Dict[str, Any]]:
-    # This is a simplified version; you would build this out like get_recent_orders
-    query = "SELECT order_id, status FROM orders WHERE order_id = %s;"
+    """
+    Retrieves the full details for a single order by its ID.
+    This is a complete function that returns data matching the Order schema.
+    """
+    logger.info(f"Fetching full details for order_id: {order_id}")
+    
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
+        FROM orders o 
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        WHERE o.order_id = %s;
+    """
     row = db.fetchone(query, (order_id,))
-    if not row: return None
-    # In a real app, you'd return the full order object here
-    return {"id": f"ORD-{row[0]}", "status": row[1]} 
+    
+    if not row:
+        return None
 
+    try:
+        items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+    except (json.JSONDecodeError, TypeError):
+        items_from_db = []
+
+    for item in items_from_db:
+        if 'name' in item:
+            item['menuItemName'] = item.pop('name')
+
+    # This structure must match your Pydantic `schemas.Order` model
+    # and your frontend `types.ts` `Order` interface
+    return {
+        "id": f"ORD-{row[0]}",
+        "customerName": row[1] if row[1] else "Unknown",
+        "customerPhone": row[2],
+        "items": items_from_db,
+        "status": row[4],
+        "total": float(row[3]),
+        "paymentStatus": row[8],
+        "createdAt": row[5],
+        "updatedAt": row[5], # For now, updated and created are the same
+        "type": row[7],
+        "specialInstructions": row[9],
+        "estimatedDeliveryTime": None # Placeholder
+    }
 
 def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List[Dict[str, Any]]:
     """
@@ -474,25 +462,59 @@ def get_recent_orders_for_dashboard(db: DatabaseManager, limit: int = 5) -> List
     return recent_orders
 
 
-def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None) -> List[Dict[str, Any]]:
+# crud.py
+# (Make sure json, logging, typing, etc. are imported at the top)
+
+# THIS IS THE ONLY FUNCTION YOU NEED FOR THE ORDERS PAGE (besides the dashboard one)
+def get_all_orders_for_display(db: DatabaseManager, user_role: str, status: Optional[str] = None) -> List[Dict[str, Any]]:
     """
-    Retrieves all orders, sorted FIFO, ensuring all item customizations are preserved.
+    A unified function to get orders for the main display page.
+    It changes its behavior based on the user's role.
+    
+    - For Admins: Fetches all orders, filterable by status, sorted newest first.
+    - For Kitchen: Fetches ONLY TODAY'S active/ready orders, sorted oldest first.
     """
-    logger.info(f"Fetching all kitchen orders with status filter: '{status}'")
-    query = """
+    logger.info(f"Fetching orders for user role: '{user_role}' with status filter: '{status}'")
+    
+    # Start with the base query
+    base_query = """
         SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
                o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes
         FROM orders o LEFT JOIN users u ON o.user_id = u.chat_id
     """
+    
+    where_conditions = []
     params = []
-    if status and status != 'all':
-        query += " WHERE o.status = %s"
-        params.append(status)
     
-    query += " ORDER BY o.order_date ASC;"
+    # --- ROLE-AWARE LOGIC ---
+    if user_role == 'kitchen':
+        # Rule 1 for Kitchen: Only show active/ready statuses.
+        where_conditions.append("o.status IN ('pending', 'preparing', 'ready')")
+        # Rule 2 for Kitchen: Only show orders from today.
+        where_conditions.append("o.order_date >= DATE_TRUNC('day', NOW())")
+        
+        # Rule 3 for Kitchen: Sort oldest first (FIFO).
+        order_by_clause = "ORDER BY o.order_date ASC" 
     
+    else: # For 'admin' and any other roles
+        # Rule 1 for Admin: Filter by the status tab if one is selected.
+        if status:
+            where_conditions.append("o.status = %s")
+            params.append(status)
+            
+        # Rule 2 for Admin: Sort newest first.
+        order_by_clause = "ORDER BY o.order_date DESC"
+
+    # Assemble the final query
+    if where_conditions:
+        base_query += " WHERE " + " AND ".join(where_conditions)
+    
+    query = base_query + " " + order_by_clause + ";"
+    
+    # Execute the query
     rows = db.fetchall(query, tuple(params))
     
+    # The data mapping logic is the same for both roles
     all_orders = []
     for row in rows:
         try:
@@ -500,7 +522,7 @@ def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None
         except (json.JSONDecodeError, TypeError):
             items_from_db = []
 
-        # --- THE DEFINITIVE FIX ---
+        # Your frontend expects 'menuItemName'
         for item in items_from_db:
             if 'name' in item:
                 item['menuItemName'] = item.pop('name')
@@ -509,19 +531,16 @@ def get_all_orders_for_kitchen(db: DatabaseManager, status: Optional[str] = None
             "id": f"ORD-{row[0]}",
             "customerName": row[1] if row[1] else "Unknown",
             "customerPhone": row[2],
-            "items": items_from_db, # Use the modified list
+            "items": items_from_db,
             "status": row[4],
             "total": float(row[3]),
             "paymentStatus": row[8],
             "createdAt": row[5],
             "updatedAt": row[5],
             "type": row[7],
-            "orderTime": row[5].strftime("%H:%M"),
-            "estimatedTime": "15 min",
             "specialInstructions": row[9]
         })
     return all_orders
-
 
 
 
@@ -785,49 +804,136 @@ def get_analytics_data(db: DatabaseManager, period: str, category: str = "all") 
     }
 
 
+def get_restaurant_settings_field(db: DatabaseManager, field: str, restaurant_id: int = 1) -> Any:
+    """A generic helper to get a single JSONB field from the restaurants table."""
+    query = f"SELECT {field} FROM restaurants WHERE id = %s;"
+    result = db.fetchone(query, (restaurant_id,))
+    if not result or result[0] is None:
+        raise HTTPException(status_code=404, detail=f"Settings for field '{field}' not found.")
+    return result[0]
 
-def get_restaurant_settings(db: DatabaseManager, restaurant_id: int = 1) -> Optional[Dict[str, Any]]:
-    """Fetches the settings for a given restaurant."""
-    query = """
-        SELECT name, address, phone, email, tax_rate, delivery_radius_km, 
-               minimum_order_value, business_hours, notification_settings, payment_settings
-        FROM restaurants
-        WHERE id = %s;
-    """
+def update_restaurant_settings_field(db: DatabaseManager, field: str, data: Any, restaurant_id: int = 1):
+    """A generic helper to update a single JSONB field."""
+    query = f"UPDATE restaurants SET {field} = %s, updated_at = NOW() WHERE id = %s;"
+    db.execute(query, (json.dumps(data.model_dump()), restaurant_id))
+
+# --- Business Hours ---
+def get_business_hours(db: DatabaseManager) -> Dict[str, Any]:
+    return get_restaurant_settings_field(db, 'business_hours')
+
+def update_business_hours(db: DatabaseManager, hours: schemas.BusinessHours):
+    update_restaurant_settings_field(db, 'business_hours', hours)
+
+# --- Notification Settings ---
+def get_notification_settings(db: DatabaseManager) -> Dict[str, Any]:
+    return get_restaurant_settings_field(db, 'notification_settings')
+
+def update_notification_settings(db: DatabaseManager, settings: schemas.NotificationSettings):
+    update_restaurant_settings_field(db, 'notification_settings', settings)
+
+# --- Payment Settings ---
+def get_payment_settings(db: DatabaseManager) -> Dict[str, Any]:
+    return get_restaurant_settings_field(db, 'payment_settings')
+
+def update_payment_settings(db: DatabaseManager, settings: schemas.PaymentSettings):
+    update_restaurant_settings_field(db, 'payment_settings', settings)
+
+# --- Main Restaurant Info (Non-JSON fields) ---
+def get_main_restaurant_settings(db: DatabaseManager, restaurant_id: int = 1) -> Optional[Dict[str, Any]]:
+    query = "SELECT name, address, phone, email, tax_rate, delivery_radius_km, minimum_order_value FROM restaurants WHERE id = %s;"
     row = db.fetchone(query, (restaurant_id,))
-    if not row:
-        return None
-    
+    if not row: return None
     return {
-        "name": row[0],
-        "address": row[1],
-        "phone": row[2],
-        "email": row[3],
-        "taxRate": float(row[4]),
-        "deliveryRadius": float(row[5]),
-        "minimumOrder": float(row[6]),
-        "businessHours": row[7],
-        "notificationSettings": row[8],
-        "paymentSettings": row[9]
+        "name": row[0], "address": row[1], "phone": row[2], "email": row[3],
+        "taxRate": float(row[4]), "deliveryRadius": float(row[5]), "minimumOrder": float(row[6])
     }
 
-def update_restaurant_settings(db: DatabaseManager, settings: schemas.RestaurantSettings, restaurant_id: int = 1) -> Dict[str, Any]:
-    """Updates the settings for a given restaurant."""
+def update_main_restaurant_settings(db: DatabaseManager, settings: schemas.RestaurantSettings, restaurant_id: int = 1):
     query = """
-        UPDATE restaurants SET
-            name = %s, address = %s, phone = %s, email = %s, tax_rate = %s,
-            delivery_radius_km = %s, minimum_order_value = %s, business_hours = %s,
-            notification_settings = %s, payment_settings = %s, updated_at = NOW()
+        UPDATE restaurants SET name = %s, address = %s, phone = %s, email = %s,
+            tax_rate = %s, delivery_radius_km = %s, minimum_order_value = %s, updated_at = NOW()
         WHERE id = %s;
     """
     params = (
         settings.name, settings.address, settings.phone, settings.email,
-        settings.taxRate, settings.deliveryRadius, settings.minimumOrder,
-        json.dumps(settings.businessHours.model_dump()),
-        json.dumps(settings.notificationSettings.model_dump()),
-        json.dumps(settings.paymentSettings.model_dump()),
-        restaurant_id
+        settings.taxRate, settings.deliveryRadius, settings.minimumOrder, restaurant_id
     )
     db.execute(query, params)
+
+# --- Account and Work Status (These relate to the 'admins' table) ---
+def get_account_settings(db: DatabaseManager, user_id: int) -> Optional[Dict[str, Any]]:
+    query = "SELECT name, phone, username as email FROM admins WHERE id = %s;"
+    row = db.fetchone(query, (user_id,))
+    if not row: return None
+    return {"name": row[0], "phone": row[1], "email": row[2]}
+
+def update_account_settings(db: DatabaseManager, user_id: int, settings: schemas.AccountSettings):
+    query = "UPDATE admins SET name = %s, phone = %s, username = %s WHERE id = %s;"
+    db.execute(query, (settings.name, settings.phone, settings.email, user_id))
+
+def get_work_status(db: DatabaseManager, user_id: int) -> Optional[Dict[str, Any]]:
+    query = "SELECT status, last_login FROM admins WHERE id = %s;"
+    row = db.fetchone(query, (user_id,))
+    if not row: return None
+    return {"available": row[0] == 'active', "lastStatusChange": row[1].isoformat() if row[1] else datetime.now().isoformat()}
+
+def update_work_status(db: DatabaseManager, user_id: int, status: schemas.WorkStatus):
+    new_status = 'active' if status.available else 'inactive'
+    query = "UPDATE admins SET status = %s WHERE id = %s;"
+    db.execute(query, (new_status, user_id))
+
+
+
+
+
+def get_orders_for_kitchen(db: DatabaseManager) -> List[Dict[str, Any]]:
+    """
+    Retrieves all active orders for the kitchen dashboard, sorted oldest first.
+    """
+    logger.info("Fetching active orders for kitchen display...")
     
-    return get_restaurant_settings(db, restaurant_id)
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.total_price, o.status, 
+               o.order_date, o.items, o.order_type, o.notes
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        -- --- THIS IS THE FIX ---
+        -- Add 'ready' to the list of statuses the kitchen can see.
+        WHERE o.status IN ('pending', 'accepted', 'preparing', 'ready')
+        ORDER BY o.order_date ASC;
+    """
+    rows = db.fetchall(query)
+    
+    kitchen_orders = []
+    for row in rows:
+        try:
+            items_from_db = json.loads(row[5]) if isinstance(row[5], str) else (row[5] or [])
+        except (json.JSONDecodeError, TypeError):
+            items_from_db = []
+
+        formatted_items = []
+        for item in items_from_db:
+            extras = [extra['name'] for extra in item.get('extras', []) if 'name' in extra]
+            modifications = item.get('modifications', [])
+            
+            formatted_items.append({
+                "name": item.get("name", "Unknown Item"),
+                "quantity": item.get("quantity", 1),
+                "extras": extras,
+                "modifications": ", ".join(modifications),
+                "specialInstructions": item.get("specialInstruction", "")
+            })
+
+        kitchen_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1] or "Walk-in Customer",
+            "total": float(row[2]),
+            "status": row[3],
+            "orderTime": row[4].strftime("%H:%M"),
+            "estimatedTime": "15 min", # Placeholder
+            "items": formatted_items,
+            "type": row[6],
+            "specialNotes": row[7]
+        })
+        
+    return kitchen_orders

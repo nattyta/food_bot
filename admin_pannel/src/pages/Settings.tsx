@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +16,6 @@ import {
   Shield, 
   CreditCard,
   Store,
-  Palette,
-  Globe,
   Mail,
   Phone,
   Clock,
@@ -27,43 +25,52 @@ import {
   UserX
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthWithToken } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { settingsApi } from '@/api/settings';
+import { 
+  RestaurantSettings, 
+  BusinessHours, 
+  NotificationSettings, 
+  PaymentSettings, 
+  AccountSettings, 
+  WorkStatus 
+} from '@/api/types';
 
 const Settings = () => {
   const { user } = useAuth();
+  const { token } = useAuthWithToken();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Work Status for delivery staff
-  const [workStatus, setWorkStatus] = useState({
+  const [workStatus, setWorkStatus] = useState<WorkStatus>({
     available: true,
     lastStatusChange: new Date().toISOString()
   });
 
   // Account Settings (for all roles)
-  const [accountSettings, setAccountSettings] = useState({
+  const [accountSettings, setAccountSettings] = useState<AccountSettings>({
     name: user?.name || '',
-    phone: '+1 (555) 123-4567',
-    email: user?.email || '',
-    darkMode: false,
-    language: 'en'
+    phone: '',
+    email: user?.email || ''
   });
 
   // Restaurant Settings
-  const [restaurantSettings, setRestaurantSettings] = useState({
-    name: 'FoodBot Restaurant',
-    address: '123 Main Street, Downtown',
-    phone: '+1 (555) 123-4567',
-    email: 'info@foodbot.com',
-    currency: 'USD',
+  const [restaurantSettings, setRestaurantSettings] = useState<RestaurantSettings>({
+    name: '',
+    address: '',
+    phone: '',
+    email: '',
     timezone: 'America/New_York',
-    taxRate: '8.5',
-    deliveryRadius: '5',
-    minimumOrder: '15'
+    taxRate: '',
+    deliveryRadius: '',
+    minimumOrder: ''
   });
 
   // Business Hours
-  const [businessHours, setBusinessHours] = useState({
+  const [businessHours, setBusinessHours] = useState<BusinessHours>({
     monday: { open: '09:00', close: '22:00', closed: false },
     tuesday: { open: '09:00', close: '22:00', closed: false },
     wednesday: { open: '09:00', close: '22:00', closed: false },
@@ -74,7 +81,7 @@ const Settings = () => {
   });
 
   // Notification Settings
-  const [notifications, setNotifications] = useState({
+  const [notifications, setNotifications] = useState<NotificationSettings>({
     newOrders: true,
     orderUpdates: true,
     deliveryAlerts: true,
@@ -86,24 +93,90 @@ const Settings = () => {
   });
 
   // Payment Settings
-  const [paymentSettings, setPaymentSettings] = useState({
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings>({
     cashEnabled: true,
     cardEnabled: true,
     digitalWalletEnabled: true,
-    stripeConnected: false,
-    paypalConnected: false
+    chapaConnected: false
   });
 
+  // Load initial data
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!token) return;
+
+      try {
+        setInitialLoading(true);
+        
+        if (user?.role === 'admin') {
+          const [restaurant, hours, notifs, payments, account] = await Promise.all([
+            settingsApi.getRestaurantSettings(token),
+            settingsApi.getBusinessHours(token),
+            settingsApi.getNotificationSettings(token),
+            settingsApi.getPaymentSettings(token),
+            settingsApi.getAccountSettings(token)
+          ]);
+          
+          setRestaurantSettings(restaurant);
+          setBusinessHours(hours);
+          setNotifications(notifs);
+          setPaymentSettings(payments);
+          setAccountSettings(account);
+        } else if (user?.role === 'delivery') {
+          const [status, account] = await Promise.all([
+            settingsApi.getWorkStatus(token),
+            settingsApi.getAccountSettings(token)
+          ]);
+          
+          setWorkStatus(status);
+          setAccountSettings(account);
+        } else {
+          const account = await settingsApi.getAccountSettings(token);
+          setAccountSettings(account);
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load settings. Using default values.",
+          variant: "destructive",
+        });
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, [token, user?.role, toast]);
+
   const handleSave = async () => {
+    if (!token) return;
+
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (user?.role === 'admin') {
+        await Promise.all([
+          settingsApi.updateRestaurantSettings(token, restaurantSettings),
+          settingsApi.updateBusinessHours(token, businessHours),
+          settingsApi.updateNotificationSettings(token, notifications),
+          settingsApi.updatePaymentSettings(token, paymentSettings),
+          settingsApi.updateAccountSettings(token, accountSettings)
+        ]);
+      } else if (user?.role === 'delivery') {
+        await Promise.all([
+          settingsApi.updateWorkStatus(token, workStatus),
+          settingsApi.updateAccountSettings(token, accountSettings)
+        ]);
+      } else {
+        await settingsApi.updateAccountSettings(token, accountSettings);
+      }
+
       toast({
         title: "Settings saved",
         description: "Your settings have been updated successfully.",
       });
     } catch (error) {
+      console.error('Failed to save settings:', error);
       toast({
         title: "Error",
         description: "Failed to save settings. Please try again.",
@@ -115,6 +188,17 @@ const Settings = () => {
   };
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+  if (initialLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Render role-based settings
   if (user?.role === 'staff') {
@@ -180,7 +264,7 @@ const Settings = () => {
 
             <div className="space-y-4">
               <h4 className="font-medium">Security</h4>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={() => window.location.href = '/change-password'}>
                 <Shield className="h-4 w-4 mr-2" />
                 Change Password
               </Button>
@@ -311,7 +395,7 @@ const Settings = () => {
 
               <div className="space-y-4">
                 <h4 className="font-medium">Security</h4>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => window.location.href = '/change-password'}>
                   <Shield className="h-4 w-4 mr-2" />
                   Change Password / Reset Login
                 </Button>
@@ -392,29 +476,14 @@ const Settings = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={restaurantSettings.email}
-                    onChange={(e) => setRestaurantSettings({...restaurantSettings, email: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select value={restaurantSettings.currency} onValueChange={(value) => setRestaurantSettings({...restaurantSettings, currency: value})}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={restaurantSettings.email}
+                  onChange={(e) => setRestaurantSettings({...restaurantSettings, email: e.target.value})}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -664,44 +733,22 @@ const Settings = () => {
                 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                      <span className="text-xs font-bold text-blue-600">S</span>
+                    <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center">
+                      <span className="text-xs font-bold text-green-600">C</span>
                     </div>
                     <div>
-                      <h4 className="font-medium">Stripe</h4>
+                      <h4 className="font-medium">Chapa</h4>
                       <p className="text-sm text-muted-foreground">
-                        {paymentSettings.stripeConnected ? 'Connected' : 'Not connected'}
+                        {paymentSettings.chapaConnected ? 'Connected' : 'Not connected'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {paymentSettings.stripeConnected && (
+                    {paymentSettings.chapaConnected && (
                       <Badge className="status-completed">Connected</Badge>
                     )}
                     <Button variant="outline" size="sm">
-                      {paymentSettings.stripeConnected ? 'Configure' : 'Connect'}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                      <span className="text-xs font-bold text-blue-600">P</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">PayPal</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {paymentSettings.paypalConnected ? 'Connected' : 'Not connected'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    {paymentSettings.paypalConnected && (
-                      <Badge className="status-completed">Connected</Badge>
-                    )}
-                    <Button variant="outline" size="sm">
-                      {paymentSettings.paypalConnected ? 'Configure' : 'Connect'}
+                      {paymentSettings.chapaConnected ? 'Configure' : 'Connect'}
                     </Button>
                   </div>
                 </div>
@@ -764,7 +811,7 @@ const Settings = () => {
 
               <div className="space-y-4">
                 <h4 className="font-medium">Security</h4>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => window.location.href = '/change-password'}>
                   <Shield className="h-4 w-4 mr-2" />
                   Change Password
                 </Button>
@@ -772,36 +819,6 @@ const Settings = () => {
                   <Mail className="h-4 w-4 mr-2" />
                   Change Email
                 </Button>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-4">
-                <h4 className="font-medium">Preferences</h4>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <Switch 
-                    id="dark-mode" 
-                    checked={accountSettings.darkMode}
-                    onCheckedChange={(checked) => setAccountSettings({...accountSettings, darkMode: checked})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <Select 
-                    value={accountSettings.language} 
-                    onValueChange={(value) => setAccountSettings({...accountSettings, language: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               <Separator />

@@ -4,13 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile,
 from datetime import timedelta
 import shutil
 import os
+from fastapi import Request
+import json
 # Import all the necessary components we've built
 from . import schemas, crud, security, config
 from .database import get_db_manager, DatabaseManager
-from .dependencies import get_current_admin_user
+from .dependencies import get_current_admin_user, get_current_active_user, get_current_kitchen_staff
 from .schemas import AdminInDB # Your user model
 from typing import List, Optional, Dict,Any, Literal
 from fastapi import Query
+
 # Create a new router instance for admin endpoints
 router = APIRouter(
     prefix="/api/v1/admin",  # All routes in this file will start with /api/v1/admin
@@ -55,19 +58,36 @@ def upload_menu_image(
     return {"url": file_url}
 
 @router.post("/login", response_model=schemas.Token)
-def login_for_access_token(
-    form_data: schemas.AdminLoginRequest, db: DatabaseManager = Depends(get_db_manager)
+async def login_for_access_token( # <--- Add the 'async' keyword
+    request: Request, # <--- Add the Request object as a parameter
+    db: DatabaseManager = Depends(get_db_manager)
 ):
-    """
-    Handles login for Admin, Staff, and Delivery roles.
-    Takes username (email), password, and role.
-    Returns a JWT access token on success.
-    """
-    # 1. Find the admin user in the database by their username (which is their email)
+    # --- THIS IS THE CRITICAL LOGGING STEP ---
+    try:
+        # We will try to read the raw JSON body of the request
+        payload = await request.json()
+        print("--- RAW LOGIN PAYLOAD RECEIVED ---")
+        print(json.dumps(payload, indent=2))
+        print("---------------------------------")
+    except Exception as e:
+        print(f"--- FAILED TO PARSE LOGIN PAYLOAD ---")
+        print(f"Error: {e}")
+        print("-------------------------------------")
+        raise HTTPException(status_code=400, detail="Invalid JSON body.")
+
+    # Now, we manually create the Pydantic model from the payload
+    try:
+        form_data = schemas.AdminLoginRequest(**payload)
+    except Exception as e:
+        print("--- PYDANTIC VALIDATION FAILED ---")
+        print(f"Payload was: {payload}")
+        print(f"Validation Error: {e}")
+        print("---------------------------------")
+        raise HTTPException(status_code=422, detail=f"Validation error: {e}")
+
+    # The rest of your existing, working logic
     admin = crud.get_admin_by_username(db, username=form_data.username)
 
-    # 2. Verify that the user exists AND the password is correct in a single step.
-    # This prevents timing attacks by not revealing whether the user exists or not.
     if not admin or not security.verify_password(form_data.password, admin.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -75,60 +95,61 @@ def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
         
-    # 3. After confirming credentials, verify that the role matches.
-    # This ensures a 'staff' user cannot log in via the 'admin' portal on the frontend.
     if admin.role.lower() != form_data.role.lower():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Access denied. User role ('{admin.role}') does not match the requested portal role ('{form_data.role}').",
         )
 
-    # 4. If all checks pass, create the JWT access token.
     access_token_expires = timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
-        # The 'data' dictionary contains the claims that will be encoded in the token.
-        # 'sub' (subject) is a standard claim for the user's identifier.
         data={"sub": admin.username, "role": admin.role.lower(), "id": admin.id},
         expires_delta=access_token_expires
     )
 
-    # 5. Return the token to the frontend.
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 @router.get("/dashboard/stats")
-def get_stats(db: DatabaseManager = Depends(get_db_manager), admin: AdminInDB = Depends(get_current_admin_user)):
+def get_stats(
+    db: DatabaseManager = Depends(get_db_manager),
+    # --- THIS IS THE FIX ---
+    # Use the new, more flexible dependency
+    admin: AdminInDB = Depends(get_current_active_user)
+):
     return crud.get_dashboard_stats(db)
 
-# --- ORDERS ENDPOINTS (Admin Only) ---
-@router.get("/all-orders", response_model=List[schemas.Order]) # Assuming you have an Order schema
+@router.get("/all-orders", response_model=List[schemas.Order])
 def get_orders_list(
     limit: Optional[int] = Query(None),
     status: Optional[str] = Query(None),
     db: DatabaseManager = Depends(get_db_manager),
-    admin: AdminInDB = Depends(get_current_admin_user)
+    current_user: AdminInDB = Depends(get_current_active_user)
 ):
     if limit:
-        # The dashboard calls with a limit, so use the "newest first" function
         return crud.get_recent_orders_for_dashboard(db, limit=limit)
-    else:
-        # The main orders page calls without a limit, use the "oldest first" function
-        return crud.get_all_orders_for_kitchen(db, status=status)
+    
+    # This now correctly calls your unified function
+    user_role = current_user.role.lower()
+    return crud.get_all_orders_for_display(db, user_role=user_role, status=status)
 
 
-
-@router.put("/orders/{order_id}/status")
+@router.put("/orders/{order_id}/status", response_model=schemas.Order)
 def update_status_of_order(
     order_id: str,
-    status_update: schemas.StatusUpdate, # You'll need to create this schema
+    status_update: schemas.StatusUpdate,
     db: DatabaseManager = Depends(get_db_manager),
-    admin: AdminInDB = Depends(get_current_admin_user)
+    # --- FIX #2: Use the dependency that allows kitchen staff access ---
+    current_user: AdminInDB = Depends(get_current_kitchen_staff)
 ):
-    # Extract numeric part of order_id like "ORD-54" -> 54
-    numeric_order_id = int(order_id.split('-')[1])
+    # The frontend sends the full ID like "ORD-5", so we extract the number
+    try:
+        numeric_order_id = int(order_id.split('-')[1])
+    except (IndexError, ValueError):
+        raise HTTPException(status_code=400, detail="Invalid Order ID format.")
+
     updated_order = crud.update_order_status(db, numeric_order_id, status_update.status)
     if not updated_order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Order not found or status update failed.")
     return updated_order
 
 # --- STAFF MANAGEMENT ENDPOINTS (Admin Only) ---
@@ -137,15 +158,6 @@ def update_status_of_order(
 
 # --- ROLE-SPECIFIC ENDPOINTS ---
 
-@router.get("/kitchen/orders")
-# --- THIS IS THE FIX ---
-# Change get_current_user to the correctly imported get_current_admin_user
-def get_kitchen_orders_list(
-    db: DatabaseManager = Depends(get_db_manager), 
-    user: AdminInDB = Depends(get_current_admin_user) # Corrected function name
-):
-    # Add extra security check if needed, e.g., if user.role not in ['admin', 'staff'] raise exception
-    return crud.get_all_orders_paginated(db, status='preparing')
 
 
 @router.get("/delivery/orders")
@@ -268,72 +280,83 @@ def get_analytics(
 
 
 
-@router.post("/staff", response_model=schemas.StaffResponse, status_code=status.HTTP_201_CREATED)
-def create_new_staff_member(
-    staff_data: schemas.StaffCreate,
-    db: DatabaseManager = Depends(get_db_manager),
-    current_admin: AdminInDB = Depends(get_current_admin_user)
-):
-    """Create a new staff member. Requires admin privileges."""
-    # We call the crud function we already wrote
-    new_staff = crud.create_staff(db, staff_data)
-    # We wrap the response as the frontend client expects
-    return {"data": new_staff}
-
-@router.get("/staff", response_model=schemas.StaffListResponse)
-def get_staff_list(
-    db: DatabaseManager = Depends(get_db_manager),
-    current_admin: AdminInDB = Depends(get_current_admin_user)
-):
-    """Get a list of all staff members. Requires admin privileges."""
-    staff_list = crud.get_all_staff(db)
-    logger.info(f"--- Final staff list payload to be sent: {staff_list}")
-    return {"data": staff_list}
-
-@router.put("/staff/{staff_id}", response_model=schemas.StaffResponse)
-def update_staff_member(
-    staff_id: int,
-    staff_data: schemas.StaffUpdate,
-    db: DatabaseManager = Depends(get_db_manager),
-    current_admin: AdminInDB = Depends(get_current_admin_user)
-):
-    """Update a staff member's details. Requires admin privileges."""
-    updated_staff = crud.update_staff(db, staff_id, staff_data)
-    if not updated_staff:
-        raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
-    return {"data": updated_staff}
-
-@router.delete("/staff/{staff_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_staff_member(
-    staff_id: int,
-    db: DatabaseManager = Depends(get_db_manager),
-    current_admin: AdminInDB = Depends(get_current_admin_user)
-):
-    """Delete a staff member. Requires admin privileges."""
-    success = crud.delete_staff(db, staff_id)
-    if not success:
-        raise HTTPException(status_code=404, detail=f"Staff member with ID {staff_id} not found")
-    # A 204 response has no body, so we return nothing.
-    return
 
 
 @router.get("/settings/restaurant", response_model=schemas.RestaurantSettingsResponse)
-def get_settings(
-    db: DatabaseManager = Depends(get_db_manager),
-    current_admin: AdminInDB = Depends(get_current_admin_user)
-):
-    """Get the current restaurant settings."""
-    settings = crud.get_restaurant_settings(db)
-    if not settings:
-        raise HTTPException(status_code=404, detail="Restaurant settings not found.")
+def get_restaurant_settings_main(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    settings = crud.get_main_restaurant_settings(db)
+    if not settings: raise HTTPException(404, "Restaurant settings not found.")
     return {"data": settings}
 
 @router.put("/settings/restaurant", response_model=schemas.RestaurantSettingsResponse)
-def update_settings(
-    settings_data: schemas.RestaurantSettings,
+def update_restaurant_settings_main(settings_data: schemas.RestaurantSettings, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    crud.update_main_restaurant_settings(db, settings_data)
+    updated = crud.get_main_restaurant_settings(db)
+    return {"data": updated}
+
+# --- Business Hours ---
+@router.get("/settings/business-hours", response_model=schemas.BusinessHours)
+def get_business_hours(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    return crud.get_business_hours(db)
+
+@router.put("/settings/business-hours", response_model=schemas.BusinessHours)
+def update_business_hours(hours: schemas.BusinessHours, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    crud.update_business_hours(db, hours)
+    return crud.get_business_hours(db)
+
+# --- Notification Settings ---
+@router.get("/settings/notifications", response_model=schemas.NotificationSettings)
+def get_notification_settings(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    return crud.get_notification_settings(db)
+
+@router.put("/settings/notifications", response_model=schemas.NotificationSettings)
+def update_notification_settings(settings: schemas.NotificationSettings, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    crud.update_notification_settings(db, settings)
+    return crud.get_notification_settings(db)
+
+# --- Payment Settings ---
+@router.get("/settings/payments", response_model=schemas.PaymentSettings)
+def get_payment_settings(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    return crud.get_payment_settings(db)
+
+@router.put("/settings/payments", response_model=schemas.PaymentSettings)
+def update_payment_settings(settings: schemas.PaymentSettings, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    crud.update_payment_settings(db, settings)
+    return crud.get_payment_settings(db)
+
+# --- Account Settings ---
+@router.get("/settings/account", response_model=schemas.AccountSettingsResponse)
+def get_account_settings(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    settings = crud.get_account_settings(db, current_admin.id)
+    if not settings: raise HTTPException(404, "Account settings not found.")
+    return {"data": settings}
+
+@router.put("/settings/account", response_model=schemas.AccountSettingsResponse)
+def update_account_settings(settings: schemas.AccountSettings, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    crud.update_account_settings(db, current_admin.id, settings)
+    updated = crud.get_account_settings(db, current_admin.id)
+    return {"data": updated}
+
+# --- Work Status ---
+@router.get("/settings/work-status", response_model=schemas.WorkStatusResponse)
+def get_work_status(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    status = crud.get_work_status(db, current_admin.id)
+    if not status: raise HTTPException(404, "Work status not found.")
+    return {"data": status}
+
+@router.put("/settings/work-status", response_model=schemas.WorkStatusResponse)
+def update_work_status(status: schemas.WorkStatus, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
+    crud.update_work_status(db, current_admin.id, status)
+    updated = crud.get_work_status(db, current_admin.id)
+    return {"data": updated}
+
+
+
+@router.get("/kitchen/orders", response_model=List[schemas.Order])
+def get_kitchen_orders_list(
     db: DatabaseManager = Depends(get_db_manager),
-    current_admin: AdminInDB = Depends(get_current_admin_user)
+    current_user: AdminInDB = Depends(get_current_kitchen_staff)
 ):
-    """Update the restaurant settings."""
-    updated_settings = crud.update_restaurant_settings(db, settings_data)
-    return {"data": updated_settings}
+    # --- FIX #1: Ensure this function name matches the one in crud.py ---
+    # Your log said you have `get_orders_for_kitchen`, so we use that.
+    return crud.get_orders_for_kitchen(db)

@@ -100,8 +100,8 @@ const StaffManagement = () => {
     },
   });
 
-  const handleAddStaff = (newStaff: Omit<Staff, 'id' | 'ordersHandled' | 'rating' | 'lastActive'>) => {
-    createStaffMutation.mutate({ ...newStaff, password: 'defaultPassword123' });
+  const handleAddStaff = (newStaff: Omit<Staff, 'id' | 'ordersHandled' | 'rating' | 'lastActive'> & { password: string }) => {
+    createStaffMutation.mutate(newStaff);
   };
 
   const handleEditStaff = (updatedStaff: Staff) => {

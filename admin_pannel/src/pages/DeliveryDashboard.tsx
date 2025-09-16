@@ -18,6 +18,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { QRScannerButton } from '@/components/Delivery/QRScannerButton';
 
 interface DeliveryOrder {
   id: string;
@@ -420,21 +421,7 @@ const DeliveryDashboard = () => {
                         )}
                         
                         {order.status === 'on-the-way' && (
-                          <div className="space-y-2">
-                            <Button 
-                              size="sm"
-                              onClick={() => updateOrderStatus(order.id, 'delivered')}
-                              className="bg-success hover:opacity-90 w-full"
-                            >
-                              <QrCode className="h-4 w-4 mr-1" />
-                              Scan QR / Complete
-                            </Button>
-                            
-                            <div className="p-2 bg-muted/50 rounded text-center">
-                              <p className="text-xs text-muted-foreground">PIN Code</p>
-                              <p className="font-mono font-bold">{order.pinCode}</p>
-                            </div>
-                          </div>
+                          <QRScannerButton orderId={order.id} expectedPin={order.pinCode} onComplete={() => updateOrderStatus(order.id, 'delivered')} />
                         )}
                       </div>
                     </div>

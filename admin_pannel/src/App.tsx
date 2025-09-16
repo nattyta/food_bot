@@ -16,6 +16,7 @@ import DeliveryDashboard from "./pages/DeliveryDashboard";
 import StaffManagement from "./pages/StaffManagement";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import ChangePassword from "./pages/ChangePassword";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const queryClient = new QueryClient();
@@ -68,8 +69,8 @@ const AppRoutes = () => {
     switch (user.role) {
       case 'admin':
         return <Dashboard />;
-      case 'staff':
-        return <StaffDashboard />;
+      case 'kitchen':
+        return <Orders />;
       case 'delivery':
         return <DeliveryDashboard />;
       default:
@@ -89,13 +90,14 @@ const AppRoutes = () => {
             <Route path="/staff-management" element={<StaffManagement />} />
           </>
         )}
-        {user?.role === 'staff' && (
+        {user?.role === 'kitchen' && (
           <Route path="/staff" element={<StaffDashboard />} />
         )}
         {user?.role === 'delivery' && (
           <Route path="/delivery" element={<DeliveryDashboard />} />
         )}
         <Route path="/settings" element={<Settings />} />
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppLayout>

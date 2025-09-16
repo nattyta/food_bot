@@ -8,7 +8,8 @@ import {
   Settings,
   Truck
 } from 'lucide-react';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth} from '@/contexts/AuthContext';
+import { UserRole } from '@/api/types';
 import {
   Sidebar,
   SidebarContent,
@@ -37,9 +38,9 @@ const navItems: NavItem[] = [
   },
   {
     title: 'Kitchen',
-    href: '/staff',
+    href: '/orders',
     icon: ClipboardList,
-    roles: ['staff'],
+    roles: ['kitchen'],
   },
   {
     title: 'Delivery',
@@ -75,7 +76,7 @@ const navItems: NavItem[] = [
     title: 'Settings',
     href: '/settings',
     icon: Settings,
-    roles: ['admin', 'staff', 'delivery'],
+    roles: ['admin', 'kitchen', 'delivery'],
   },
 ];
 

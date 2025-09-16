@@ -43,3 +43,35 @@ def get_current_admin_user(current_user: Annotated[AdminInDB, Depends(get_curren
             detail="The user does not have enough privileges for this action."
         )
     return current_user
+
+
+def get_current_active_user(current_user: Annotated[AdminInDB, Depends(get_current_user)]):
+    """
+    A simple dependency that just verifies the user is authenticated.
+    It does not check for a specific role, allowing any logged-in staff member.
+    """
+    # We can add a check for 'inactive' status later if needed.
+    return current_user
+
+
+def get_current_kitchen_staff(current_user: Annotated[AdminInDB, Depends(get_current_user)]):
+    """
+    Ensures the current user has a role that is allowed to view the kitchen dashboard.
+    """
+    allowed_roles = ["admin", "manager", "kitchen"]
+    
+    user_role = current_user.role.lower()
+
+    # --- ADD THIS LOGGING ---
+    print("--- KITCHEN STAFF PERMISSION CHECK ---")
+    print(f"  > User Role from DB: '{user_role}'")
+    print(f"  > Allowed Roles: {allowed_roles}")
+    print(f"  > Is user's role in allowed list? {user_role in allowed_roles}")
+    print("--------------------------------------")
+    
+    if user_role not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to access the kitchen dashboard."
+        )
+    return current_user

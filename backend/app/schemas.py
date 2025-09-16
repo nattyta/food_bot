@@ -66,7 +66,7 @@ class OrderCreate(BaseModel):
     order_type: str = "pickup"
 
 class AdminLoginRequest(BaseModel):
-    username: EmailStr  # We use 'username' to match the db, but treat it as an email
+    username: str  # We use 'username' to match the db, but treat it as an email
     password: str
     role: str
 
@@ -273,31 +273,58 @@ StaffStatus = Literal['active', 'inactive']
 class StaffBase(BaseModel):
     name: str
     role: StaffRole
-    # --- THIS IS THE FIX ---
-    # Change 'phone: str' to 'phone: Optional[str] = None'
     phone: Optional[str] = None
     telegramId: Optional[str] = None
     status: StaffStatus
+
+# --- THIS IS THE CRITICAL SCHEMA ---
+# It defines what data is required when CREATING a new staff member.
+class StaffCreate(StaffBase):
+    password: str # The password is required here.
+
+class StaffUpdate(BaseModel):
+    # When updating, all fields are optional. We don't update passwords here for security.
+    name: Optional[str] = None
+    role: Optional[StaffRole] = None
+    phone: Optional[str] = None
+    telegramId: Optional[str] = None
+    status: Optional[StaffStatus] = None
 
 class StaffPublic(StaffBase):
     id: int
     ordersHandled: int
     rating: float
-    lastActive: Optional[datetime] = None # Make lastActive optional to handle new users
-    
-    # --- ENSURE THESE FIELDS EXIST ---
+    lastActive: Optional[datetime] = None
     averageTime: Optional[int] = None
     totalEarnings: Optional[float] = None
-
-    # --- UPDATED FOR PYDANTIC V2 ---
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-# --- NEW: Response schemas for Staff to match the API client ---
+# Response schemas
 class StaffResponse(BaseModel):
     data: StaffPublic
 
 class StaffListResponse(BaseModel):
     data: List[StaffPublic]
+
+
+
+class OrderItemKitchen(BaseModel):
+    name: str
+    quantity: int
+    extras: List[str] = []
+    modifications: str = ""
+    specialInstructions: str = ""
+
+class StaffOrder(BaseModel):
+    id: str
+    customerName: str
+    items: List[OrderItemKitchen]
+    status: str
+    orderTime: str
+    estimatedTime: str
+    total: float
+    type: str
+    specialNotes: Optional[str] = None
 
 
 
@@ -308,45 +335,46 @@ class BusinessHoursDay(BaseModel):
     closed: bool
 
 class BusinessHours(BaseModel):
-    monday: BusinessHoursDay
-    tuesday: BusinessHoursDay
-    wednesday: BusinessHoursDay
-    thursday: BusinessHoursDay
-    friday: BusinessHoursDay
-    saturday: BusinessHoursDay
+    monday: BusinessHoursDay; tuesday: BusinessHoursDay; wednesday: BusinessHoursDay;
+    thursday: BusinessHoursDay; friday: BusinessHoursDay; saturday: BusinessHoursDay;
     sunday: BusinessHoursDay
 
 class NotificationSettings(BaseModel):
-    newOrders: bool
-    orderUpdates: bool
-    deliveryAlerts: bool
-    lowStock: bool
-    dailyReports: bool
-    weeklyReports: bool
-    emailNotifications: bool
-    smsNotifications: bool
+    newOrders: bool; orderUpdates: bool; deliveryAlerts: bool; lowStock: bool;
+    dailyReports: bool; weeklyReports: bool; emailNotifications: bool; smsNotifications: bool
 
-# --- REVISED: PaymentSettings now focuses on Cash and Chapa ---
 class PaymentSettings(BaseModel):
     cashEnabled: bool
     chapaEnabled: bool
-    chapaSecretKey: Optional[str] = "" # Store the secret key
+    chapaSecretKey: Optional[str] = ""
 
-# --- REVISED: RestaurantSettings is now simpler ---
+# This schema is for the main restaurant info tab
 class RestaurantSettings(BaseModel):
     name: str
     address: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
-    # Currency is removed
     taxRate: float = Field(alias="taxRate")
     deliveryRadius: float = Field(alias="deliveryRadius")
     minimumOrder: float = Field(alias="minimumOrder")
-    businessHours: BusinessHours = Field(alias="businessHours")
-    notificationSettings: NotificationSettings = Field(alias="notificationSettings")
-    paymentSettings: PaymentSettings = Field(alias="paymentSettings")
-
     model_config = ConfigDict(populate_by_name=True)
 
+class AccountSettings(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    email: EmailStr
+
+class WorkStatus(BaseModel):
+    available: bool
+    lastStatusChange: str
+
+# --- Response Schemas ---
+# We need these to wrap some of the responses in a `data` object, as your frontend expects
 class RestaurantSettingsResponse(BaseModel):
     data: RestaurantSettings
+
+class AccountSettingsResponse(BaseModel):
+    data: AccountSettings
+
+class WorkStatusResponse(BaseModel):
+    data: WorkStatus

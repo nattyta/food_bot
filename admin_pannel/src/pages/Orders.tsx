@@ -1,4 +1,3 @@
-// src/pages/Orders.tsx
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Clock, CheckCircle, AlertCircle, Eye, Truck, XCircle } from 'lucide-react';
 import { useAuthWithToken } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { ordersApi } from '@/api/orders';
 import { Order, OrderItem, OrderStatus } from '@/api/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,6 +40,7 @@ const getStatusIcon = (status: OrderStatus) => {
 };
 
 const Orders = () => {
+  const { user } = useAuth();
   const { token } = useAuthWithToken();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -47,13 +48,14 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
+  const isKitchenStaff = user?.role === 'kitchen';
   const { data: orders = [], isLoading, error } = useQuery({
     queryKey: ['orders', activeTab],
     queryFn: () => ordersApi.getAll(token!, activeTab === 'all' ? undefined : activeTab),
     enabled: !!token,
     refetchInterval: 15000,
   });
+
 
   console.log("[Orders.tsx] Data received from useQuery:", orders);
 
@@ -73,11 +75,24 @@ const Orders = () => {
     updateStatusMutation.mutate({ orderId, status: newStatus });
   };
 
-  const filteredOrders = orders.filter(order =>
-    (order.customerName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (order.id?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  const filteredOrders = orders.filter(order => {
+    const searchTermLower = searchTerm.toLowerCase();
+
+    // Condition 1: Check customer name
+    const customerMatch = (order.customerName?.toLowerCase() || '').includes(searchTermLower);
+    
+    // Condition 2: Check order ID
+    const idMatch = (order.id?.toLowerCase() || '').includes(searchTermLower);
+
+    // Condition 3: Check if ANY item in the order matches the food name
+    const itemMatch = order.items.some(item => 
+      (item.menuItemName?.toLowerCase() || '').includes(searchTermLower)
+    );
+
+    return customerMatch || idMatch || itemMatch;
+  });
   
+
   return (
     <div className="p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -97,14 +112,15 @@ const Orders = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as OrderStatus | 'all')}>
+         {/* --- MODIFIED: The TabsList is now the same for everyone --- */}
         <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="preparing">Preparing</TabsTrigger>
-          <TabsTrigger value="ready">Ready</TabsTrigger>
-          <TabsTrigger value="on_the_way">On the Way</TabsTrigger>
-          <TabsTrigger value="delivered">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="pending">Pending</TabsTrigger>
+            <TabsTrigger value="preparing">Preparing</TabsTrigger>
+            <TabsTrigger value="ready">Ready</TabsTrigger>
+            <TabsTrigger value="on_the_way">On the Way</TabsTrigger>
+            <TabsTrigger value="delivered">Completed</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-6">
@@ -156,28 +172,42 @@ const Orders = () => {
                           </div>
                           <div className="flex items-center space-x-2">
                             <Button variant="outline" size="sm" onClick={() => setSelectedOrder(order)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            
-                            {order.status === 'pending' && (
-                              <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'preparing')} disabled={updateStatusMutation.isPending}>
-                                Accept Order
-                              </Button>
-                            )}
-                            
-                            {order.status === 'preparing' && (
-                              <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => handleUpdateStatus(order.id, 'ready')} disabled={updateStatusMutation.isPending}>
-                                Mark as Ready
-                              </Button>
-                            )}
-                            
-                            {order.status === 'ready' && (
-                              <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => handleUpdateStatus(order.id, 'on_the_way')} disabled={updateStatusMutation.isPending}>
-                                Assign Delivery
-                              </Button>
-                            )}
-                          </div>
+    <Eye className="h-4 w-4" />
+  </Button>
+  
+  {/* --- CORRECTED & COMPLETE ROLE-AWARE ACTION BUTTONS --- */}
+
+  {/* Action for PENDING orders (visible to all) */}
+  {order.status === 'pending' && (
+    <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'preparing')} disabled={updateStatusMutation.isPending}>
+      Accept Order
+    </Button>
+  )}
+  
+  {/* Action for PREPARING orders (visible to all) */}
+  {order.status === 'preparing' && (
+    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleUpdateStatus(order.id, 'ready')} disabled={updateStatusMutation.isPending}>
+      Mark as Ready
+    </Button>
+  )}
+  
+  {/* Action for READY orders (different for admin vs. kitchen) */}
+  {order.status === 'ready' && !isKitchenStaff && (
+    // Admin/Manager sees "Assign Delivery"
+    <Button size="sm" className="bg-teal-600 hover:bg-teal-700" onClick={() => handleUpdateStatus(order.id, 'on_the_way')} disabled={updateStatusMutation.isPending}>
+      Assign Delivery
+    </Button>
+  )}
+  
+  {/* The kitchen staff doesn't need a button for 'ready' orders, as it's their final step. */}
+  {/* But an admin might want to complete it directly if it's a pickup order. */}
+  {order.status === 'ready' && !isKitchenStaff && order.type !== 'delivery' && (
+    <Button size="sm" className="bg-gray-500 hover:bg-gray-600" onClick={() => handleUpdateStatus(order.id, 'delivered')} disabled={updateStatusMutation.isPending}>
+      Complete Pickup
+    </Button>
+  )}
                         </div>
+                      </div>
                       </div>
 
                       <div className="mt-4 p-3 bg-muted/50 rounded-lg">
@@ -192,6 +222,8 @@ const Orders = () => {
                               </span>
                             </div>
                           ))}
+
+
                         </div>
                       </div>
                     </CardContent>

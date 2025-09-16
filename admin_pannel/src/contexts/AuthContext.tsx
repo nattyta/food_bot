@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-export type UserRole = 'admin' | 'staff' | 'delivery';
+import { useNavigate } from 'react-router-dom'; // <--- IMPORT THIS
+import { UserRole } from '@/api/types';
 
 export interface User {
   id: string;
@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('foodbot_admin_token'));
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // This effect runs on app startup or whenever the token changes
   useEffect(() => {
@@ -101,6 +102,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Save the new token to localStorage and update the state
       localStorage.setItem('foodbot_admin_token', newToken);
       setToken(newToken); // This will trigger the useEffect above to set the user
+
+
+      const payload: JwtPayload = JSON.parse(atob(newToken.split('.')[1]));
+      const userRole = payload.role.toLowerCase();
+
+      // Redirect based on the role found in the token
+      if (userRole === 'kitchen') {
+        navigate('/staff-dashboard');
+      } else if (userRole === 'delivery') {
+        navigate('/delivery-dashboard');
+      } else {
+        // Default redirect for 'admin' and 'manager'
+        navigate('/');
+      }
+
+
 
     } finally {
       setLoading(false);

@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Notification {
   id: string;
@@ -21,44 +22,64 @@ interface Notification {
   urgent?: boolean;
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'order',
-    title: 'New Order #ORD-004',
-    message: 'Pizza Margherita from John Doe',
-    time: '2 min ago',
-    read: false,
-    urgent: true,
-  },
-  {
-    id: '2',
-    type: 'delivery',
-    title: 'Delivery Completed',
-    message: 'Order #ORD-001 delivered successfully',
-    time: '15 min ago',
-    read: false,
-  },
-  {
-    id: '3',
-    type: 'order',
-    title: 'Order Ready',
-    message: 'Order #ORD-002 is ready for pickup',
-    time: '30 min ago',
-    read: true,
-  },
-  {
-    id: '4',
-    type: 'system',
-    title: 'Kitchen Alert',
-    message: 'Low stock: Mozzarella cheese',
-    time: '1 hour ago',
-    read: true,
-  },
-];
+const getNotificationsForRole = (role: string): Notification[] => {
+  const allNotifications = [
+    {
+      id: '1',
+      type: 'order',
+      title: 'New Order #ORD-004',
+      message: 'Pizza Margherita from John Doe',
+      time: '2 min ago',
+      read: false,
+      urgent: true,
+      roles: ['admin', 'staff'],
+    },
+    {
+      id: '2',
+      type: 'delivery',
+      title: 'Delivery Completed',
+      message: 'Order #ORD-001 delivered successfully',
+      time: '15 min ago',
+      read: false,
+      roles: ['admin', 'delivery'],
+    },
+    {
+      id: '3',
+      type: 'order',
+      title: 'Order Ready',
+      message: 'Order #ORD-002 is ready for pickup',
+      time: '30 min ago',
+      read: true,
+      roles: ['admin', 'delivery'],
+    },
+    {
+      id: '4',
+      type: 'system',
+      title: 'Kitchen Alert',
+      message: 'Low stock: Mozzarella cheese',
+      time: '1 hour ago',
+      read: true,
+      roles: ['admin', 'staff'],
+    },
+    {
+      id: '5',
+      type: 'delivery',
+      title: 'New Delivery Available',
+      message: 'Order #ORD-005 ready for delivery',
+      time: '5 min ago',
+      read: false,
+      roles: ['delivery'],
+    },
+  ];
+
+  return allNotifications.filter(notification => 
+    notification.roles.includes(role)
+  ) as Notification[];
+};
 
 export const NotificationDropdown = () => {
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState(getNotificationsForRole(user?.role || 'admin'));
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAsRead = (id: string) => {

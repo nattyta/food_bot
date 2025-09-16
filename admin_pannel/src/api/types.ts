@@ -1,4 +1,5 @@
-export type StaffRole = 'kitchen' | 'delivery' | 'manager';
+export type StaffRole = 'kitchen' | 'delivery' | 'manager' ;
+export type UserRole = 'admin' | 'manager' | 'kitchen' | 'delivery';
 export type StaffStatus = 'active' | 'inactive';
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'on_the_way' | 'delivered' | 'cancelled';
 export type OrderType = 'dine-in' | 'takeout' | 'delivery';
@@ -141,20 +142,23 @@ export interface AnalyticsData {
 
 
 
-export interface BusinessHoursDay {
-  open: string;
-  close: string;
-  closed: boolean;
+export interface RestaurantSettings {
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  timezone: string;
+  taxRate: string;
+  deliveryRadius: string;
+  minimumOrder: string;
 }
 
 export interface BusinessHours {
-  monday: BusinessHoursDay;
-  tuesday: BusinessHoursDay;
-  wednesday: BusinessHoursDay;
-  thursday: BusinessHoursDay;
-  friday: BusinessHoursDay;
-  saturday: BusinessHoursDay;
-  sunday: BusinessHoursDay;
+  [key: string]: {
+    open: string;
+    close: string;
+    closed: boolean;
+  };
 }
 
 export interface NotificationSettings {
@@ -170,19 +174,18 @@ export interface NotificationSettings {
 
 export interface PaymentSettings {
   cashEnabled: boolean;
-  chapaEnabled: boolean;
-  chapaSecretKey: string;
+  cardEnabled: boolean;
+  digitalWalletEnabled: boolean;
+  chapaConnected: boolean;
 }
 
-export interface RestaurantSettings {
+export interface AccountSettings {
   name: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  taxRate: number;
-  deliveryRadius: number;
-  minimumOrder: number;
-  businessHours: BusinessHours;
-  notificationSettings: NotificationSettings;
-  paymentSettings: PaymentSettings;
+  phone: string;
+  email: string;
+}
+
+export interface WorkStatus {
+  available: boolean;
+  lastStatusChange: string;
 }

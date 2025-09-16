@@ -4,8 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/api/types';
 import { Loader2, User, Users, Truck } from 'lucide-react';
+import { Lock } from 'lucide-react'; 
 
 const roleConfig = {
   admin: {
@@ -15,7 +17,7 @@ const roleConfig = {
     color: 'bg-primary text-primary-foreground',
     defaultEmail: 'admin@foodbot.com',
   },
-  staff: {
+  kitchen: {
     icon: Users,
     title: 'Kitchen Staff',
     description: 'Manage orders and kitchen operations',
@@ -29,6 +31,16 @@ const roleConfig = {
     color: 'bg-success text-success-foreground',
     defaultEmail: 'delivery@foodbot.com',
   },
+
+  manager: {
+    icon: Lock, // Or another icon you prefer
+    title: 'Manager Portal',
+    description: 'Oversee operations and staff',
+    color: 'bg-destructive text-destructive-foreground',
+    defaultEmail: 'manager@foodbot.com',
+  },
+
+
 };
 
 export const RoleBasedLogin = () => {
