@@ -862,15 +862,27 @@ def update_main_restaurant_settings(db: DatabaseManager, settings: schemas.Resta
 
 # --- Account and Work Status (These relate to the 'admins' table) ---
 def get_account_settings(db: DatabaseManager, user_id: int) -> Optional[Dict[str, Any]]:
-    query = "SELECT name, phone, username as email FROM admins WHERE id = %s;"
+    # We fetch the username column but will return it under the key 'email'
+    # to match the frontend's state object.
+    query = "SELECT name, phone, username FROM admins WHERE id = %s;"
     row = db.fetchone(query, (user_id,))
     if not row: return None
     return {"name": row[0], "phone": row[1], "email": row[2]}
 
-def update_account_settings(db: DatabaseManager, user_id: int, settings: schemas.AccountSettings):
-    query = "UPDATE admins SET name = %s, phone = %s, username = %s WHERE id = %s;"
-    db.execute(query, (settings.name, settings.phone, settings.email, user_id))
+def update_staff_profile(db: DatabaseManager, user_id: int, profile_data: schemas.StaffProfileUpdate):
+    """Updates only the name and phone for a staff member."""
+    query = "UPDATE admins SET name = %s, phone = %s WHERE id = %s;"
+    params = (profile_data.name, profile_data.phone, user_id)
+    db.execute(query, params)
 
+
+def update_user_password(db: DatabaseManager, user_id: int, new_password: str):
+    """Hashes a new password and updates it in the database for a given user."""
+    new_password_hash = get_password_hash(new_password)
+    query = "UPDATE admins SET password_hash = %s WHERE id = %s;"
+    db.execute(query, (new_password_hash, user_id))
+
+    
 def get_work_status(db: DatabaseManager, user_id: int) -> Optional[Dict[str, Any]]:
     query = "SELECT status, last_login FROM admins WHERE id = %s;"
     row = db.fetchone(query, (user_id,))

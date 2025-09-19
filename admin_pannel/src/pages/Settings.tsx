@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { ChangePasswordDialog } from '@/components/Settings/ChangePasswordDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Settings as SettingsIcon, 
@@ -43,7 +44,7 @@ const Settings = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   // Work Status for delivery staff
   const [workStatus, setWorkStatus] = useState<WorkStatus>({
     available: true,
@@ -163,12 +164,25 @@ const Settings = () => {
           settingsApi.updateAccountSettings(token, accountSettings)
         ]);
       } else if (user?.role === 'delivery') {
+        // Delivery staff save their work status and their profile
+        const profileData = {
+          name: accountSettings.name,
+          phone: accountSettings.phone,
+        };
         await Promise.all([
-          settingsApi.updateWorkStatus(token, workStatus),
-          settingsApi.updateAccountSettings(token, accountSettings)
+          settingsApi.updateWorkStatus(token, workStatus as WorkStatus),
+          settingsApi.updateStaffProfile(token, profileData)
         ]);
-      } else {
-        await settingsApi.updateAccountSettings(token, accountSettings);
+      } else if (user?.role === 'kitchen') {
+        // --- THIS IS THE FIX ---
+        // Kitchen staff ONLY save their profile (name and phone).
+        // We create a clean object without the problematic 'email' field.
+        const profileData = {
+          name: accountSettings.name,
+          phone: accountSettings.phone,
+        };
+        // We call the new, dedicated API function.
+        await settingsApi.updateStaffProfile(token, profileData);
       }
 
       toast({
@@ -200,8 +214,11 @@ const Settings = () => {
     );
   }
 
+
+  
+
   // Render role-based settings
-  if (user?.role === 'staff') {
+  if (user?.role === 'kitchen') {
     return (
       <div className="p-6 space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
@@ -250,27 +267,25 @@ const Settings = () => {
               </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={accountSettings.email}
-                onChange={(e) => setAccountSettings({...accountSettings, email: e.target.value})}
-              />
-            </div>
+        
 
             <Separator />
 
             <div className="space-y-4">
               <h4 className="font-medium">Security</h4>
-              <Button variant="outline" className="w-full" onClick={() => window.location.href = '/change-password'}>
+              <Button variant="outline" className="w-full" onClick={() => setIsPasswordDialogOpen(true)}>
                 <Shield className="h-4 w-4 mr-2" />
                 Change Password
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        <ChangePasswordDialog 
+          isOpen={isPasswordDialogOpen} 
+          onOpenChange={setIsPasswordDialogOpen} 
+        />
+
       </div>
     );
   }
@@ -381,27 +396,25 @@ const Settings = () => {
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={accountSettings.email}
-                  onChange={(e) => setAccountSettings({...accountSettings, email: e.target.value})}
-                />
-              </div>
+            
 
               <Separator />
 
               <div className="space-y-4">
                 <h4 className="font-medium">Security</h4>
-                <Button variant="outline" className="w-full" onClick={() => window.location.href = '/change-password'}>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Change Password / Reset Login
-                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setIsPasswordDialogOpen(true)}>
+                <Shield className="h-4 w-4 mr-2" />
+                Change Password
+              </Button>
               </div>
             </CardContent>
           </Card>
+
+          <ChangePasswordDialog 
+          isOpen={isPasswordDialogOpen} 
+          onOpenChange={setIsPasswordDialogOpen} 
+        />
+
         </div>
       </div>
     );
@@ -811,14 +824,16 @@ const Settings = () => {
 
               <div className="space-y-4">
                 <h4 className="font-medium">Security</h4>
-                <Button variant="outline" className="w-full" onClick={() => window.location.href = '/change-password'}>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Change Password
-                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setIsPasswordDialogOpen(true)}>
+                <Shield className="h-4 w-4 mr-2" />
+                Change Password
+              </Button>
                 <Button variant="outline" className="w-full">
                   <Mail className="h-4 w-4 mr-2" />
                   Change Email
                 </Button>
+
+                <ChangePasswordDialog isOpen={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
               </div>
 
               <Separator />

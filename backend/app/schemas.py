@@ -362,7 +362,16 @@ class RestaurantSettings(BaseModel):
 class AccountSettings(BaseModel):
     name: str
     phone: Optional[str] = None
-    email: EmailStr
+    email: Optional[EmailStr] = None
+
+class AccountSettingsPublic(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    email: Optional[str] = None # We make this a simple, optional string.
+
+# The response wrapper uses the new public model
+class AccountSettingsPublicResponse(BaseModel):
+    data: AccountSettingsPublic
 
 class WorkStatus(BaseModel):
     available: bool
@@ -378,3 +387,13 @@ class AccountSettingsResponse(BaseModel):
 
 class WorkStatusResponse(BaseModel):
     data: WorkStatus
+
+
+class StaffProfileUpdate(BaseModel):
+    name: str
+    phone: Optional[str] = None
+
+
+class PasswordUpdate(BaseModel):
+    oldPassword: str
+    newPassword: str

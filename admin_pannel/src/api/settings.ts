@@ -82,9 +82,21 @@ export const settingsApi = {
     return response.data;
   },
 
+  updateStaffProfile: async (token: string, settings: { name: string; phone: string; }): Promise<AccountSettings> => {
+    const client = createApiClient(token);
+    // It calls our new /settings/profile endpoint
+    const response = await client.put<ApiResponse<AccountSettings>>('/settings/profile', settings);
+    return response.data;
+  },
+
   updateWorkStatus: async (token: string, status: WorkStatus): Promise<WorkStatus> => {
     const client = createApiClient(token);
     const response = await client.put<ApiResponse<WorkStatus>>('/settings/work-status', status);
     return response.data;
-  }
+  },
+
+  updatePassword: async (token: string, data: { oldPassword: string; newPassword: string }): Promise<void> => {
+    const client = createApiClient(token);
+    await client.put('/settings/password', data);
+  },
 };

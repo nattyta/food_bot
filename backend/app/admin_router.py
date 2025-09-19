@@ -325,18 +325,26 @@ def update_payment_settings(settings: schemas.PaymentSettings, db: DatabaseManag
     return crud.get_payment_settings(db)
 
 # --- Account Settings ---
-@router.get("/settings/account", response_model=schemas.AccountSettingsResponse)
-def get_account_settings(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
-    settings = crud.get_account_settings(db, current_admin.id)
+@router.get("/settings/account", response_model=schemas.AccountSettingsPublicResponse)
+def get_account_settings(
+    db: DatabaseManager = Depends(get_db_manager),
+    current_user: AdminInDB = Depends(get_current_active_user)
+):
+    settings = crud.get_account_settings(db, current_user.id)
     if not settings: raise HTTPException(404, "Account settings not found.")
     return {"data": settings}
 
-@router.put("/settings/account", response_model=schemas.AccountSettingsResponse)
-def update_account_settings(settings: schemas.AccountSettings, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
-    crud.update_account_settings(db, current_admin.id, settings)
-    updated = crud.get_account_settings(db, current_admin.id)
+@router.put("/settings/account", response_model=schemas.AccountSettingsPublicResponse)
+def update_account_settings(
+    settings: schemas.AccountSettings, # Use the strict schema for INPUT
+    db: DatabaseManager = Depends(get_db_manager),
+    current_user: AdminInDB = Depends(get_current_active_user)
+):
+    crud.update_account_settings(db, current_user.id, settings)
+    updated = crud.get_account_settings(db, current_user.id)
     return {"data": updated}
 
+    
 # --- Work Status ---
 @router.get("/settings/work-status", response_model=schemas.WorkStatusResponse)
 def get_work_status(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
@@ -349,6 +357,40 @@ def update_work_status(status: schemas.WorkStatus, db: DatabaseManager = Depends
     crud.update_work_status(db, current_admin.id, status)
     updated = crud.get_work_status(db, current_admin.id)
     return {"data": updated}
+
+
+@router.put("/settings/profile", response_model=schemas.AccountSettingsPublicResponse)
+def update_staff_profile(
+    settings: schemas.StaffProfileUpdate, # <-- Use the new, simpler schema
+    db: DatabaseManager = Depends(get_db_manager),
+    current_user: AdminInDB = Depends(get_current_active_user)
+):
+    crud.update_staff_profile(db, current_user.id, settings)
+    updated = crud.get_account_settings(db, current_user.id)
+    return {"data": updated}
+
+
+@router.put("/settings/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_user_password(
+    password_data: schemas.PasswordUpdate,
+    db: DatabaseManager = Depends(get_db_manager),
+    # Use the general dependency to allow any logged-in user to change their own password
+    current_user: AdminInDB = Depends(get_current_active_user)
+):
+    """Allows a logged-in user to change their own password."""
+    
+    # 1. Verify the user's old password is correct
+    if not security.verify_password(password_data.oldPassword, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect old password.",
+        )
+        
+    # 2. If it's correct, update to the new password
+    crud.update_user_password(db, user_id=current_user.id, new_password=password_data.newPassword)
+    
+    # Return a 204 No Content response on success
+    return
 
 
 
