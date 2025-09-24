@@ -75,3 +75,8 @@ def get_current_kitchen_staff(current_user: Annotated[AdminInDB, Depends(get_cur
             detail="You do not have permission to access the kitchen dashboard."
         )
     return current_user
+
+def get_current_delivery_staff(current_user: Annotated[AdminInDB, Depends(get_current_user)]):
+    if current_user.role.lower() not in ["admin", "manager", "delivery"]:
+        raise HTTPException(status_code=403, detail="Access denied.")
+    return current_user

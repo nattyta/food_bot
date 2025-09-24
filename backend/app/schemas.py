@@ -397,3 +397,21 @@ class StaffProfileUpdate(BaseModel):
 class PasswordUpdate(BaseModel):
     oldPassword: str
     newPassword: str
+
+
+
+# --- Schemas for Delivery Dashboard ---
+
+class DeliveryStats(BaseModel):
+    totalDeliveries: int
+    todayDeliveries: int
+    averageTime: float
+    averageRating: float
+    earnings: float
+
+class DeliveryOrder(Order): # It can inherit from your main Order schema
+    pass # For now, the structure is the same. We can add more fields later if needed.
+
+class DeliveryDashboardData(BaseModel):
+    stats: DeliveryStats
+    orders: List[DeliveryOrder]

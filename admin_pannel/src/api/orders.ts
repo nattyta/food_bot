@@ -37,6 +37,8 @@ export const ordersApi = {
     }));
   },
 
+
+  
   /**
    * For Delivery Staff: fetches orders assigned to them or ready for delivery.
    */
@@ -49,6 +51,52 @@ export const ordersApi = {
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
     }));
+  },
+
+
+  getMyDeliveries: async (token: string): Promise<Order[]> => {
+    const client = createApiClient(token);
+    const responseData = await client.get<Order[]>('/delivery/my-orders');
+
+    return responseData.map(order => ({
+      ...order,
+      createdAt: new Date(order.createdAt),
+      updatedAt: new Date(order.updatedAt),
+    }));
+  },
+
+  /**
+   * Accept a delivery order - assigns it to the current driver.
+   */
+
+
+  getAvailableDeliveries: async (token: string): Promise<Order[]> => {
+    const client = createApiClient(token);
+    const responseData = await client.get<Order[]>('/delivery/available');
+
+    return responseData.map(order => ({
+      ...order,
+      createdAt: new Date(order.createdAt),
+      updatedAt: new Date(order.updatedAt),
+    }));
+  },
+
+  acceptDelivery: async (token: string, orderId: string): Promise<Order> => {
+    const client = createApiClient(token);
+
+    // --- THIS IS THE FIX ---
+    // The backend expects the numeric part of the ID, not the "ORD-" prefix.
+    // We extract the number from the string before sending it.
+    const numericId = orderId.split('-')[1];
+
+    // Now we call the endpoint with the correct numeric ID.
+    const responseData = await client.post<Order>(`/delivery/accept/${numericId}`);
+
+    return {
+      ...responseData,
+      createdAt: new Date(responseData.createdAt),
+      updatedAt: new Date(responseData.updatedAt),
+    };
   },
   
   /**

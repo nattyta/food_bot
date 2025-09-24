@@ -949,3 +949,166 @@ def get_orders_for_kitchen(db: DatabaseManager) -> List[Dict[str, Any]]:
         })
         
     return kitchen_orders
+
+
+
+
+def get_delivery_dashboard_data(db: DatabaseManager, delivery_boy_id: int) -> Dict[str, Any]:
+    """
+    Fetches all data for a delivery person's dashboard.
+    """
+    logger.info(f"Fetching dashboard data for delivery_boy_id: {delivery_boy_id}")
+    
+    # 1. Fetch Orders
+    orders_query = """
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
+               o.assigned_delivery_boy_id
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        WHERE o.order_type = 'delivery' AND (
+            (o.status = 'ready' AND o.assigned_delivery_boy_id IS NULL) 
+            OR 
+            (o.assigned_delivery_boy_id = %s)
+        )
+        ORDER BY o.order_date ASC;
+    """
+    order_rows = db.fetchall(orders_query, (delivery_boy_id,))
+    
+    orders = []
+    # ... (Your existing, correct loop to format the orders)
+    for row in order_rows:
+        items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+        for item in items_from_db:
+            if 'name' in item:
+                item['menuItemName'] = item.pop('name')
+        
+        orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1], "customerPhone": row[2], "total": float(row[3]),
+            "status": row[4], "createdAt": row[5], "updatedAt": row[5],
+            "items": items_from_db, "type": row[7], "paymentStatus": row[8],
+            "specialInstructions": row[9], "deliveryAddress": row[10], "deliveryStaffId": row[11]
+        })
+
+    # 2. Fetch Stats
+    stats_query = """
+        SELECT
+            COUNT(CASE WHEN status = 'delivered' THEN 1 END),
+            COUNT(CASE WHEN status = 'delivered' AND order_date >= DATE_TRUNC('day', NOW()) THEN 1 END)
+        FROM orders
+        WHERE assigned_delivery_boy_id = %s;
+    """
+    stats_row = db.fetchone(stats_query, (delivery_boy_id,))
+    
+    # --- THIS IS THE CORRECTED BLOCK ---
+    # It replaces the placeholder with actual Python code
+    stats = {
+        "totalDeliveries": stats_row[0] if stats_row else 0,
+        "todayDeliveries": stats_row[1] if stats_row else 0,
+        "averageTime": 22.0,   # Placeholder for MVP
+        "averageRating": 4.7,    # Placeholder for MVP
+        "earnings": 0.0        # Placeholder for MVP
+    }
+
+    return {"stats": stats, "orders": orders}
+
+
+def get_available_delivery_orders(db: DatabaseManager) -> List[Dict[str, Any]]:
+    """
+    Fetches all orders of type 'delivery' that are 'ready' and NOT assigned to anyone.
+    Sorted oldest first.
+    """
+    logger.info("Fetching available, unassigned delivery orders...")
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
+               o.assigned_delivery_boy_id
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        WHERE o.order_type = 'delivery' 
+          AND o.status = 'ready' 
+          AND o.assigned_delivery_boy_id IS NULL
+        ORDER BY o.order_date ASC;
+    """
+    rows = db.fetchall(query)
+    
+    # --- THIS IS THE MISSING LOGIC ---
+    mapped_orders = []
+    for row in rows:
+        items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+        for item in items_from_db:
+            if 'name' in item:
+                item['menuItemName'] = item.pop('name')
+        
+        mapped_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1],
+            "customerPhone": row[2],
+            "total": float(row[3]),
+            "status": row[4],
+            "createdAt": row[5],
+            "updatedAt": row[5],
+            "items": items_from_db,
+            "type": row[7],
+            "paymentStatus": row[8],
+            "specialInstructions": row[9],
+            "deliveryAddress": row[10],
+            "deliveryStaffId": row[11]
+        })
+    return mapped_orders # <-- Now this variable exists
+
+def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Dict[str, Any]]:
+    """
+    Fetches all active orders assigned to a specific delivery person.
+    """
+    logger.info(f"Fetching active orders for delivery boy ID: {delivery_boy_id}")
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
+               o.assigned_delivery_boy_id
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        WHERE o.assigned_delivery_boy_id = %s AND o.status = 'on_the_way'
+        ORDER BY o.order_date ASC;
+    """
+    rows = db.fetchall(query, (delivery_boy_id,))
+    
+    # --- THIS IS THE MISSING LOGIC ---
+    mapped_orders = []
+    for row in rows:
+        items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+        for item in items_from_db:
+            if 'name' in item:
+                item['menuItemName'] = item.pop('name')
+        
+        mapped_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1],
+            "customerPhone": row[2],
+            "total": float(row[3]),
+            "status": row[4],
+            "createdAt": row[5],
+            "updatedAt": row[5],
+            "items": items_from_db,
+            "type": row[7],
+            "paymentStatus": row[8],
+            "specialInstructions": row[9],
+            "deliveryAddress": row[10],
+            "deliveryStaffId": row[11]
+        })
+    return mapped_orders # <-- Now this variable exists
+
+def accept_delivery_order(db: DatabaseManager, order_id: int, delivery_boy_id: int) -> bool:
+    """
+    Atomically assigns a 'ready' order to a delivery person.
+    Returns True if successful, False if the order was already taken.
+    """
+    query = """
+        UPDATE orders
+        SET assigned_delivery_boy_id = %s, status = 'on_the_way'
+        WHERE order_id = %s AND status = 'ready' AND assigned_delivery_boy_id IS NULL;
+    """
+    cursor, rowcount = db.execute(query, (delivery_boy_id, order_id))
+    cursor.close()
+    return rowcount > 0 # Will be 1 if the update worked, 0 if it failed

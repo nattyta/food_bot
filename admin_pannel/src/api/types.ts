@@ -189,3 +189,19 @@ export interface WorkStatus {
   available: boolean;
   lastStatusChange: string;
 }
+
+
+export interface DeliveryStats {
+  totalDeliveries: number;
+  todayDeliveries: number;
+  averageTime: number;
+  averageRating: number;
+  earnings: number;
+}
+
+// We can re-use the existing `Order` type for DeliveryOrder
+
+export interface DeliveryDashboardData {
+  stats: DeliveryStats;
+  orders: Order[]; // Use the existing Order type
+}

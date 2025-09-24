@@ -9,7 +9,7 @@ import json
 # Import all the necessary components we've built
 from . import schemas, crud, security, config
 from .database import get_db_manager, DatabaseManager
-from .dependencies import get_current_admin_user, get_current_active_user, get_current_kitchen_staff
+from .dependencies import get_current_admin_user, get_current_active_user, get_current_kitchen_staff,get_current_delivery_staff
 from .schemas import AdminInDB # Your user model
 from typing import List, Optional, Dict,Any, Literal
 from fastapi import Query
@@ -139,7 +139,7 @@ def update_status_of_order(
     status_update: schemas.StatusUpdate,
     db: DatabaseManager = Depends(get_db_manager),
     # --- FIX #2: Use the dependency that allows kitchen staff access ---
-    current_user: AdminInDB = Depends(get_current_kitchen_staff)
+    current_user: AdminInDB = Depends(get_current_active_user)
 ):
     # The frontend sends the full ID like "ORD-5", so we extract the number
     try:
@@ -402,3 +402,38 @@ def get_kitchen_orders_list(
     # --- FIX #1: Ensure this function name matches the one in crud.py ---
     # Your log said you have `get_orders_for_kitchen`, so we use that.
     return crud.get_orders_for_kitchen(db)
+
+
+@router.get("/delivery/dashboard", response_model=schemas.DeliveryDashboardData)
+def get_delivery_dashboard(
+    db: DatabaseManager = Depends(get_db_manager),
+    current_user: AdminInDB = Depends(get_current_delivery_staff)
+):
+    """Fetches all data for the logged-in delivery person's dashboard."""
+    return crud.get_delivery_dashboard_data(db, delivery_boy_id=current_user.id)
+
+
+
+@router.get("/delivery/available", response_model=List[schemas.Order])
+def get_available_deliveries(db: DatabaseManager = Depends(get_db_manager), current_user: AdminInDB = Depends(get_current_delivery_staff)):
+    """Gets all unassigned orders that are ready for delivery."""
+    return crud.get_available_delivery_orders(db)
+
+@router.get("/delivery/my-orders", response_model=List[schemas.Order])
+def get_my_deliveries(db: DatabaseManager = Depends(get_db_manager), current_user: AdminInDB = Depends(get_current_delivery_staff)):
+    """Gets all orders currently assigned to the logged-in driver."""
+    return crud.get_my_delivery_orders(db, delivery_boy_id=current_user.id)
+
+@router.post("/delivery/accept/{order_id}", response_model=schemas.Order)
+def accept_delivery(order_id: int, db: DatabaseManager = Depends(get_db_manager), current_user: AdminInDB = Depends(get_current_delivery_staff)):
+    """Allows a driver to accept/claim an available delivery."""
+    success = crud.accept_delivery_order(db, order_id=order_id, delivery_boy_id=current_user.id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, # 409 Conflict is the perfect code for a race condition
+            detail="This order has already been accepted by another driver."
+        )
+    
+    # Return the fully updated order object on success
+    updated_order = crud.get_order_by_id(db, order_id)
+    return updated_order
