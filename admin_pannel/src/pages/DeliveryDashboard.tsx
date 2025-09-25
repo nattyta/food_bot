@@ -46,6 +46,15 @@ const DeliveryDashboard = () => {
     refetchInterval: 20000,
   });
 
+
+  const { data: completedDeliveriesData = [], isLoading: isLoadingCompleted } = useQuery({
+    queryKey: ['delivery', 'completed'], // A unique key for this query
+    queryFn: () => ordersApi.getCompletedDeliveries(token!),
+    enabled: !!token,
+    // No need to refetch this list as often, it's a history view.
+    // We can even set refetchOnWindowFocus: false if we want.
+  });
+
   // Combine loading and error states for a single status display
   const isLoading = isLoadingAvailable || isLoadingMyDeliveries;
   const error = availableError || myDeliveriesError;
@@ -99,7 +108,7 @@ const DeliveryDashboard = () => {
 
   const availableOrders = getFilteredList(availableOrdersData);
   const myDeliveries = getFilteredList(myDeliveriesData);
-  const completedDeliveries: DeliveryOrder[] = []; // This tab is not yet implemented
+  const completedDeliveries = getFilteredList(completedDeliveriesData);
 
   const ordersToShow = activeTab === 'available' ? availableOrders :
                        activeTab === 'my-deliveries' ? myDeliveries :
@@ -107,7 +116,7 @@ const DeliveryDashboard = () => {
                        
   const availableCount = availableOrders.length;
   const activeCount = myDeliveries.length;
-
+  const completedCount = completedDeliveries.length;
   if (error) {
     return <div className="p-6 text-center text-destructive">Error: {error.message}</div>;
   }
@@ -128,7 +137,7 @@ const DeliveryDashboard = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="available">Available <Badge variant="secondary" className="ml-2">{availableCount}</Badge></TabsTrigger>
           <TabsTrigger value="my-deliveries">My Deliveries <Badge variant="secondary" className="ml-2">{activeCount}</Badge></TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="completed">Completed <Badge variant="secondary" className="ml-2">{completedCount}</Badge></TabsTrigger>
         </TabsList>
         <TabsContent value={activeTab} className="mt-6">
           <div className="grid gap-4">
@@ -144,7 +153,12 @@ const DeliveryDashboard = () => {
                       </div>
                       <p className="text-sm text-muted-foreground flex items-center"><MapPin className="h-4 w-4 mr-2 flex-shrink-0" />{order.deliveryAddress}</p>
                       <p className="text-sm text-muted-foreground">{order.items.length} items • ${order.total.toFixed(2)}</p>
-                      <p className="text-xs text-muted-foreground">Ordered at: {format(new Date(order.createdAt), "h:mm a")}</p>
+                      <p className="text-xs text-muted-foreground">
+  {order.status === 'delivered' 
+    ? `Completed at: ${format(new Date(order.updatedAt), "h:mm a")}` 
+    : `Ordered at: ${format(new Date(order.createdAt), "h:mm a")}`
+  }
+</p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                       {order.status === 'ready' && <Button className="w-full" onClick={() => handleAcceptDelivery(order.id)} disabled={acceptMutation.isPending}>{acceptMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Accept Delivery'}</Button>}

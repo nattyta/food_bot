@@ -1161,3 +1161,46 @@ def complete_delivery_order(db: DatabaseManager, order_id: int, delivery_staff_i
 
     # 4. Return the complete, updated order object
     return get_order_by_id(db, order_id)
+
+
+
+def get_completed_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Dict[str, Any]]:
+    """
+    Fetches all orders of status 'delivered' assigned to a specific delivery person.
+    Sorted newest first for the history view.
+    """
+    logger.info(f"Fetching completed orders for delivery boy ID: {delivery_boy_id}")
+    query = """
+        SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
+               o.assigned_delivery_boy_id, o.updated_at
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.chat_id
+        WHERE o.assigned_delivery_boy_id = %s AND o.status = 'delivered'
+        ORDER BY o.updated_at DESC; -- Show the most recently completed first
+    """
+    rows = db.fetchall(query, (delivery_boy_id,))
+    
+    mapped_orders = []
+    for row in rows:
+        items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
+        for item in items_from_db:
+            if 'name' in item:
+                item['menuItemName'] = item.pop('name')
+        
+        mapped_orders.append({
+            "id": f"ORD-{row[0]}",
+            "customerName": row[1],
+            "customerPhone": row[2],
+            "total": float(row[3]),
+            "status": row[4],
+            "createdAt": row[5],
+            "updatedAt": row[12], # Use the updated_at field for completion time
+            "items": items_from_db,
+            "type": row[7],
+            "paymentStatus": row[8],
+            "specialInstructions": row[9],
+            "deliveryAddress": row[10],
+            "deliveryStaffId": row[11]
+        })
+    return mapped_orders

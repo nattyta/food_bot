@@ -461,3 +461,13 @@ def complete_delivery_by_qr(
     )
     
     return updated_order
+
+
+
+@router.get("/delivery/completed", response_model=List[schemas.Order], tags=["Delivery"])
+def get_completed_deliveries(
+    db: DatabaseManager = Depends(get_db_manager), 
+    current_user: AdminInDB = Depends(get_current_delivery_staff)
+):
+    """Gets all orders completed by the logged-in driver."""
+    return crud.get_completed_delivery_orders(db, delivery_boy_id=current_user.id) 
