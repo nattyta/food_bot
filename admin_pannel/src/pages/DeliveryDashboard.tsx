@@ -63,16 +63,33 @@ const DeliveryDashboard = () => {
   });
   
   const completeMutation = useMutation({
-    mutationFn: (orderId: string) => ordersApi.updateStatus(token!, orderId, 'delivered'),
+    // --- CHANGE THIS LINE ---
+    // Replace the generic updateStatus with our new, specific function
+    mutationFn: (orderId: string) => ordersApi.completeDelivery(token!, orderId),
+    
+    // The rest of the mutation can stay the same
     onSuccess: () => {
       toast({ title: "Delivery Completed!" });
       queryClient.invalidateQueries({ queryKey: ['delivery'] });
     },
-    onError: (err: Error) => { /* ... */ },
+    onError: (err: Error) => { 
+        toast({ 
+            title: "Completion Failed", 
+            description: err.message || "Could not complete the delivery.", 
+            variant: "destructive" 
+        });
+    },
   });
 
   const handleAcceptDelivery = (orderId: string) => acceptMutation.mutate(orderId);
-  const handleCompleteDelivery = (orderId: string) => completeMutation.mutate(orderId);
+  const handleCompleteDelivery = (orderId: string) => {
+    // --- THIS IS THE LOGGING LINE ---
+    // Add this log to see the ID in the browser's developer console.
+    console.log("✅ QR Code scanned! Attempting to complete delivery for order ID:", orderId);
+    
+    // The mutation call remains the same
+    completeMutation.mutate(orderId);
+  };
   
   const getFilteredList = (list: DeliveryOrder[]) => {
     if (!searchTerm) return list;
@@ -131,7 +148,13 @@ const DeliveryDashboard = () => {
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                       {order.status === 'ready' && <Button className="w-full" onClick={() => handleAcceptDelivery(order.id)} disabled={acceptMutation.isPending}>{acceptMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Accept Delivery'}</Button>}
-                      {order.status === 'on_the_way' && <QRScannerButton orderId={order.id} onComplete={() => handleCompleteDelivery(order.id)} />}
+                      {order.status === 'on_the_way' && (
+    <QRScannerButton 
+        orderId={order.id} 
+        // THIS IS THE FIX: Call the correct function for completing the delivery
+        onComplete={() => handleCompleteDelivery(order.id)} 
+    />
+  )}
                     </div>
                   </CardContent>
                 </Card>

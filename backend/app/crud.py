@@ -1112,3 +1112,52 @@ def accept_delivery_order(db: DatabaseManager, order_id: int, delivery_boy_id: i
     cursor, rowcount = db.execute(query, (delivery_boy_id, order_id))
     cursor.close()
     return rowcount > 0 # Will be 1 if the update worked, 0 if it failed
+
+
+
+def complete_delivery_order(db: DatabaseManager, order_id: int, delivery_staff_id: int) -> Dict[str, Any]:
+    # --- THIS ENTIRE BLOCK MUST BE INDENTED ---
+    """
+    Finds an order, validates it, and marks it as 'delivered'.
+    This is the secure logic called after a QR code scan.
+    It follows the project's raw SQL and dictionary-return pattern.
+
+    Raises HTTPException for specific failures.
+    """
+    logger.info(f"Attempting to complete order ID {order_id} for delivery staff ID {delivery_staff_id}")
+
+    # 1. First, retrieve the order to perform validation checks
+    validation_query = "SELECT status, assigned_delivery_boy_id FROM orders WHERE order_id = %s;"
+    order_data = db.fetchone(validation_query, (order_id,))
+
+    # 2. Validation Checks
+    if not order_data:
+        raise HTTPException(status_code=404, detail=f"Order with ID {order_id} not found.")
+
+    current_status, assigned_driver_id = order_data
+    
+    if current_status != 'on_the_way':
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot complete order. Its status is '{current_status}', not 'on_the_way'."
+        )
+
+    if assigned_driver_id != delivery_staff_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not authorized to complete this delivery."
+        )
+
+    # 3. If all checks pass, update the order status
+    update_query = """
+        UPDATE orders
+        SET status = 'delivered',
+            updated_at = NOW()
+        WHERE order_id = %s;
+    """
+    db.execute(update_query, (order_id,))
+    
+    logger.info(f"Successfully updated order ID {order_id} to 'delivered'.")
+
+    # 4. Return the complete, updated order object
+    return get_order_by_id(db, order_id)

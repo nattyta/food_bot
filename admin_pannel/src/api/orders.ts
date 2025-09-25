@@ -112,4 +112,24 @@ export const ordersApi = {
       updatedAt: new Date(responseData.updatedAt),
     };
   },
+
+
+  completeDelivery: async (token: string, orderId: string): Promise<Order> => {
+    const client = createApiClient(token);
+    
+    // The backend endpoint expects the numeric ID part from the "ORD-123" string
+    const numericId = orderId.split('-')[1];
+
+    // This makes the POST request to the backend endpoint we just wrote in admin_router.py
+    const responseData = await client.post<Order>(`/admin/delivery/complete/${numericId}`);
+
+    // Convert date strings to Date objects, as you do in your other functions
+    return {
+      ...responseData,
+      createdAt: new Date(responseData.createdAt),
+      updatedAt: new Date(responseData.updatedAt),
+    };
+  },
+
+
 };

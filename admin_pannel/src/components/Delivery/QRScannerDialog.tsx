@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'; // Removed useRef
+import { useEffect, useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ interface QRScannerDialogProps {
 
 const scannerElementId = "qr-scanner-view";
 
-export const QRScannerDialog = ({ open, onOpenChange, orderId, expectedPin, onComplete }: QRScannerDialogProps) => {
+export const QRScannerDialog = ({ open, onOpenChange, orderId, onComplete }: QRScannerDialogProps) => {
   const { toast } = useToast();
   const [pinInput, setPinInput] = useState('');
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -31,50 +31,48 @@ export const QRScannerDialog = ({ open, onOpenChange, orderId, expectedPin, onCo
 
   // A single, consolidated useEffect to manage the entire scanner lifecycle.
   useEffect(() => {
-    // If the dialog is not open, we don't need to do anything.
     if (!open) {
       return;
     }
 
-    // This variable will hold the scanner instance. It's local to this effect's "session".
     let scanner: Html5QrcodeScanner | null = null;
 
     const onScanSuccess = (decodedText: string) => {
-      // Check if the scanner exists and is running to prevent multiple triggers
+      // We can add a log here to be sure
+      console.log(`QR Code decoded successfully. Text: ${decodedText}`);
+
       if (scanner && scanner.getState() === Html5QrcodeScannerState.SCANNING) {
         toast({
           title: "QR Code Scanned!",
-          description: `Order ${orderId} verified successfully.`,
+          description: `Verifying order...`,
         });
         onComplete();
-        handleClose(); // This will trigger the cleanup function below.
+        handleClose();
       }
     };
 
     const onScanFailure = (error: string) => {
-      // This callback is verbose. We can ignore most "errors" as they just mean "no QR code found".
+      // This function is called frequently. We can ignore it to keep the console clean.
     };
 
-    // A timeout is a simple way to ensure the dialog's DOM element exists before we try to use it.
+    // Use a timeout to ensure the dialog's DOM element exists before we try to use it.
     const startTimeout = setTimeout(() => {
       if (document.getElementById(scannerElementId)) {
         scanner = new Html5QrcodeScanner(
           scannerElementId,
-          { fps: 10, qrbox: 250 },
-          false // verbose
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          /* verbose= */ false
         );
         scanner.render(onScanSuccess, onScanFailure);
       } else {
-        setCameraError("Scanner element not found in the DOM.");
+        setCameraError("Scanner element could not be initialized.");
       }
-    }, 250); // Using a slightly safer timeout of 250ms
+    }, 300); // Increased timeout slightly for more reliability
 
-    // --- This is the crucial cleanup function ---
-    // It runs when the effect "unmounts": when `open` becomes false or the component is removed.
+    // This is the cleanup function that runs when the dialog closes.
     return () => {
-      clearTimeout(startTimeout); // Stop the timeout if the dialog closes before it fires.
+      clearTimeout(startTimeout);
       if (scanner) {
-        // Check if the scanner is active before trying to clear it.
         if (scanner.getState() === Html5QrcodeScannerState.SCANNING) {
           scanner.clear().catch(error => {
             console.error("Scanner cleanup failed:", error);
@@ -82,7 +80,7 @@ export const QRScannerDialog = ({ open, onOpenChange, orderId, expectedPin, onCo
         }
       }
     };
-  }, [open, orderId, onComplete, toast, handleClose]); // The dependencies for this effect.
+  }, [open, orderId, onComplete, toast, handleClose]);
 
   const handlePinSubmit = () => {
     const MOCK_PIN = '0000';
@@ -121,7 +119,6 @@ export const QRScannerDialog = ({ open, onOpenChange, orderId, expectedPin, onCo
                     <p className="text-sm font-medium text-center px-4">{cameraError}</p>
                 </div>
              ) : (
-                // This div is the target for the scanner
                 <div id={scannerElementId} className="w-full aspect-video border-2 border-dashed border-muted-foreground rounded-lg overflow-hidden" />
              )}
           </TabsContent>

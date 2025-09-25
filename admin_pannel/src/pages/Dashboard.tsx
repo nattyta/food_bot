@@ -13,7 +13,7 @@ const Dashboard = () => {
             Good morning, {user?.name}! 👋
           </h1>
           <p className="text-muted-foreground mt-1">
-            {user?.role === 'staff' 
+            {user?.role === 'kitchen' 
               ? "Here's what's happening in the kitchen today"
               : user?.role === 'delivery' 
               ? "Here's your delivery overview for today"
@@ -30,7 +30,7 @@ const Dashboard = () => {
         
         {/* Quick Actions Card */}
         <div className="space-y-6">
-          {user?.role === 'staff' && (
+          {user?.role === 'kitchen' && (
             <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6 border border-primary/20">
               <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-3">

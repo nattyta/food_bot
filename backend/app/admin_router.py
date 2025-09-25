@@ -437,3 +437,27 @@ def accept_delivery(order_id: int, db: DatabaseManager = Depends(get_db_manager)
     # Return the fully updated order object on success
     updated_order = crud.get_order_by_id(db, order_id)
     return updated_order
+
+
+
+@router.post("/delivery/complete/{order_id}", response_model=schemas.Order, tags=["Delivery"])
+def complete_delivery_by_qr(
+    order_id: int,
+    db: DatabaseManager = Depends(get_db_manager),
+    # This dependency ensures only a logged-in delivery person can call this
+    current_user: AdminInDB = Depends(get_current_delivery_staff)
+):
+    """
+    Mark a delivery as completed after QR code verification.
+    The order_id comes from the scanned QR code.
+    """
+    # The dependency already confirms the user is a delivery person.
+    # Now we delegate all the complex logic to our new CRUD function.
+    # It will handle all validation and potential errors.
+    updated_order = crud.complete_delivery_order(
+        db=db, 
+        order_id=order_id, 
+        delivery_staff_id=current_user.id # Pass the driver's ID for the security check
+    )
+    
+    return updated_order

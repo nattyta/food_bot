@@ -98,10 +98,10 @@ const HistoryPage = ({ telegramInitData, userPhone  }) => {
                 <div className="qr-code-container">
                   <QRCodeSVG
                    value={String(order.order_id)}
-                   size={100}
+                   size={128}
                    bgColor="#1e1e1e"
                    fgColor="#ffffff"
-                   level="H" 
+                   level="L" 
                   />
                   <p>Delivery Confirmation</p>
                 </div>
