@@ -43,7 +43,7 @@ app.add_middleware(
     allow_origins=["https://food-bot-vulm.onrender.com","t.me/RE_foodBot/fbot",
          "https://telegram.me",
         "https://web.telegram.org",
-        "http://192.168.0.113:8080",
+        "http://192.168.0.112:8080",
         "http://localhost:8080",
         "https://customer-z13e.onrender.com",
         "http://127.0.0.1:10000"

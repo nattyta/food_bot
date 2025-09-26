@@ -336,26 +336,39 @@ def get_account_settings(
 
 @router.put("/settings/account", response_model=schemas.AccountSettingsPublicResponse)
 def update_account_settings(
-    settings: schemas.AccountSettings, # Use the strict schema for INPUT
+    settings: schemas.AccountSettings,
     db: DatabaseManager = Depends(get_db_manager),
     current_user: AdminInDB = Depends(get_current_active_user)
 ):
-    crud.update_account_settings(db, current_user.id, settings)
+    # This now correctly calls the function we just added to crud.py
+    crud.update_account_settings(db, current_user.id, settings) 
     updated = crud.get_account_settings(db, current_user.id)
     return {"data": updated}
 
     
 # --- Work Status ---
 @router.get("/settings/work-status", response_model=schemas.WorkStatusResponse)
-def get_work_status(db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
-    status = crud.get_work_status(db, current_admin.id)
-    if not status: raise HTTPException(404, "Work status not found.")
+def get_work_status(
+    db: DatabaseManager = Depends(get_db_manager), 
+    # --- THIS IS THE FIX ---
+    # Allow any active user (including delivery) to get their own status
+    current_user: AdminInDB = Depends(get_current_active_user)
+):
+    status = crud.get_work_status(db, current_user.id)
+    if not status: 
+        raise HTTPException(404, "Work status not found.")
     return {"data": status}
 
 @router.put("/settings/work-status", response_model=schemas.WorkStatusResponse)
-def update_work_status(status: schemas.WorkStatus, db: DatabaseManager = Depends(get_db_manager), current_admin: AdminInDB = Depends(get_current_admin_user)):
-    crud.update_work_status(db, current_admin.id, status)
-    updated = crud.get_work_status(db, current_admin.id)
+def update_work_status(
+    status: schemas.WorkStatus, 
+    db: DatabaseManager = Depends(get_db_manager), 
+    # --- THIS IS THE FIX ---
+    # Allow any active user (including delivery) to update their own status
+    current_user: AdminInDB = Depends(get_current_active_user)
+):
+    crud.update_work_status(db, current_user.id, status)
+    updated = crud.get_work_status(db, current_user.id)
     return {"data": updated}
 
 

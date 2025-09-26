@@ -135,24 +135,21 @@ const Settings = () => {
           setPaymentSettings(payments);
           setAccountSettings(account);
         } else if (user?.role === 'delivery') {
-          const [status, account] = await Promise.all([
+          const [status, accountFromApi] = await Promise.all([
             settingsApi.getWorkStatus(token),
             settingsApi.getAccountSettings(token)
           ]);
           
           setWorkStatus(status);
-          setAccountSettings(account);
+          setAccountSettings(prev => ({ ...prev, name: accountFromApi.name || prev.name, phone: accountFromApi.phone || '' }));
+
         } else {
-          const account = await settingsApi.getAccountSettings(token);
-          setAccountSettings(account);
+          const accountFromApi = await settingsApi.getAccountSettings(token);
+          setAccountSettings(prev => ({ ...prev, name: accountFromApi.name || prev.name, phone: accountFromApi.phone || '' }));
         }
       } catch (error) {
         console.error('Failed to load settings:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load settings. Using default values.",
-          variant: "destructive",
-        });
+        toast({ /* ... */ });
       } finally {
         setInitialLoading(false);
       }
@@ -162,38 +159,32 @@ const Settings = () => {
   }, [token, user?.role, toast]);
 
 
-
   const handleWorkStatusChange = async (checked: boolean) => {
     if (!token) return;
 
-    // 1. Optimistically update the UI for a snappy feel
-    const originalStatus = workStatus;
-    setWorkStatus({
-      available: checked,
-      lastStatusChange: new Date().toISOString()
-    });
+    // Optimistically update the UI so it feels instant
+    const originalStatus = { ...workStatus };
+    setWorkStatus({ available: checked, lastStatusChange: new Date().toISOString() });
 
     try {
-      // 2. Call the API to update the backend
+      // Call the API to update the backend
       const updatedStatus = await settingsApi.updateWorkStatus(token, {
         available: checked,
-        lastStatusChange: new Date().toISOString()
+        lastStatusChange: new Date().toISOString(),
       });
-      
-      // 3. (Optional) Sync the state with the exact data from the backend
+      // Sync the state with the exact data returned from the backend
       setWorkStatus(updatedStatus);
-
       toast({
-        title: "Status Updated!",
-        description: `You are now ${checked ? 'Available' : 'Not Available'}.`
+        title: "Status Updated",
+        description: `You are now ${checked ? 'Available' : 'Not Available'}.`,
       });
     } catch (error) {
       console.error('Failed to update work status:', error);
-      // 4. If the API call fails, revert the UI back to its original state
+      // If the API call fails, revert the UI back to its original state
       setWorkStatus(originalStatus);
       toast({
         title: "Update Failed",
-        description: "Could not update your work status. Please try again.",
+        description: "Could not update your work status.",
         variant: "destructive",
       });
     }
@@ -206,45 +197,34 @@ const Settings = () => {
 
     setLoading(true);
     try {
+      // Logic for Admin
       if (user?.role === 'admin') {
-        await Promise.all([
-          settingsApi.updateRestaurantSettings(token, restaurantSettings),
-          settingsApi.updateBusinessHours(token, businessHours),
-          settingsApi.updateNotificationSettings(token, notifications),
-          settingsApi.updatePaymentSettings(token, paymentSettings),
-          settingsApi.updateAccountSettings(token, accountSettings)
-        ]);
-      } else if (user?.role === 'delivery') {
-        // Delivery staff save their work status and their profile
-        const profileData = {
-          name: accountSettings.name,
-          phone: accountSettings.phone,
-        };
-        await Promise.all([
-          settingsApi.updateWorkStatus(token, workStatus as WorkStatus),
-          settingsApi.updateStaffProfile(token, profileData)
-        ]);
-      } else if (user?.role === 'kitchen') {
-        // --- THIS IS THE FIX ---
-        // Kitchen staff ONLY save their profile (name and phone).
-        // We create a clean object without the problematic 'email' field.
-        const profileData = {
-          name: accountSettings.name,
-          phone: accountSettings.phone,
-        };
-        // We call the new, dedicated API function.
+        // We update each setting one by one for clearer error handling
+        await settingsApi.updateRestaurantSettings(token, restaurantSettings);
+        await settingsApi.updateBusinessHours(token, businessHours);
+        await settingsApi.updateNotificationSettings(token, notifications);
+        await settingsApi.updatePaymentSettings(token, paymentSettings);
+        await settingsApi.updateAccountSettings(token, accountSettings);
+      }  else if (user?.role === 'delivery') {
+        const profileData = { name: accountSettings.name, phone: accountSettings.phone };
+        // We only save the profile here. The work status is handled by its own switch.
+        await settingsApi.updateStaffProfile(token, profileData);
+      } 
+      // Logic for Kitchen Staff
+      else if (user?.role === 'kitchen') {
+        const profileData = { name: accountSettings.name, phone: accountSettings.phone };
         await settingsApi.updateStaffProfile(token, profileData);
       }
 
       toast({
-        title: "Settings saved",
+        title: "Settings Saved",
         description: "Your settings have been updated successfully.",
       });
-    } catch (error) {
+    } catch (error: any) { // Catch as 'any' to access error.message
       console.error('Failed to save settings:', error);
       toast({
-        title: "Error",
-        description: "Failed to save settings. Please try again.",
+        title: "Error Saving Settings",
+        description: error.message || "An unknown error occurred. Please check the console.",
         variant: "destructive",
       });
     } finally {

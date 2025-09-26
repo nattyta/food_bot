@@ -895,6 +895,13 @@ def update_work_status(db: DatabaseManager, user_id: int, status: schemas.WorkSt
     db.execute(query, (new_status, user_id))
 
 
+def update_account_settings(db: DatabaseManager, user_id: int, settings: schemas.AccountSettings):
+    """
+    Updates the name, phone, and username (email) for any staff member.
+    """
+    query = "UPDATE admins SET name = %s, phone = %s, username = %s WHERE id = %s;"
+    params = (settings.name, settings.phone, settings.email, user_id)
+    db.execute(query, params)
 
 
 
