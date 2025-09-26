@@ -220,27 +220,24 @@ async def get_current_user(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-
-
-
 @router.post("/orders", response_model=dict)
 async def create_order(
-    request: Request,
+    request: Request, # Add the request object
     order: OrderCreate,
     chat_id: int = Depends(telegram_auth_dependency)
 ):
-
-   try:
+    # --- Logging Block for Debugging ---
+    try:
         raw_payload = await request.json()
         logger.info("--- RAW CUSTOMER ORDER PAYLOAD ---")
         logger.info(json.dumps(raw_payload, indent=2))
         logger.info("----------------------------------")
     except Exception as e:
         logger.error(f"Error reading raw order payload: {e}")
+    # --- End of Logging Block ---
 
-
+    # --- Main Function Logic ---
     try:
-        # Your validation logic is good
         if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):
             raise HTTPException(status_code=400, detail="Invalid phone format")
         if not order.items:
@@ -259,8 +256,6 @@ async def create_order(
                 """,
                 (
                     chat_id,
-                    # --- THIS IS THE FIX ---
-                    # `order.items` is already a list of dicts. We don't need to call .dict() on them.
                     json.dumps(order.items),
                     encrypted_phone,
                     obfuscated_phone,
@@ -283,11 +278,14 @@ async def create_order(
         return {"status": "success", "order_id": order_id, "total_price": order.total_price}
         
     except HTTPException as he:
-
+        # Re-raise HTTP exceptions directly
         raise he
     except Exception as e:
+        # Log other exceptions and return a generic error
         logger.exception(f"🔥 Critical order error for user {chat_id}: {str(e)}")
         raise HTTPException(500, "Internal server error")
+
+
 
 RESTAURANT_LAT = 9.005  # Example: Addis Ababa coordinates
 RESTAURANT_LON = 38.763
