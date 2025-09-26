@@ -155,6 +155,12 @@ class Order(BaseModel):
     updatedAt: datetime
     type: Optional[str] # Matches the 'type' field from crud.py
     estimatedDeliveryTime: Optional[datetime] = None
+    deliveryAddress: Optional[str] = None
+    specialInstructions: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    deliveryStaffId: Optional[int] = None
+    estimatedDeliveryTime: Optional[datetime] = None
 class StatusUpdate(BaseModel):
     """
     The model for the request body when updating an order's status.

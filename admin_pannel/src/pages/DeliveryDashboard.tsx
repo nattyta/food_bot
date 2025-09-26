@@ -84,19 +84,34 @@ const DeliveryDashboard = () => {
   });
   
   const completeMutation = useMutation({
+    // --- CHANGE THIS LINE ---
+    // Replace the generic updateStatus with our new, specific function
     mutationFn: (orderId: string) => ordersApi.completeDelivery(token!, orderId),
+    
+    // The rest of the mutation can stay the same
     onSuccess: () => {
       toast({ title: "Delivery Completed!" });
       queryClient.invalidateQueries({ queryKey: ['delivery'] });
     },
     onError: (err: Error) => { 
-      toast({ title: "Completion Failed", description: err.message, variant: "destructive" });
+        toast({ 
+            title: "Completion Failed", 
+            description: err.message || "Could not complete the delivery.", 
+            variant: "destructive" 
+        });
     },
   });
 
   // --- 3. HANDLER FUNCTIONS ---
   const handleAcceptDelivery = (orderId: string) => acceptMutation.mutate(orderId);
-  const handleCompleteDelivery = (orderId: string) => completeMutation.mutate(orderId);
+  const handleCompleteDelivery = (orderId: string) => {
+    // --- THIS IS THE LOGGING LINE ---
+    // Add this log to see the ID in the browser's developer console.
+    console.log("✅ QR Code scanned! Attempting to complete delivery for order ID:", orderId);
+    
+    // The mutation call remains the same
+    completeMutation.mutate(orderId);
+  };
   
   const handleGetDirections = (address?: string) => {
     if (!address) {
@@ -112,6 +127,22 @@ const DeliveryDashboard = () => {
     const mapUrl = `https://maps.apple.com/?q=${encodedAddress}`;
     window.open(mapUrl, '_blank');
   };
+
+
+
+  const handleCallCustomer = (phone?: string) => {
+    if (!phone) {
+      toast({
+        title: "Phone number not available",
+        description: "This order does not have a customer phone number.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Create the universal 'tel:' link to open the native dialer
+    window.location.href = `tel:${phone}`;
+  };
+
 
   // --- 4. FILTERING LOGIC ---
   const allOrders = [
@@ -131,6 +162,18 @@ const DeliveryDashboard = () => {
     if (activeTab === 'completed') return order.status === 'delivered';
     return true;
   });
+
+
+  filteredOrders.map((order, index) => {
+    // THIS IS THE MOST IMPORTANT LOG IN THE ENTIRE APP RIGHT NOW
+    console.log(`[Rendering] Order ID: ${order.id}, Lat: ${order.latitude}, Lng: ${order.longitude}`);
+  
+    return (
+      <Card key={order.id} /* ... */>
+        {/* ... */}
+      </Card>
+    )
+  })
 
   const availableCount = availableOrdersData.length;
   const activeCount = myDeliveriesData.length;
@@ -223,7 +266,14 @@ const DeliveryDashboard = () => {
                           {(order.status === 'on_the_way') && (
                             <>
                               <Button variant="outline" size="sm" onClick={() => handleGetDirections(order.deliveryAddress)}><Navigation className="h-4 w-4 mr-1" />Directions</Button>
-                              <Button variant="outline" size="sm"><Phone className="h-4 w-4 mr-1" />Call Customer</Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleCallCustomer(order.customerPhone)}
+                              >
+                                <Phone className="h-4 w-4 mr-1" />
+                                Call Customer
+                              </Button>
                               <QRScannerButton orderId={order.id} onComplete={() => handleCompleteDelivery(order.id)} />
                             </>
                           )}

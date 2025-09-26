@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChangePasswordDialog } from '@/components/Settings/ChangePasswordDialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
@@ -29,6 +30,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAuthWithToken } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { settingsApi } from '@/api/settings';
+
 import { 
   RestaurantSettings, 
   BusinessHours, 
@@ -40,6 +42,7 @@ import {
 
 const Settings = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { token } = useAuthWithToken();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -50,6 +53,9 @@ const Settings = () => {
     available: true,
     lastStatusChange: new Date().toISOString()
   });
+
+
+
 
   // Account Settings (for all roles)
   const [accountSettings, setAccountSettings] = useState<AccountSettings>({
@@ -101,6 +107,11 @@ const Settings = () => {
     chapaConnected: false
   });
 
+
+  
+
+  
+
   // Load initial data
   useEffect(() => {
     const loadSettings = async () => {
@@ -149,6 +160,46 @@ const Settings = () => {
 
     loadSettings();
   }, [token, user?.role, toast]);
+
+
+
+  const handleWorkStatusChange = async (checked: boolean) => {
+    if (!token) return;
+
+    // 1. Optimistically update the UI for a snappy feel
+    const originalStatus = workStatus;
+    setWorkStatus({
+      available: checked,
+      lastStatusChange: new Date().toISOString()
+    });
+
+    try {
+      // 2. Call the API to update the backend
+      const updatedStatus = await settingsApi.updateWorkStatus(token, {
+        available: checked,
+        lastStatusChange: new Date().toISOString()
+      });
+      
+      // 3. (Optional) Sync the state with the exact data from the backend
+      setWorkStatus(updatedStatus);
+
+      toast({
+        title: "Status Updated!",
+        description: `You are now ${checked ? 'Available' : 'Not Available'}.`
+      });
+    } catch (error) {
+      console.error('Failed to update work status:', error);
+      // 4. If the API call fails, revert the UI back to its original state
+      setWorkStatus(originalStatus);
+      toast({
+        title: "Update Failed",
+        description: "Could not update your work status. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+
 
   const handleSave = async () => {
     if (!token) return;
@@ -289,6 +340,9 @@ const Settings = () => {
       </div>
     );
   }
+
+
+  
 
   if (user?.role === 'delivery') {
     return (

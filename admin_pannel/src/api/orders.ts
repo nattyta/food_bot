@@ -56,15 +56,17 @@ export const ordersApi = {
 
   getMyDeliveries: async (token: string): Promise<Order[]> => {
     const client = createApiClient(token);
-    const responseData = await client.get<Order[]>('/delivery/my-orders');
+    const responseData = await client.get<any[]>('/delivery/my-orders'); // Fetch as any[] to be safe
 
     return responseData.map(order => ({
-      ...order,
+      ...order, // Spread all properties first
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
+      // Manually cast numeric types to be certain
+      latitude: order.latitude ? parseFloat(order.latitude) : undefined,
+      longitude: order.longitude ? parseFloat(order.longitude) : undefined,
     }));
   },
-
   /**
    * Accept a delivery order - assigns it to the current driver.
    */
@@ -72,14 +74,17 @@ export const ordersApi = {
 
   getAvailableDeliveries: async (token: string): Promise<Order[]> => {
     const client = createApiClient(token);
-    const responseData = await client.get<Order[]>('/delivery/available');
+    const responseData = await client.get<any[]>('/delivery/available'); // Fetch as any[]
 
     return responseData.map(order => ({
       ...order,
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
+      latitude: order.latitude ? parseFloat(order.latitude) : undefined,
+      longitude: order.longitude ? parseFloat(order.longitude) : undefined,
     }));
   },
+
 
   acceptDelivery: async (token: string, orderId: string): Promise<Order> => {
     const client = createApiClient(token);
@@ -132,17 +137,16 @@ export const ordersApi = {
 
   getCompletedDeliveries: async (token: string): Promise<Order[]> => {
     const client = createApiClient(token);
-
-   
-    const responseData = await client.get<Order[]>(`/delivery/completed`);
+    const responseData = await client.get<any[]>('/delivery/completed'); // Fetch as any[]
 
     return responseData.map(order => ({
       ...order,
       createdAt: new Date(order.createdAt),
       updatedAt: new Date(order.updatedAt),
+      latitude: order.latitude ? parseFloat(order.latitude) : undefined,
+      longitude: order.longitude ? parseFloat(order.longitude) : undefined,
     }));
   },
-
 
   getDeliveryStats: async (token: string): Promise<DeliveryStats> => {
     const client = createApiClient(token);

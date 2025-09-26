@@ -1,3 +1,4 @@
+// src/api/settings.ts
 import { createApiClient } from './client';
 import { 
   RestaurantSettings, 
@@ -6,93 +7,81 @@ import {
   PaymentSettings, 
   AccountSettings, 
   WorkStatus,
-  ApiResponse 
 } from './types';
 
 export const settingsApi = {
   // Restaurant Settings
   getRestaurantSettings: async (token: string): Promise<RestaurantSettings> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<RestaurantSettings>>('/settings/restaurant');
-    return response.data;
+    return client.get<RestaurantSettings>('/settings/restaurant');
   },
 
   updateRestaurantSettings: async (token: string, settings: RestaurantSettings): Promise<RestaurantSettings> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<RestaurantSettings>>('/settings/restaurant', settings);
-    return response.data;
+    return client.put<RestaurantSettings>('/settings/restaurant', settings);
   },
 
   // Business Hours
   getBusinessHours: async (token: string): Promise<BusinessHours> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<BusinessHours>>('/settings/business-hours');
-    return response.data;
+    return client.get<BusinessHours>('/settings/business-hours');
   },
 
   updateBusinessHours: async (token: string, hours: BusinessHours): Promise<BusinessHours> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<BusinessHours>>('/settings/business-hours', hours);
-    return response.data;
+    return client.put<BusinessHours>('/settings/business-hours', hours);
   },
 
   // Notification Settings
   getNotificationSettings: async (token: string): Promise<NotificationSettings> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<NotificationSettings>>('/settings/notifications');
-    return response.data;
+    return client.get<NotificationSettings>('/settings/notifications');
   },
 
   updateNotificationSettings: async (token: string, settings: NotificationSettings): Promise<NotificationSettings> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<NotificationSettings>>('/settings/notifications', settings);
-    return response.data;
+    return client.put<NotificationSettings>('/settings/notifications', settings);
   },
 
   // Payment Settings
   getPaymentSettings: async (token: string): Promise<PaymentSettings> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<PaymentSettings>>('/settings/payments');
-    return response.data;
+    return client.get<PaymentSettings>('/settings/payments');
   },
 
+  // --- THIS IS THE FULLY CORRECTED FUNCTION ---
   updatePaymentSettings: async (token: string, settings: PaymentSettings): Promise<PaymentSettings> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<PaymentSettings>>('/settings/payments', settings);
-    return response.data;
+    return client.put<PaymentSettings>('/settings/payments', settings);
   },
 
   // Account Settings
   getAccountSettings: async (token: string): Promise<AccountSettings> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<AccountSettings>>('/settings/account');
-    return response.data;
+    return client.get<AccountSettings>('/settings/account');
   },
 
   updateAccountSettings: async (token: string, settings: AccountSettings): Promise<AccountSettings> => {
     const client = createApiClient(token);
-    const response = await client.put<ApiResponse<AccountSettings>>('/settings/account', settings);
-    return response.data;
+    return client.put<AccountSettings>('/settings/account', settings);
   },
 
   // Work Status (for delivery staff)
   getWorkStatus: async (token: string): Promise<WorkStatus> => {
     const client = createApiClient(token);
-    const response = await client.get<ApiResponse<WorkStatus>>('/settings/work-status');
-    return response.data;
+    // --- THIS IS THE FIX: Use the correct URL ---
+    return client.get<WorkStatus>('/settings/work-status');
+  },
+  
+  updateWorkStatus: async (token: string, newStatus: WorkStatus): Promise<WorkStatus> => {
+    const client = createApiClient(token);
+    // --- THIS IS THE FIX: Use the correct URL ---
+    return client.put<WorkStatus>('/settings/work-status', newStatus);
   },
 
   updateStaffProfile: async (token: string, settings: { name: string; phone: string; }): Promise<AccountSettings> => {
     const client = createApiClient(token);
-    // It calls our new /settings/profile endpoint
-    const response = await client.put<ApiResponse<AccountSettings>>('/settings/profile', settings);
-    return response.data;
-  },
-
-  updateWorkStatus: async (token: string, status: WorkStatus): Promise<WorkStatus> => {
-    const client = createApiClient(token);
-    const response = await client.put<ApiResponse<WorkStatus>>('/settings/work-status', status);
-    return response.data;
+    return client.put<AccountSettings>('/settings/profile', settings);
   },
 
   updatePassword: async (token: string, data: { oldPassword: string; newPassword: string }): Promise<void> => {

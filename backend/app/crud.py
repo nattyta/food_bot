@@ -1076,6 +1076,15 @@ def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Di
     """
     rows = db.fetchall(query, (delivery_boy_id,))
     
+    # --- AGGRESSIVE LOGGING ---
+    logger.info("--- RAW DATABASE ROWS for get_my_delivery_orders ---")
+    for i, row in enumerate(rows):
+        logger.info(f"Row {i}: {row}")
+        logger.info(f"  -> Type of row[12] (latitude): {type(row[12])}")
+        logger.info(f"  -> Type of row[13] (longitude): {type(row[13])}")
+    logger.info("--------------------------------------------------")
+    # --- END LOGGING ---
+
     mapped_orders = []
     for row in rows:
         items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
@@ -1083,14 +1092,14 @@ def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Di
             if 'name' in item:
                 item['menuItemName'] = item.pop('name')
         
-        mapped_orders.append({
+        order_dict = {
             "id": f"ORD-{row[0]}",
             "customerName": row[1],
             "customerPhone": row[2],
             "total": float(row[3]),
             "status": row[4],
             "createdAt": row[5],
-            "updatedAt": row[5], # Use createdAt as a fallback
+            "updatedAt": row[5],
             "items": items_from_db,
             "type": row[7],
             "paymentStatus": row[8],
@@ -1099,23 +1108,16 @@ def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Di
             "deliveryStaffId": row[11],
             "latitude": row[12],
             "longitude": row[13]
-        })
+        }
+        mapped_orders.append(order_dict)
+
+        # --- AGGRESSIVE LOGGING ---
+        logger.info(f"--- MAPPED DICTIONARY for order {order_dict['id']} ---")
+        logger.info(json.dumps(order_dict, indent=2, default=str)) # Use default=str for datetimes
+        logger.info("-------------------------------------------------")
+        # --- END LOGGING ---
+
     return mapped_orders
-
-def accept_delivery_order(db: DatabaseManager, order_id: int, delivery_boy_id: int) -> bool:
-    """
-    Atomically assigns a 'ready' order to a delivery person.
-    Returns True if successful, False if the order was already taken.
-    """
-    query = """
-        UPDATE orders
-        SET assigned_delivery_boy_id = %s, status = 'on_the_way'
-        WHERE order_id = %s AND status = 'ready' AND assigned_delivery_boy_id IS NULL;
-    """
-    cursor, rowcount = db.execute(query, (delivery_boy_id, order_id))
-    cursor.close()
-    return rowcount > 0 # Will be 1 if the update worked, 0 if it failed
-
 
 
 def complete_delivery_order(db: DatabaseManager, order_id: int, delivery_staff_id: int) -> Dict[str, Any]:
@@ -1209,7 +1211,7 @@ def get_completed_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> 
         })
     return mapped_orders
 
-    
+
 def get_delivery_staff_stats(db: DatabaseManager, delivery_staff_id: int) -> Dict[str, Any]:
     """
     Calculates and returns key performance statistics for a single delivery person.

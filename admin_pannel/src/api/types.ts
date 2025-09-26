@@ -53,9 +53,11 @@ export interface Order {
   specialInstructions?: string; // Note: plural, for the whole order
   // Optional display fields
   deliveryAddress?: string;
-  deliveryStaffId?: string;
+  deliveryStaffId?: number;
   orderTime?: string;
   estimatedTime?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface OrderItem {
