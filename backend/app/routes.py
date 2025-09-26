@@ -225,9 +225,22 @@ async def get_current_user(
 
 @router.post("/orders", response_model=dict)
 async def create_order(
+    request: Request,
     order: OrderCreate,
     chat_id: int = Depends(telegram_auth_dependency)
 ):
+
+   try:
+        raw_payload = await request.json()
+        print("--- RAW CUSTOMER ORDER PAYLOAD ---")
+        import json
+        print(json.dumps(raw_payload, indent=2))
+        print("----------------------------------")
+    except Exception as e:
+        print(f"Error reading raw payload: {e}")
+
+
+
     try:
         # Your validation logic is good
         if not re.fullmatch(r'^\+251[79]\d{8}$', order.phone):

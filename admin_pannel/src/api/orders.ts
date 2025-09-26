@@ -1,5 +1,5 @@
 import { createApiClient } from './client';
-import { Order, OrderStatus } from './types';
+import { Order, OrderStatus, DeliveryStats  } from './types';
 
 export const ordersApi = {
   /**
@@ -143,4 +143,11 @@ export const ordersApi = {
     }));
   },
 
+
+  getDeliveryStats: async (token: string): Promise<DeliveryStats> => {
+    const client = createApiClient(token);
+    // We just tell the client WHICH endpoint to GET
+    const responseData = await client.get<DeliveryStats>(`/delivery/stats`); 
+    return responseData;
+  },
 };

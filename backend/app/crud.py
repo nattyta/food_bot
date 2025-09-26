@@ -1017,13 +1017,12 @@ def get_delivery_dashboard_data(db: DatabaseManager, delivery_boy_id: int) -> Di
 def get_available_delivery_orders(db: DatabaseManager) -> List[Dict[str, Any]]:
     """
     Fetches all orders of type 'delivery' that are 'ready' and NOT assigned to anyone.
-    Sorted oldest first.
     """
     logger.info("Fetching available, unassigned delivery orders...")
     query = """
         SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
-               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
-               o.assigned_delivery_boy_id
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, 
+               o.address, o.assigned_delivery_boy_id, o.latitude, o.longitude
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
         WHERE o.order_type = 'delivery' 
@@ -1031,9 +1030,9 @@ def get_available_delivery_orders(db: DatabaseManager) -> List[Dict[str, Any]]:
           AND o.assigned_delivery_boy_id IS NULL
         ORDER BY o.order_date ASC;
     """
-    rows = db.fetchall(query)
+    # THIS QUERY HAS NO PARAMETERS, SO WE PASS NONE.
+    rows = db.fetchall(query) 
     
-    # --- THIS IS THE MISSING LOGIC ---
     mapped_orders = []
     for row in rows:
         items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
@@ -1048,16 +1047,19 @@ def get_available_delivery_orders(db: DatabaseManager) -> List[Dict[str, Any]]:
             "total": float(row[3]),
             "status": row[4],
             "createdAt": row[5],
-            "updatedAt": row[5],
+            "updatedAt": row[5], # Use createdAt as a fallback
             "items": items_from_db,
             "type": row[7],
             "paymentStatus": row[8],
             "specialInstructions": row[9],
             "deliveryAddress": row[10],
-            "deliveryStaffId": row[11]
+            "deliveryStaffId": row[11],
+            "latitude": row[12],
+            "longitude": row[13]
         })
-    return mapped_orders # <-- Now this variable exists
+    return mapped_orders
 
+    
 def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Dict[str, Any]]:
     """
     Fetches all active orders assigned to a specific delivery person.
@@ -1065,8 +1067,8 @@ def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Di
     logger.info(f"Fetching active orders for delivery boy ID: {delivery_boy_id}")
     query = """
         SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
-               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
-               o.assigned_delivery_boy_id
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, 
+               o.address, o.assigned_delivery_boy_id, o.latitude, o.longitude
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
         WHERE o.assigned_delivery_boy_id = %s AND o.status = 'on_the_way'
@@ -1074,7 +1076,6 @@ def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Di
     """
     rows = db.fetchall(query, (delivery_boy_id,))
     
-    # --- THIS IS THE MISSING LOGIC ---
     mapped_orders = []
     for row in rows:
         items_from_db = json.loads(row[6]) if isinstance(row[6], str) else (row[6] or [])
@@ -1089,15 +1090,17 @@ def get_my_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Di
             "total": float(row[3]),
             "status": row[4],
             "createdAt": row[5],
-            "updatedAt": row[5],
+            "updatedAt": row[5], # Use createdAt as a fallback
             "items": items_from_db,
             "type": row[7],
             "paymentStatus": row[8],
             "specialInstructions": row[9],
             "deliveryAddress": row[10],
-            "deliveryStaffId": row[11]
+            "deliveryStaffId": row[11],
+            "latitude": row[12],
+            "longitude": row[13]
         })
-    return mapped_orders # <-- Now this variable exists
+    return mapped_orders
 
 def accept_delivery_order(db: DatabaseManager, order_id: int, delivery_boy_id: int) -> bool:
     """
@@ -1167,17 +1170,16 @@ def complete_delivery_order(db: DatabaseManager, order_id: int, delivery_staff_i
 def get_completed_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> List[Dict[str, Any]]:
     """
     Fetches all orders of status 'delivered' assigned to a specific delivery person.
-    Sorted newest first for the history view.
     """
     logger.info(f"Fetching completed orders for delivery boy ID: {delivery_boy_id}")
     query = """
         SELECT o.order_id, u.name as customer_name, o.obfuscated_phone, o.total_price, 
-               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, o.address,
-               o.assigned_delivery_boy_id, o.updated_at
+               o.status, o.order_date, o.items, o.order_type, o.payment_status, o.notes, 
+               o.address, o.assigned_delivery_boy_id, o.updated_at, o.latitude, o.longitude
         FROM orders o
         LEFT JOIN users u ON o.user_id = u.chat_id
         WHERE o.assigned_delivery_boy_id = %s AND o.status = 'delivered'
-        ORDER BY o.updated_at DESC; -- Show the most recently completed first
+        ORDER BY o.updated_at DESC;
     """
     rows = db.fetchall(query, (delivery_boy_id,))
     
@@ -1195,12 +1197,48 @@ def get_completed_delivery_orders(db: DatabaseManager, delivery_boy_id: int) -> 
             "total": float(row[3]),
             "status": row[4],
             "createdAt": row[5],
-            "updatedAt": row[12], # Use the updated_at field for completion time
+            "updatedAt": row[12], # This one uses the real updated_at
             "items": items_from_db,
             "type": row[7],
             "paymentStatus": row[8],
             "specialInstructions": row[9],
             "deliveryAddress": row[10],
-            "deliveryStaffId": row[11]
+            "deliveryStaffId": row[11],
+            "latitude": row[13],
+      "longitude": row[14]
         })
     return mapped_orders
+
+    
+def get_delivery_staff_stats(db: DatabaseManager, delivery_staff_id: int) -> Dict[str, Any]:
+    """
+    Calculates and returns key performance statistics for a single delivery person.
+    """
+    logger.info(f"Fetching performance stats for delivery staff ID: {delivery_staff_id}")
+    
+    stats_query = """
+        SELECT
+            -- Total deliveries ever
+            COUNT(order_id) as total_deliveries,
+            -- Today's deliveries
+            COUNT(CASE WHEN updated_at >= DATE_TRUNC('day', NOW()) THEN 1 END) as today_deliveries,
+            -- Total earnings (assuming a fixed amount per delivery for now, e.g., $2.50)
+            COALESCE(SUM(2.50), 0.0) as total_earnings
+        FROM orders
+        WHERE assigned_delivery_boy_id = %s AND status = 'delivered';
+    """
+    stats_row = db.fetchone(stats_query, (delivery_staff_id,))
+    
+    if not stats_row:
+        return { "totalDeliveries": 0, "todayDeliveries": 0, "averageTime": 0, "averageRating": 0.0, "earnings": 0.0 }
+
+    return {
+        "totalDeliveries": stats_row[0],
+        "todayDeliveries": stats_row[1],
+        "earnings": float(stats_row[2]),
+        "averageTime": 22,   # Placeholder for MVP, requires more complex calculation
+        "averageRating": 4.7 # Placeholder for MVP, requires a ratings table
+    }
+
+
+

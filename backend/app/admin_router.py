@@ -471,3 +471,13 @@ def get_completed_deliveries(
 ):
     """Gets all orders completed by the logged-in driver."""
     return crud.get_completed_delivery_orders(db, delivery_boy_id=current_user.id) 
+
+
+
+@router.get("/delivery/stats", response_model=schemas.DeliveryStats, tags=["Delivery"])
+def get_my_delivery_stats(
+    db: DatabaseManager = Depends(get_db_manager),
+    current_user: AdminInDB = Depends(get_current_delivery_staff)
+):
+    """Gets performance statistics for the currently logged-in delivery person."""
+    return crud.get_delivery_staff_stats(db, delivery_staff_id=current_user.id)
