@@ -232,13 +232,11 @@ async def create_order(
 
    try:
         raw_payload = await request.json()
-        print("--- RAW CUSTOMER ORDER PAYLOAD ---")
-        import json
-        print(json.dumps(raw_payload, indent=2))
-        print("----------------------------------")
+        logger.info("--- RAW CUSTOMER ORDER PAYLOAD ---")
+        logger.info(json.dumps(raw_payload, indent=2))
+        logger.info("----------------------------------")
     except Exception as e:
-        print(f"Error reading raw payload: {e}")
-
+        logger.error(f"Error reading raw order payload: {e}")
 
 
     try:
